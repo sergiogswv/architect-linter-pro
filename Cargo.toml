@@ -1,6 +1,6 @@
 [package]
 name = "architect-linter"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 authors = ["Sergio"]
 description = "Un linter de arquitectura de software para proyectos TypeScript"
@@ -12,6 +12,7 @@ categories = ["development-tools"]
 [dependencies]
 # Forzamos una versión de serde que sabemos que tiene lo que swc busca
 serde = { version = "=1.0.197", features = ["derive"] }
+serde_json = "1.0.101"
 
 # Usamos las versiones que no dan guerra con esa versión de serde
 swc_common = { version = "0.33.0", features = ["concurrent"] }
@@ -24,3 +25,7 @@ thiserror = "1.0"
 rayon = "1.10.0"
 dialoguer = "0.11.0"
 indicatif = "0.18.0"
+
+tokio = { version = "1.0", features = ["full"] } # Para manejar peticiones asíncronas
+reqwest = { version = "0.11", features = ["json"] } # Cliente HTTP
+async-trait = "0.1"

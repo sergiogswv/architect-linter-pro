@@ -5,6 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.6.0] - 2026-01-30
+
+### Refactorizado
+- Separación del código en módulos para mejor organización y mantenibilidad:
+  - **src/analyzer.rs**: Lógica de análisis de archivos TypeScript movida a módulo dedicado
+  - **src/config.rs**: Definiciones de configuración y tipos de error (`LinterConfig`, `ArchError`)
+  - **src/main.rs**: Simplificado, enfocado en orquestación y flujo principal
+- Mejora en la estructura del proyecto siguiendo mejores prácticas de Rust
+
+### Agregado
+- Dependencias para soporte asíncrono futuro:
+  - `tokio` v1.0 con features completas para operaciones async
+  - `reqwest` v0.11 con soporte JSON para cliente HTTP
+  - `async-trait` v0.1 para traits asíncronos
+- Preparación de infraestructura para futuras funcionalidades de red y procesamiento async
+
+### Técnico
+- Modularización del código base para facilitar testing y extensibilidad
+- Configuración centralizada en módulo `config` con `LinterConfig` y `ArchError`
+- Función `analyze_file` ahora exportada desde módulo `analyzer`
+
 ## [0.5.0] - 2026-01-29
 
 ### Agregado
@@ -61,5 +82,6 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 - SourceMap para ubicación precisa de errores
 - Filtrado inteligente de directorios durante el walkdir
 
+[0.6.0]: https://github.com/sergio/architect-linter/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio/architect-linter/releases/tag/v0.5.0
 [0.1.0]: https://github.com/sergio/architect-linter/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 # Architect Linter
 
-**Versión:** 0.5.0
+**Versión:** 0.6.0
 
 Un linter de arquitectura de software escrito en Rust que valida reglas arquitectónicas en proyectos TypeScript, ayudando a mantener la separación de responsabilidades y las mejores prácticas de diseño.
 
@@ -270,7 +270,9 @@ git commit -m "feat: add new user endpoint"
 ```
 architect-linter/
 ├── src/
-│   └── main.rs                 # Código principal del linter
+│   ├── main.rs                 # Punto de entrada y orquestación principal
+│   ├── analyzer.rs             # Lógica de análisis de archivos TypeScript
+│   └── config.rs               # Configuración y tipos de error
 ├── Cargo.toml                  # Configuración de dependencias
 ├── Cargo.lock                  # Lock de versiones
 ├── README.md                   # Documentación principal
@@ -288,6 +290,9 @@ architect-linter/
 - **walkdir**: Traversal de directorios
 - **dialoguer**: Interfaz interactiva de usuario
 - **indicatif**: Barras de progreso
+- **tokio**: Runtime asíncrono para operaciones async
+- **reqwest**: Cliente HTTP con soporte JSON
+- **async-trait**: Soporte para traits asíncronos
 
 ## Reglas de Arquitectura Implementadas
 
@@ -316,6 +321,8 @@ Las funciones no deben exceder el límite configurado en `max_lines_per_function
 - [x] Integración con Git Hooks (Husky)
 - [x] Soporte para argumentos CLI (--path)
 - [x] Procesamiento paralelo para análisis rápido
+- [x] Refactorización a arquitectura modular
+- [x] Infraestructura async lista para extensiones futuras
 
 ### En Progreso 🚧
 - [ ] Implementación de lectura del archivo `architect.json`
@@ -327,10 +334,12 @@ Las funciones no deben exceder el límite configurado en `max_lines_per_function
 - [ ] Soporte para JavaScript (.js, .jsx)
 - [ ] Exportación de reportes en JSON/HTML/Markdown
 - [ ] Integración nativa con CI/CD (GitHub Actions, GitLab CI, etc.)
+- [ ] API REST para análisis remoto (usando infraestructura async)
 - [ ] Reglas personalizadas mediante plugins
 - [ ] Caché de resultados para análisis incremental
 - [ ] Modo watch para desarrollo continuo
 - [ ] Configuración de severidad por regla (error, warning, info)
+- [ ] Integración con servicios de análisis de código en la nube
 
 ## Contribuir
 
@@ -351,6 +360,12 @@ Este proyecto está bajo la licencia MIT.
 Sergio - [GitHub](https://github.com/sergio)
 
 ## Changelog
+
+### v0.6.0 (2026-01-30)
+- Refactorización a arquitectura modular (analyzer.rs, config.rs)
+- Mejora en organización y mantenibilidad del código
+- Infraestructura async preparada con tokio y reqwest
+- Separación de responsabilidades en módulos dedicados
 
 ### v0.5.0 (2026-01-29)
 - Documentación completa del proyecto
