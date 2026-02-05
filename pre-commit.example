@@ -3,14 +3,14 @@
 
 echo "🏗️  Ejecutando Architect Linter..."
 
-# Cambia esta ruta a donde tengas el .exe de tu linter
-# Ejemplo para Windows:
-# "C:/Users/TuUsuario/Projects/architect-linter/target/release/architect-linter.exe" --path .
+# Ejecutar architect-linter en el directorio actual (.)
+# Si está instalado globalmente, usa solo:
+#   architect-linter .
 #
-# Ejemplo para Linux/Mac:
-# "/home/tuusuario/projects/architect-linter/target/release/architect-linter" --path .
+# Si usas una ruta local al binario, usa:
+#   "/ruta/a/tu/architect-linter" .
 
-"C:/Ruta/A/Tu/Proyecto/Rust/target/release/architect-linter.exe" --path .
+architect-linter .
 
 # Si el linter encuentra errores, el commit se cancelará
 if [ $? -ne 0 ]; then
