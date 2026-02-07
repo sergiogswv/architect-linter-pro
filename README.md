@@ -669,14 +669,25 @@ Circular dependency detected:
 architect-linter/
 ├── src/
 │   ├── main.rs                 # Main orchestration, circular dependency analysis
-│   ├── analyzer.rs             # TypeScript analysis, dynamic rule validation
+│   ├── analyzer.rs             # Multi-language analysis orchestrator
+│   ├── autofix.rs              # AI-powered automatic violation fixing
 │   ├── config.rs               # Types, config loading/saving in two files
 │   ├── circular.rs             # Circular dependency detection (graph + DFS)
 │   ├── ui.rs                   # Interactive UI, ASCII banner, configuration wizard
 │   ├── ai.rs                   # Claude API integration for suggestions
 │   ├── discovery.rs            # Project structure analysis
 │   ├── detector.rs             # Automatic framework detection
-│   └── cli.rs                  # Command-line argument handling
+│   ├── cli.rs                  # Command-line argument handling
+│   ├── watch.rs                # Watch mode with incremental analysis
+│   └── parsers/
+│       ├── mod.rs              # Parser module exports and factory
+│       ├── typescript.rs       # TypeScript/JavaScript parser (Tree-sitter)
+│       ├── python.rs           # Python parser (Tree-sitter)
+│       ├── go.rs               # Go parser (Tree-sitter)
+│       ├── php.rs              # PHP parser (Tree-sitter)
+│       └── java.rs             # Java parser (Tree-sitter)
+├── public/
+│   └── architect-linter-banner.png  # Project banner image
 ├── Cargo.toml                  # Dependencies and project configuration
 ├── README.md                   # This documentation (English)
 ├── README_ES.md                # Spanish documentation
@@ -694,13 +705,22 @@ architect-linter/
 
 ## Technologies
 
-- **swc_ecma_parser**: High-performance TypeScript/JavaScript parser
-- **rayon**: Automatic parallel processing
-- **miette**: Elegant diagnostic reports with context
+- **Tree-sitter**: Universal parsing library for all 6 supported languages
+  - `tree-sitter-typescript`: TypeScript/JavaScript grammar
+  - `tree-sitter-python`: Python grammar
+  - `tree-sitter-go`: Go grammar
+  - `tree-sitter-php`: PHP grammar
+  - `tree-sitter-java`: Java grammar
+- **swc_ecma_parser**: High-performance TypeScript/JavaScript parser (legacy support)
+- **rayon**: Automatic parallel processing for ultra-fast analysis
+- **miette**: Elegant diagnostic reports with rich context
+- **notify**: File system watcher for watch mode
 - **walkdir**: Efficient directory traversal
 - **dialoguer**: Interactive terminal UI
-- **indicatif**: Progress bars
+- **indicatif**: Progress bars and spinners
 - **serde_json**: JSON configuration parsing
+- **reqwest**: HTTP client for Claude API integration
+- **tokio**: Async runtime for I/O operations
 
 ## Implemented Rules
 
@@ -717,7 +737,7 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 
 ### Completed ✅
 - [x] Dynamic rule engine with `forbidden_imports`
-- [x] Automatic framework detection (NestJS, React, Angular, Express)
+- [x] Automatic framework detection (NestJS, React, Angular, Express, Django, Laravel, Spring Boot)
 - [x] Interactive configuration on first run
 - [x] Support for patterns: Hexagonal, Clean, MVC
 - [x] Parallel processing with Rayon
@@ -731,17 +751,20 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 - [x] **Circular dependency detection** with graph analysis and DFS
 - [x] **Automatic Husky setup** during initial configuration
 - [x] **Watch mode** with incremental analysis and intelligent caching
+- [x] **Multi-language support**: TypeScript, JavaScript, Python, Go, PHP, Java (6 languages)
+- [x] **Tree-sitter integration** for fast and accurate parsing across all languages
+- [x] **AI-powered auto-fix** for architectural violations (--fix)
 
 ### Coming Soon 🚧
 - [ ] Report export (JSON, HTML, Markdown)
 - [ ] Web dashboard to visualize historical violations
+- [ ] Support for more languages (Rust, C#, Ruby, Kotlin)
 
 ### Future 🔮
 - [ ] Custom rules via Rust/WASM plugins
 - [ ] Native CI/CD integration (GitHub Actions, GitLab CI)
 - [ ] Severity configuration per rule (error, warning, info)
-- [ ] Web dashboard to visualize historical violations
-- [ ] Support for more languages (Python, Go, Java)
+- [ ] Language-specific rule templates
 
 ## Contributing
 
@@ -764,6 +787,17 @@ Sergio Guadarrama - [GitHub](https://github.com/sergiogswv)
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+
+### v3.1.0 (2026-02-06) - Multi-Language Support: PHP & Java
+- 🌐 **PHP Parser**: Full Tree-sitter integration with support for use/require/include statements
+- ☕ **Java Parser**: Complete Tree-sitter grammar support with import analysis
+- 📚 **6 Languages Total**: TypeScript, JavaScript, Python, Go, PHP, Java now fully supported
+- 🎨 **Professional Banner**: New project banner in documentation
+- 📖 **Enhanced Documentation**: Multi-language support table in English and Spanish
+- 🔧 **Improved Setup Scripts**: Better error handling and PATH configuration
+- 🧹 **Code Cleanup**: Removed 72 lines of dead code (LanguageInfo, unused methods)
+- ⚡ **Tree-sitter Dependencies**: Added tree-sitter-php and tree-sitter-java
+- 📁 **Updated Examples**: architect.json.example with PHP and Java rule examples
 
 ### v2.0.0 (2026-02-04) - Major Release: Circular Dependencies & Security
 - 🔴 **Circular dependency detection**: Graph-based analysis with DFS algorithm

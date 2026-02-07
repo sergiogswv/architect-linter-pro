@@ -665,15 +665,26 @@ Dependencia cíclica detectada:
 ```
 architect-linter/
 ├── src/
-│   ├── main.rs                 # Orquestaci��n principal, análisis de dependencias cíclicas
-│   ├── analyzer.rs             # Análisis de TypeScript, validación de reglas dinámicas
+│   ├── main.rs                 # Orquestación principal, análisis de dependencias cíclicas
+│   ├── analyzer.rs             # Orquestador de análisis multi-lenguaje
+│   ├── autofix.rs              # Corrección automática de violaciones con IA
 │   ├── config.rs               # Tipos, carga/guardado de config en dos archivos
 │   ├── circular.rs             # Detección de dependencias cíclicas (grafo + DFS)
 │   ├── ui.rs                   # UI interactiva, banner ASCII, wizard de configuración
 │   ├── ai.rs                   # Integración con Claude API para sugerencias
 │   ├── discovery.rs            # Análisis de estructura del proyecto
 │   ├── detector.rs             # Detección automática de framework
-│   └── cli.rs                  # Manejo de argumentos de línea de comandos
+│   ├── cli.rs                  # Manejo de argumentos de línea de comandos
+│   ├── watch.rs                # Modo watch con análisis incremental
+│   └── parsers/
+│       ├── mod.rs              # Exportaciones del módulo parser y factory
+│       ├── typescript.rs       # Parser TypeScript/JavaScript (Tree-sitter)
+│       ├── python.rs           # Parser Python (Tree-sitter)
+│       ├── go.rs               # Parser Go (Tree-sitter)
+│       ├── php.rs              # Parser PHP (Tree-sitter)
+│       └── java.rs             # Parser Java (Tree-sitter)
+├── public/
+│   └── architect-linter-banner.png  # Imagen del banner del proyecto
 ├── Cargo.toml                  # Dependencias y configuración del proyecto
 ├── README_ES.md                # Esta documentación (español)
 ├── README.md                   # Documentación en inglés
@@ -683,7 +694,7 @@ architect-linter/
 ├── CONFIG_ERRORS_ES.md         # Guía de errores de configuración
 ├── architect.json.example      # Ejemplo de archivo de reglas
 ├── .architect.ai.json.example  # Ejemplo de configuración de IA
-���── .gitignore.example          # Template para .gitignore de proyectos
+├── .gitignore.example          # Template para .gitignore de proyectos
 ├── setup.sh                    # Script de instalación para Linux/macOS
 ├── setup.ps1                   # Script de instalación para Windows
 └── pre-commit.example          # Plantilla para Husky
@@ -691,13 +702,22 @@ architect-linter/
 
 ## Tecnologías
 
-- **swc_ecma_parser**: Parser de TypeScript/JavaScript de alto rendimiento
-- **rayon**: Procesamiento paralelo automático
-- **miette**: Reportes de diagnóstico elegantes con contexto
+- **Tree-sitter**: Librería universal de parsing para los 6 lenguajes soportados
+  - `tree-sitter-typescript`: Gramática TypeScript/JavaScript
+  - `tree-sitter-python`: Gramática Python
+  - `tree-sitter-go`: Gramática Go
+  - `tree-sitter-php`: Gramática PHP
+  - `tree-sitter-java`: Gramática Java
+- **swc_ecma_parser**: Parser de TypeScript/JavaScript de alto rendimiento (soporte legacy)
+- **rayon**: Procesamiento paralelo automático para análisis ultrarrápido
+- **miette**: Reportes de diagnóstico elegantes con contexto rico
+- **notify**: Observador de sistema de archivos para modo watch
 - **walkdir**: Traversal eficiente de directorios
 - **dialoguer**: UI interactiva para terminal
-- **indicatif**: Barras de progreso
+- **indicatif**: Barras de progreso y spinners
 - **serde_json**: Parseo de configuración JSON
+- **reqwest**: Cliente HTTP para integración con Claude API
+- **tokio**: Runtime asíncrono para operaciones I/O
 
 ## Reglas Implementadas
 
@@ -714,7 +734,7 @@ Prohibición hardcoded: archivos que contienen `"controller"` no pueden importar
 
 ### Completado ✅
 - [x] Motor de reglas dinámicas con `forbidden_imports`
-- [x] Detección automática de framework (NestJS, React, Angular, Express)
+- [x] Detección automática de framework (NestJS, React, Angular, Express, Django, Laravel, Spring Boot)
 - [x] Configuración interactiva en primera ejecución
 - [x] Soporte para patrones: Hexagonal, Clean, MVC
 - [x] Procesamiento paralelo con Rayon
@@ -728,17 +748,20 @@ Prohibición hardcoded: archivos que contienen `"controller"` no pueden importar
 - [x] **Detección de dependencias cíclicas** con análisis de grafo y DFS
 - [x] **Configuración automática de Husky** durante el setup inicial
 - [x] **Modo watch** con análisis incremental y caché inteligente
+- [x] **Soporte multi-lenguaje**: TypeScript, JavaScript, Python, Go, PHP, Java (6 lenguajes)
+- [x] **Integración Tree-sitter** para análisis rápido y preciso en todos los lenguajes
+- [x] **Auto-fix con IA** para violaciones arquitectónicas (--fix)
 
 ### Próximamente 🚧
 - [ ] Exportación de reportes (JSON, HTML, Markdown)
 - [ ] Dashboard web para visualizar violaciones históricas
+- [ ] Soporte para más lenguajes (Rust, C#, Ruby, Kotlin)
 
 ### Futuro 🔮
 - [ ] Reglas personalizadas mediante plugins en Rust/WASM
 - [ ] Integración nativa con CI/CD (GitHub Actions, GitLab CI)
 - [ ] Configuración de severidad por regla (error, warning, info)
-- [ ] Dashboard web para visualizar violaciones históricas
-- [ ] Soporte para más lenguajes (Python, Go, Java)
+- [ ] Plantillas de reglas específicas por lenguaje
 
 ## Contribuir
 
@@ -761,6 +784,17 @@ Sergio Guadarrama - [GitHub](https://github.com/sergiogswv)
 ## Changelog
 
 Ver [CHANGELOG.md](CHANGELOG.md) para el historial completo de versiones.
+
+### v3.1.0 (2026-02-06) - Soporte Multi-Lenguaje: PHP & Java
+- 🌐 **Parser de PHP**: Integración completa con Tree-sitter con soporte para use/require/include
+- ☕ **Parser de Java**: Soporte completo de gramática Tree-sitter con análisis de imports
+- 📚 **6 Lenguajes en Total**: TypeScript, JavaScript, Python, Go, PHP, Java ahora completamente soportados
+- 🎨 **Banner Profesional**: Nuevo banner del proyecto en la documentación
+- 📖 **Documentación Mejorada**: Tabla de soporte multi-lenguaje en inglés y español
+- 🔧 **Scripts de Setup Mejorados**: Mejor manejo de errores y configuración de PATH
+- 🧹 **Limpieza de Código**: Eliminadas 72 líneas de código muerto (LanguageInfo, métodos sin uso)
+- ⚡ **Dependencias Tree-sitter**: Agregados tree-sitter-php y tree-sitter-java
+- 📁 **Ejemplos Actualizados**: architect.json.example con ejemplos de reglas para PHP y Java
 
 ### v2.0.0 (2026-02-04) - Release Mayor: Cíclicas + Config Separada
 - 🔴 **Detección de dependencias cíclicas**: Análisis de grafo con algoritmo DFS
