@@ -66,12 +66,6 @@ impl Language {
     }
 }
 
-/// Language information for error reporting
-pub struct LanguageInfo {
-    pub name: &'static str,
-    pub import_keyword: &'static str,
-}
-
 /// Main trait for language parsers
 ///
 /// Implementations of this trait provide language-specific parsing logic
@@ -87,12 +81,6 @@ pub trait ArchitectParser: Send + Sync {
         file_path: &Path,
         context: &LinterContext,
     ) -> Result<Vec<Violation>>;
-
-    /// Get language-specific information
-    fn get_language_info(&self) -> LanguageInfo;
-
-    /// Get the language this parser handles
-    fn language(&self) -> Language;
 }
 
 /// Factory function to get appropriate parser for a file

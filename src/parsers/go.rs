@@ -1,6 +1,6 @@
 //! Go parser using Tree-sitter
 
-use super::{ArchitectParser, Import, Language, LanguageInfo};
+use super::{ArchitectParser, Import};
 use crate::autofix::Violation;
 use crate::config::{ForbiddenRule, LinterContext};
 use miette::{IntoDiagnostic, Result};
@@ -162,16 +162,5 @@ impl ArchitectParser for GoParser {
         }
 
         Ok(violations)
-    }
-
-    fn get_language_info(&self) -> LanguageInfo {
-        LanguageInfo {
-            name: "Go",
-            import_keyword: "import",
-        }
-    }
-
-    fn language(&self) -> Language {
-        Language::Go
     }
 }

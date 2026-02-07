@@ -1,6 +1,6 @@
 //! PHP parser using Tree-sitter
 
-use super::{ArchitectParser, Import, Language, LanguageInfo};
+use super::{ArchitectParser, Import};
 use crate::autofix::Violation;
 use crate::config::{ForbiddenRule, LinterContext};
 use miette::{IntoDiagnostic, Result};
@@ -180,16 +180,5 @@ impl ArchitectParser for PhpParser {
         }
 
         Ok(violations)
-    }
-
-    fn get_language_info(&self) -> LanguageInfo {
-        LanguageInfo {
-            name: "PHP",
-            import_keyword: "use/require/include",
-        }
-    }
-
-    fn language(&self) -> Language {
-        Language::Php
     }
 }
