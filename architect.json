@@ -1,0 +1,26 @@
+{
+  "max_lines_per_function": 60,
+  "architecture_pattern": "MVC",
+  "forbidden_imports": [
+    {
+      "from": "src\\parsers",
+      "to": "src\\output"
+    },
+    {
+      "from": "src\\output",
+      "to": "src\\parsers"
+    }
+  ],
+  "ignored_paths": [
+    "node_modules/",
+    ".git/",
+    "coverage/",
+    ".vscode/",
+    ".idea/",
+    "dist/",
+    "build/",
+    "out/",
+    ".vite/",
+    ".cache/"
+  ]
+}

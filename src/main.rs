@@ -1,11 +1,11 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use miette::{GraphicalReportHandler, IntoDiagnostic, Result};
-use rayon::prelude::*;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use swc_common::SourceMap;
 
 mod ai;
+mod analysis_result;
 mod analyzer;
 mod autofix;
 mod circular;
@@ -13,7 +13,12 @@ mod cli;
 mod config;
 mod detector;
 mod discovery;
+mod git;
+mod metrics;
+mod output;
 mod parsers;
+mod report;
+mod scoring;
 mod ui;
 mod watch;
 
@@ -27,8 +32,8 @@ fn main() -> Result<()> {
     ui::print_banner();
 
     // 2. Obtener la ruta del proyecto
-    let project_root = if let Some(path) = cli_args.project_path {
-        PathBuf::from(&path).canonicalize().into_diagnostic()?
+    let project_root = if let Some(ref path) = cli_args.project_path {
+        PathBuf::from(path).canonicalize().into_diagnostic()?
     } else {
         ui::get_interactive_path()?
     };
@@ -42,19 +47,34 @@ fn main() -> Result<()> {
     } else if cli_args.watch_mode {
         run_watch_mode(&project_root, Arc::clone(&ctx))?;
     } else {
-        run_normal_mode(&project_root, Arc::clone(&ctx))?;
+        run_normal_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     }
 
     Ok(())
 }
 
 /// Ejecuta el análisis en modo normal (una sola vez)
-fn run_normal_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Result<()> {
+fn run_normal_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, cli_args: &cli::CliArgs) -> Result<()> {
     // Recolectar archivos de todos los lenguajes soportados
-    let files = discovery::collect_files(project_root, &ctx.ignored_paths);
+    let mut files = discovery::collect_files(project_root, &ctx.ignored_paths);
+
+    // Filter to staged files if --staged flag is set
+    if cli_args.staged_mode {
+        if !git::is_git_repo(project_root) {
+            return Err(miette::miette!(
+                "El flag --staged requiere un repositorio git."
+            ));
+        }
+        files = git::filter_staged_files(&files, project_root)?;
+        if files.is_empty() {
+            println!("✅ No hay archivos staged para analizar.");
+            return Ok(());
+        }
+        println!("🔍 Analizando {} archivos staged...", files.len());
+    }
 
     // Mostrar información de directorios ignorados
-    if !ctx.ignored_paths.is_empty() {
+    if !ctx.ignored_paths.is_empty() && !cli_args.staged_mode {
         println!("📂 Ignorando directorios: {}", ctx.ignored_paths.join(", "));
     }
 
@@ -70,51 +90,75 @@ fn run_normal_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> R
             .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} {msg}")
             .into_diagnostic()?,
     );
+    pb.set_message("Analyzing...");
 
-    let error_count = Arc::new(Mutex::new(0));
     let cm = Arc::new(SourceMap::default());
 
-    files.par_iter().for_each(|file_path| {
-        if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
-            let mut count = error_count.lock().unwrap();
-            *count += 1;
-
-            let mut out = String::new();
-            let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-
-            println!("\n📌 Violación en: {}", file_path.display());
-            println!("{}", out);
-        }
-        pb.inc(1);
-    });
-
-    pb.finish_and_clear();
+    // v4.0: Use aggregated analysis for scoring
+    let mut analysis_result = analyzer::analyze_all_files(
+        &files,
+        project_root,
+        ctx.pattern.clone(),
+        &ctx,
+        &cm,
+    )?;
 
     // Análisis de Dependencias Cíclicas
-    println!("\n🔍 Analizando dependencias cíclicas...");
+    pb.set_message("Checking circular deps...");
     let cycles = circular::analyze_circular_dependencies(&files, project_root, &cm);
 
     match cycles {
         Ok(detected_cycles) => {
-            if !detected_cycles.is_empty() {
-                circular::print_circular_dependency_report(&detected_cycles);
-                println!("\n⚠️  Se encontraron dependencias cíclicas que deben ser resueltas.");
-                std::process::exit(1);
+            for cycle in &detected_cycles {
+                analysis_result.add_circular_dependency(cycle.clone());
             }
         }
         Err(e) => {
-            println!("⚠️  No se pudo analizar dependencias cíclicas: {}", e);
-            println!("💡 Continuando con el resto del análisis...");
+            eprintln!("⚠️  No se pudo analizar dependencias cíclicas: {}", e);
         }
     }
 
-    // Resultado final
-    let total = *error_count.lock().unwrap();
-    if total > 0 {
-        println!("❌ Se encontraron {} violaciones arquitectónicas.", total);
+    pb.finish_and_clear();
+
+    // Calculate health score
+    let health_score = scoring::calculate(&analysis_result);
+    analysis_result.health_score = Some(health_score.clone());
+
+    // Handle report export if requested
+    if let Some(format) = cli_args.report_format {
+        let report_content = report::generate_report(&analysis_result, format);
+
+        if let Some(output_path) = &cli_args.output_path {
+            let path = std::path::Path::new(output_path);
+            report::write_report(&report_content, path)?;
+            println!("📄 Report saved to: {}", output_path);
+        } else {
+            report::write_stdout(&report_content)?;
+        }
+
+        // Exit with appropriate code
+        if analysis_result.has_critical_issues() {
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
+
+    // Print dashboard
+    output::print_dashboard(&analysis_result);
+
+    // Print summary
+    output::dashboard::print_summary(&analysis_result);
+
+    // Print circular dependency details if any
+    if !analysis_result.circular_dependencies.is_empty() {
+        println!();
+        circular::print_circular_dependency_report(&analysis_result.circular_dependencies);
+    }
+
+    // Exit with appropriate code
+    if analysis_result.has_critical_issues() {
         std::process::exit(1);
     } else {
-        println!("✨ ¡Proyecto impecable! La arquitectura se respeta.");
         std::process::exit(0);
     }
 }

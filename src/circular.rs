@@ -1,11 +1,12 @@
 use miette::{IntoDiagnostic, Result};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use swc_common::SourceMap;
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax, TsConfig, EsConfig};
 
 /// Representa una dependencia cíclica detectada
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircularDependency {
     /// El ciclo completo de dependencias
     pub cycle: Vec<String>,

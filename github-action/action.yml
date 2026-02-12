@@ -1,0 +1,56 @@
+name: 'Architect Linter'
+description: 'Architecture linting with Health Score - Enforce clean architecture patterns'
+author: 'Sergio Guadarrama'
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path to the project to analyze'
+    required: false
+    default: '.'
+  fail-on-violations:
+    description: 'Fail the workflow if violations are found'
+    required: false
+    default: 'true'
+  staged-only:
+    description: 'Only analyze staged files (git)'
+    required: false
+    default: 'false'
+  report-format:
+    description: 'Report format (json or markdown)'
+    required: false
+    default: ''
+  report-output:
+    description: 'Output path for the report'
+    required: false
+    default: ''
+  min-score:
+    description: 'Minimum health score required (0-100)'
+    required: false
+    default: '0'
+
+outputs:
+  score:
+    description: 'Architecture health score (0-100)'
+  grade:
+    description: 'Architecture health grade (A-F)'
+  violations:
+    description: 'Number of violations found'
+  circular-deps:
+    description: 'Number of circular dependencies found'
+  report-path:
+    description: 'Path to the generated report file'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.path }}
+  env:
+    FAIL_ON_VIOLATIONS: ${{ inputs.fail-on-violations }}
+    STAGED_ONLY: ${{ inputs.staged-only }}
+    REPORT_FORMAT: ${{ inputs.report-format }}
+    REPORT_OUTPUT: ${{ inputs.report-output }}
+    MIN_SCORE: ${{ inputs.min-score }}

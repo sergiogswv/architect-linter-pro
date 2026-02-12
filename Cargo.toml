@@ -1,6 +1,6 @@
 [package]
-name = "architect-linter"
-version = "3.2.0"
+name = "architect-linter-pro"
+version = "4.0.0"
 edition = "2021"
 authors = ["Sergio Guadarrama"]
 description = "Multi-language architecture linter with dynamic rules engine (TypeScript, JavaScript, Python, Go, PHP, Java)"
@@ -41,3 +41,7 @@ tree-sitter-go = "0.21"
 tree-sitter-rust = "0.21"
 tree-sitter-java = "0.21"
 tree-sitter-php = "0.22"
+
+# v4.0 additions
+git2 = "0.18"
+chrono = { version = "0.4", features = ["serde"] }

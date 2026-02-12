@@ -5,7 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Representa una violación arquitectónica detectada
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Violation {
     /// Ruta del archivo con la violación
     pub file_path: PathBuf,
