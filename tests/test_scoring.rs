@@ -5,7 +5,6 @@
 /// - Component score calculations
 /// - Score component weighting
 /// - Edge cases and boundary conditions
-
 use architect_linter_pro::analysis_result::AnalysisResult;
 use architect_linter_pro::circular::CircularDependency;
 use architect_linter_pro::config::ArchPattern;
@@ -196,7 +195,7 @@ fn test_layer_isolation_perfect() {
     result.layer_stats.blocked_violations = 0;
     result.layer_stats.total_imports = 100;
 
-    let score = scoring::calculate(& result);
+    let score = scoring::calculate(&result);
     assert_eq!(score.components.layer_isolation, 100);
 }
 
@@ -436,7 +435,11 @@ fn test_realistic_good_project() {
     let score = scoring::calculate(&result);
 
     // Should get a B or A grade
-    assert!(score.total >= 80, "Expected score >= 80, got {}", score.total);
+    assert!(
+        score.total >= 80,
+        "Expected score >= 80, got {}",
+        score.total
+    );
     assert!(matches!(score.grade, HealthGrade::A | HealthGrade::B));
 }
 
@@ -446,18 +449,20 @@ fn test_realistic_poor_project() {
     result.files_analyzed = 50;
     result.layer_stats.total_imports = 200;
     result.layer_stats.blocked_violations = 50; // 25% violations
-    result.circular_dependencies = vec![
-        CircularDependency {
-            cycle: vec!["a.ts".to_string(), "b.ts".to_string()],
-            description: "test".to_string(),
-        },
-    ];
+    result.circular_dependencies = vec![CircularDependency {
+        cycle: vec!["a.ts".to_string(), "b.ts".to_string()],
+        description: "test".to_string(),
+    }];
     result.complexity_stats.total_functions = 100;
     result.complexity_stats.long_functions = 40; // 40% long
 
     let score = scoring::calculate(&result);
 
     // Should get D or F grade (< 70)
-    assert!(score.total <= 60, "Expected score <= 60, got {}", score.total);
+    assert!(
+        score.total <= 60,
+        "Expected score <= 60, got {}",
+        score.total
+    );
     assert!(matches!(score.grade, HealthGrade::D | HealthGrade::F));
 }

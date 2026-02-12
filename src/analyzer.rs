@@ -1,4 +1,6 @@
-use crate::analysis_result::{AnalysisResult, CategorizedViolation, LongFunction, ViolationCategory};
+use crate::analysis_result::{
+    AnalysisResult, CategorizedViolation, LongFunction, ViolationCategory,
+};
 use crate::autofix::Violation;
 use crate::config::{ArchError, ArchPattern, LinterContext};
 use crate::metrics::{ComplexityStats, LayerStats};
@@ -7,7 +9,7 @@ use miette::{IntoDiagnostic, Result, SourceSpan};
 use std::fs;
 use std::path::{Path, PathBuf};
 use swc_common::SourceMap;
-use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax, TsConfig, EsConfig};
+use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser, StringInput, Syntax, TsConfig};
 
 pub fn analyze_file(cm: &SourceMap, path: &PathBuf, ctx: &LinterContext) -> Result<()> {
     // Try to use multi-language parser first
@@ -49,12 +51,7 @@ pub fn analyze_file(cm: &SourceMap, path: &PathBuf, ctx: &LinterContext) -> Resu
         _ => Syntax::Typescript(TsConfig::default()),
     };
 
-    let lexer = Lexer::new(
-        syntax,
-        Default::default(),
-        StringInput::from(&*fm),
-        None,
-    );
+    let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
 
     let mut parser = Parser::new_from(lexer);
     let module = parser
@@ -141,7 +138,7 @@ fn normalize_pattern(pattern: &str) -> String {
         .to_lowercase()
         .replace("\\", "/")  // Normalizar separadores de Windows
         .replace("**", "")   // Quitar comodines globales
-        .replace("*", "");   // Quitar comodines simples
+        .replace("*", ""); // Quitar comodines simples
 
     // Si el patrón termina en /, dejarlo; si no, mantenerlo como está
     normalized
@@ -183,7 +180,8 @@ fn matches_pattern(path: &str, pattern: &str) -> bool {
             if normalized_path.contains(&with_slash)
                 || normalized_path.contains(&with_relative)
                 || normalized_path.contains(&with_at)
-                || normalized_path.contains(folder_part) {
+                || normalized_path.contains(folder_part)
+            {
                 return true;
             }
         }
@@ -205,7 +203,10 @@ fn create_error(fm: &swc_common::SourceFile, span: swc_common::Span, msg: &str) 
 }
 
 /// Create a miette error from a Violation
-fn create_error_from_violation(fm: &swc_common::SourceFile, violation: &Violation) -> miette::Report {
+fn create_error_from_violation(
+    fm: &swc_common::SourceFile,
+    violation: &Violation,
+) -> miette::Report {
     // Try to find the import line in the source
     let lines: Vec<&str> = fm.src.lines().collect();
     let line_idx = violation.line_number.saturating_sub(1);
@@ -260,12 +261,7 @@ fn validate_method_length(cm: &SourceMap, path: &PathBuf, ctx: &LinterContext) -
         _ => return Ok(()),
     };
 
-    let lexer = Lexer::new(
-        syntax,
-        Default::default(),
-        StringInput::from(&*fm),
-        None,
-    );
+    let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
 
     let mut parser = Parser::new_from(lexer);
     let module = match parser.parse_module() {
@@ -388,7 +384,10 @@ fn count_imports(path: &PathBuf) -> Result<usize> {
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
     // Only count for supported file types
-    if !matches!(extension, "ts" | "tsx" | "js" | "jsx" | "py" | "go" | "php" | "java") {
+    if !matches!(
+        extension,
+        "ts" | "tsx" | "js" | "jsx" | "py" | "go" | "php" | "java"
+    ) {
         return Ok(0);
     }
 
@@ -410,7 +409,10 @@ fn count_imports(path: &PathBuf) -> Result<usize> {
             count += 1;
         }
         // PHP
-        else if trimmed.starts_with("use ") || trimmed.starts_with("require ") || trimmed.starts_with("include ") {
+        else if trimmed.starts_with("use ")
+            || trimmed.starts_with("require ")
+            || trimmed.starts_with("include ")
+        {
             count += 1;
         }
         // Java
@@ -423,7 +425,11 @@ fn count_imports(path: &PathBuf) -> Result<usize> {
 }
 
 /// Find functions that exceed the max lines threshold
-fn find_long_functions(cm: &SourceMap, path: &PathBuf, max_lines: usize) -> Result<Vec<LongFunction>> {
+fn find_long_functions(
+    cm: &SourceMap,
+    path: &PathBuf,
+    max_lines: usize,
+) -> Result<Vec<LongFunction>> {
     let mut long_functions = Vec::new();
 
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -512,7 +518,10 @@ fn find_long_functions(cm: &SourceMap, path: &PathBuf, max_lines: usize) -> Resu
             }
         }
         // Check exported functions
-        else if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::ExportDecl(e)) = item {
+        else if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::ExportDecl(
+            e,
+        )) = item
+        {
             if let swc_ecma_ast::Decl::Fn(f) = &e.decl {
                 let lo = cm.lookup_char_pos(f.function.span.lo).line;
                 let hi = cm.lookup_char_pos(f.function.span.hi).line;

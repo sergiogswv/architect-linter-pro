@@ -162,7 +162,7 @@ pub struct LayerStats {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ComplexityStats {
     pub total_functions: usize,
-    pub long_functions: usize,  // Functions exceeding max_lines
+    pub long_functions: usize, // Functions exceeding max_lines
     pub max_lines_threshold: usize,
 }
 

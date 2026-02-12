@@ -1,8 +1,8 @@
+use miette::{IntoDiagnostic, Result};
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver};
 use std::time::{Duration, Instant};
-use miette::{IntoDiagnostic, Result};
 
 /// Representa un evento de cambio de archivo procesado
 #[derive(Debug, Clone)]
@@ -81,9 +81,7 @@ impl FileWatcher {
                     if !changed_files.is_empty()
                         && last_event_time.elapsed() >= self.debounce_duration
                     {
-                        return Ok(FileChangeEvent {
-                            changed_files,
-                        });
+                        return Ok(FileChangeEvent { changed_files });
                     }
                 }
             }
@@ -126,7 +124,8 @@ impl FileWatcher {
             // Coincidencia si la ruta contiene el patrón
             if relative_path.contains(&normalized_pattern.trim_end_matches('/'))
                 || relative_path.starts_with(&normalized_pattern)
-                || relative_path.starts_with(&format!("{}/", normalized_pattern.trim_end_matches('/')))
+                || relative_path
+                    .starts_with(&format!("{}/", normalized_pattern.trim_end_matches('/')))
             {
                 return true;
             }
@@ -161,7 +160,10 @@ where
     loop {
         match watcher.wait_for_changes() {
             Ok(event) => {
-                println!("\n🔄 Cambios detectados en {} archivo(s):", event.changed_files.len());
+                println!(
+                    "\n🔄 Cambios detectados en {} archivo(s):",
+                    event.changed_files.len()
+                );
                 for file in &event.changed_files {
                     println!("   📝 {}", file.display());
                 }

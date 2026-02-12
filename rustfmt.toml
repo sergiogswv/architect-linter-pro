@@ -1,0 +1,27 @@
+# Rust formatting configuration (stable features only)
+# https://rust-lang.github.io/rustfmt/
+
+# Edition
+edition = "2021"
+
+# Line width
+max_width = 100
+
+# Indentation
+tab_spaces = 4
+hard_tabs = false
+
+# Imports
+reorder_imports = true
+
+# Formatting
+force_explicit_abi = true
+
+# Use field init shorthand
+use_field_init_shorthand = true
+
+# Try ? operator
+use_try_shorthand = true
+
+# Newlines
+newline_style = "Unix"

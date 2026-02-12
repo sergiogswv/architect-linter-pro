@@ -150,41 +150,59 @@ fn is_architectural_file(path: &Path) -> bool {
 
     // TypeScript/JavaScript patterns
     let ts_js_patterns = [
-        ".controller.ts", ".controller.js",
-        ".service.ts", ".service.js",
-        ".entity.ts", ".entity.js",
-        ".repository.ts", ".repository.js",
-        ".dto.ts", ".dto.js",
-        ".module.ts", ".module.js",
-        ".handler.ts", ".handler.js",
+        ".controller.ts",
+        ".controller.js",
+        ".service.ts",
+        ".service.js",
+        ".entity.ts",
+        ".entity.js",
+        ".repository.ts",
+        ".repository.js",
+        ".dto.ts",
+        ".dto.js",
+        ".module.ts",
+        ".module.js",
+        ".handler.ts",
+        ".handler.js",
     ];
 
     // Python patterns
     let py_patterns = [
-        "_controller.py", "_service.py",
-        "_repository.py", "_model.py",
-        "_view.py", "_handler.py",
+        "_controller.py",
+        "_service.py",
+        "_repository.py",
+        "_model.py",
+        "_view.py",
+        "_handler.py",
     ];
 
     // Go patterns
     let go_patterns = [
-        "_controller.go", "_service.go",
-        "_repository.go", "_handler.go",
+        "_controller.go",
+        "_service.go",
+        "_repository.go",
+        "_handler.go",
         "_model.go",
     ];
 
     // PHP patterns
     let php_patterns = [
-        "controller.php", "service.php",
-        "repository.php", "model.php",
-        "handler.php", "entity.php",
+        "controller.php",
+        "service.php",
+        "repository.php",
+        "model.php",
+        "handler.php",
+        "entity.php",
     ];
 
     // Java patterns
     let java_patterns = [
-        "controller.java", "service.java",
-        "repository.java", "model.java",
-        "handler.java", "entity.java",
+        "controller.java",
+        "service.java",
+        "repository.java",
+        "model.java",
+        "handler.java",
+        "entity.java",
         "dao.java",
     ];
 

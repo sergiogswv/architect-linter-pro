@@ -8,11 +8,11 @@ use crate::config::LinterContext;
 use miette::Result;
 use std::path::Path;
 
-pub mod typescript;
-pub mod python;
 pub mod go;
-pub mod php;
 pub mod java;
+pub mod php;
+pub mod python;
+pub mod typescript;
 
 /// Represents an import statement extracted from source code
 #[derive(Debug, Clone)]
@@ -92,18 +92,10 @@ pub fn get_parser_for_file(file_path: &Path) -> Option<Box<dyn ArchitectParser>>
         Language::TypeScript | Language::JavaScript => {
             Some(Box::new(typescript::TypeScriptParser::new()))
         }
-        Language::Python => {
-            Some(Box::new(python::PythonParser::new()))
-        }
-        Language::Go => {
-            Some(Box::new(go::GoParser::new()))
-        }
-        Language::Php => {
-            Some(Box::new(php::PhpParser::new()))
-        }
-        Language::Java => {
-            Some(Box::new(java::JavaParser::new()))
-        }
+        Language::Python => Some(Box::new(python::PythonParser::new())),
+        Language::Go => Some(Box::new(go::GoParser::new())),
+        Language::Php => Some(Box::new(php::PhpParser::new())),
+        Language::Java => Some(Box::new(java::JavaParser::new())),
         Language::Rust => {
             // Rust support coming soon
             None

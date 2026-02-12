@@ -165,7 +165,9 @@ impl ArchitectParser for PhpParser {
 
             // PHP-specific rules
             // Example: Controllers shouldn't import Models directly
-            if file_path_str.contains("controller") && import.source.to_lowercase().contains("model") {
+            if file_path_str.contains("controller")
+                && import.source.to_lowercase().contains("model")
+            {
                 violations.push(Violation {
                     file_path: file_path.to_path_buf(),
                     file_content: source_code.to_string(),

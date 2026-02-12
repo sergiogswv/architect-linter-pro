@@ -77,10 +77,7 @@ pub fn get_current_branch(repo_path: &Path) -> Result<String> {
         .map_err(|e| miette::miette!("Error al obtener HEAD: {}", e))?;
 
     if head.is_branch() {
-        let branch = head
-            .shorthand()
-            .unwrap_or("unknown")
-            .to_string();
+        let branch = head.shorthand().unwrap_or("unknown").to_string();
         Ok(branch)
     } else {
         Ok("detached HEAD".to_string())

@@ -20,7 +20,11 @@ const DASHBOARD_WIDTH: usize = 79;
 
 /// Print the full analysis dashboard
 pub fn print_dashboard(result: &AnalysisResult) {
-    print_header(&result.project_name, result.pattern_display(), result.files_analyzed);
+    print_header(
+        &result.project_name,
+        result.pattern_display(),
+        result.files_analyzed,
+    );
 
     if let Some(ref score) = result.health_score {
         print_health_score(score.total, score.grade);
@@ -70,7 +74,13 @@ fn print_health_score(score: u8, grade: HealthGrade) {
     let color = get_grade_color(grade);
     let reset = reset_color();
 
-    println!("{}{}{}  {}", BOX_VERTICAL, " ".repeat(DASHBOARD_WIDTH - 2), BOX_VERTICAL, "");
+    println!(
+        "{}{}{}  {}",
+        BOX_VERTICAL,
+        " ".repeat(DASHBOARD_WIDTH - 2),
+        BOX_VERTICAL,
+        ""
+    );
     println!(
         "{}  ARCHITECTURE HEALTH: {}{}/100{}  {}  {}  {}{}",
         BOX_VERTICAL,
@@ -82,7 +92,12 @@ fn print_health_score(score: u8, grade: HealthGrade) {
         grade.as_str(),
         " ".repeat(DASHBOARD_WIDTH - 50)
     );
-    println!("{}{}{}", BOX_VERTICAL, " ".repeat(DASHBOARD_WIDTH - 2), BOX_VERTICAL);
+    println!(
+        "{}{}{}",
+        BOX_VERTICAL,
+        " ".repeat(DASHBOARD_WIDTH - 2),
+        BOX_VERTICAL
+    );
     print_horizontal_line(BOX_T_LEFT, BOX_T_RIGHT, BOX_HORIZONTAL);
 }
 
@@ -106,7 +121,12 @@ fn print_components(score: u8, status: ComponentStatus, name: &str, details: &st
 
     // Truncate if too long
     if line.len() > DASHBOARD_WIDTH {
-        println!("{}{}{}", BOX_VERTICAL, &line[..DASHBOARD_WIDTH - 2], BOX_VERTICAL);
+        println!(
+            "{}{}{}",
+            BOX_VERTICAL,
+            &line[..DASHBOARD_WIDTH - 2],
+            BOX_VERTICAL
+        );
     } else {
         println!("{}{}{}", BOX_VERTICAL, line, BOX_VERTICAL);
     }
@@ -136,7 +156,10 @@ fn format_circular_details(result: &AnalysisResult) -> String {
 fn format_complexity_details(result: &AnalysisResult) -> String {
     let long = result.long_functions.len();
     if long > 0 {
-        format!("{} functions > {}", long, result.complexity_stats.max_lines_threshold)
+        format!(
+            "{} functions > {}",
+            long, result.complexity_stats.max_lines_threshold
+        )
     } else {
         "OK".to_string()
     }
@@ -164,8 +187,14 @@ fn print_violations_list(violations: &[CategorizedViolation]) {
         return;
     }
 
-    let blocked_count = violations.iter().filter(|v| v.category == crate::analysis_result::ViolationCategory::Blocked).count();
-    let warning_count = violations.iter().filter(|v| v.category == crate::analysis_result::ViolationCategory::Warning).count();
+    let blocked_count = violations
+        .iter()
+        .filter(|v| v.category == crate::analysis_result::ViolationCategory::Blocked)
+        .count();
+    let warning_count = violations
+        .iter()
+        .filter(|v| v.category == crate::analysis_result::ViolationCategory::Warning)
+        .count();
 
     print_horizontal_line(BOX_T_LEFT, BOX_T_RIGHT, BOX_HORIZONTAL);
     let header_text_len = 30 + blocked_count.to_string().len() + warning_count.to_string().len();
@@ -181,7 +210,8 @@ fn print_violations_list(violations: &[CategorizedViolation]) {
 
     for (i, categorized) in violations.iter().enumerate() {
         let v = &categorized.violation;
-        let file_line_len = 10 + v.file_path.to_string_lossy().len() + v.line_number.to_string().len();
+        let file_line_len =
+            10 + v.file_path.to_string_lossy().len() + v.line_number.to_string().len();
         let file_padding = DASHBOARD_WIDTH.saturating_sub(file_line_len);
         println!(
             "{}  {}. {}:{}{}",
@@ -202,7 +232,11 @@ fn print_violations_list(violations: &[CategorizedViolation]) {
         );
 
         if i < violations.len() - 1 {
-            println!("{}{}", BOX_VERTICAL, " ".repeat(DASHBOARD_WIDTH.saturating_sub(1)));
+            println!(
+                "{}{}",
+                BOX_VERTICAL,
+                " ".repeat(DASHBOARD_WIDTH.saturating_sub(1))
+            );
         }
     }
 
@@ -258,14 +292,30 @@ pub fn print_summary(result: &AnalysisResult) {
         println!("💡 Fix the blocked violations and circular dependencies to improve your score.");
     } else {
         let score = result.health_score.as_ref().map(|s| s.total).unwrap_or(100);
-        let grade = result.health_score.as_ref().map(|s| s.grade).unwrap_or(HealthGrade::A);
+        let grade = result
+            .health_score
+            .as_ref()
+            .map(|s| s.grade)
+            .unwrap_or(HealthGrade::A);
 
         if score >= 90 {
-            println!("✨ Architecture Health: {}/100 ({}) - Excellent!", score, grade.as_str());
+            println!(
+                "✨ Architecture Health: {}/100 ({}) - Excellent!",
+                score,
+                grade.as_str()
+            );
         } else if score >= 70 {
-            println!("✓ Architecture Health: {}/100 ({}) - Good", score, grade.as_str());
+            println!(
+                "✓ Architecture Health: {}/100 ({}) - Good",
+                score,
+                grade.as_str()
+            );
         } else {
-            println!("⚠ Architecture Health: {}/100 ({}) - Needs improvement", score, grade.as_str());
+            println!(
+                "⚠ Architecture Health: {}/100 ({}) - Needs improvement",
+                score,
+                grade.as_str()
+            );
         }
     }
 }

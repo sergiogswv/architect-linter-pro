@@ -38,7 +38,8 @@ impl PythonParser {
         let path_as_dots = normalized_path.replace('/', ".");
         let pattern_as_dots = normalized_pattern.replace('/', ".");
 
-        if path_as_dots.contains(&pattern_as_dots) || normalized_path.contains(&normalized_pattern) {
+        if path_as_dots.contains(&pattern_as_dots) || normalized_path.contains(&normalized_pattern)
+        {
             return true;
         }
 

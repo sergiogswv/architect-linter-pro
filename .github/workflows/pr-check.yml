@@ -1,0 +1,213 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ============================================================================
+  # PR Info
+  # ============================================================================
+  pr-info:
+    name: PR Info
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: PR Stats
+      run: |
+        echo "### PR Statistics" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.head_ref }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Base**: ${{ github.base_ref }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Author**: @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Count files changed
+        FILES_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
+        echo "- **Files Changed**: $FILES_CHANGED" >> $GITHUB_STEP_SUMMARY
+
+        # Count lines changed
+        LINES_ADDED=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | awk '{sum+=$1} END {print sum}')
+        LINES_REMOVED=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | awk '{sum+=$2} END {print sum}')
+        echo "- **Lines Added**: $LINES_ADDED" >> $GITHUB_STEP_SUMMARY
+        echo "- **Lines Removed**: $LINES_REMOVED" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Quick Test - Fast feedback
+  # ============================================================================
+  quick-test:
+    name: Quick Test (Linux)
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Run quick tests
+      run: |
+        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Run tests and capture output
+        cargo test --verbose 2>&1 | tee test_output.txt
+
+        # Parse test results
+        TESTS_PASSED=$(grep -oP '\d+(?= passed)' test_output.txt | awk '{s+=$1} END {print s}')
+        TESTS_FAILED=$(grep -oP '\d+(?= failed)' test_output.txt | awk '{s+=$1} END {print s}')
+
+        echo "- ✅ Tests Passed: $TESTS_PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "- ❌ Tests Failed: $TESTS_FAILED" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Code Quality Check
+  # ============================================================================
+  quality-check:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-quality-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Check formatting
+      run: |
+        echo "### Code Quality" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if cargo fmt --all -- --check; then
+          echo "- ✅ Formatting: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ❌ Formatting: Failed" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+    - name: Run clippy
+      run: |
+        cargo clippy --all-targets --all-features -- -W clippy::all 2>&1 | tee clippy_output.txt || true
+        echo "- ⚠️ Clippy: Completed with warnings" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Build Check - Ensure it compiles
+  # ============================================================================
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-build-pr-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build
+      run: |
+        echo "### Build Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if cargo build --release --verbose; then
+          echo "- ✅ Build: Success" >> $GITHUB_STEP_SUMMARY
+
+          # Get binary size
+          BINARY_SIZE=$(ls -lh target/release/architect-linter-pro | awk '{print $5}')
+          echo "- 📦 Binary Size: $BINARY_SIZE" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+  # ============================================================================
+  # Dependency Check
+  # ============================================================================
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-outdated
+      run: cargo install cargo-outdated
+
+    - name: Check outdated dependencies
+      run: |
+        echo "### Dependency Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        cargo outdated --exit-code 1 || echo "⚠️ Some dependencies are outdated" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Final PR Check
+  # ============================================================================
+  pr-check-success:
+    name: PR Check Success
+    needs: [pr-info, quick-test, quality-check, build-check, dependency-check]
+    runs-on: ubuntu-latest
+    if: always() && github.event.pull_request.draft == false
+
+    steps:
+    - name: Check all jobs
+      run: |
+        echo "### Final PR Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [[ "${{ needs.quick-test.result }}" != "success" ]] || \
+           [[ "${{ needs.quality-check.result }}" != "success" ]] || \
+           [[ "${{ needs.build-check.result }}" != "success" ]]; then
+          echo "❌ Some checks failed. Please review and fix before merging." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+        echo "✅ All PR checks passed! Ready to merge." >> $GITHUB_STEP_SUMMARY

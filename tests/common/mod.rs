@@ -1,3 +1,4 @@
+use std::fs;
 /// Common test utilities and helpers
 ///
 /// This module provides shared functionality for all test suites:
@@ -5,9 +6,7 @@
 /// - Temporary directory handling
 /// - Config file generation
 /// - Assertion helpers
-
 use std::path::{Path, PathBuf};
-use std::fs;
 use tempfile::TempDir;
 
 /// Helper to create a temporary test project
@@ -58,7 +57,7 @@ impl TestProject {
 
     /// Create a minimal valid config
     pub fn create_minimal_config(&self) -> PathBuf {
-        self.create_config("MVC Pattern", 100, "")
+        self.create_config("MVC", 100, "")
     }
 }
 

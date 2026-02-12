@@ -85,18 +85,28 @@ pub fn to_markdown(result: &AnalysisResult) -> String {
 
     // Header
     md.push_str("# Architect Linter Pro Report\n\n");
-    md.push_str(&format!("> Generated: {}\n\n", result.timestamp.format("%Y-%m-%d %H:%M:%S UTC")));
+    md.push_str(&format!(
+        "> Generated: {}\n\n",
+        result.timestamp.format("%Y-%m-%d %H:%M:%S UTC")
+    ));
 
     // Project info
     md.push_str("## Project\n\n");
     md.push_str(&format!("- **Name:** {}\n", result.project_name));
     md.push_str(&format!("- **Pattern:** {}\n", result.pattern_display()));
-    md.push_str(&format!("- **Files Analyzed:** {}\n\n", result.files_analyzed));
+    md.push_str(&format!(
+        "- **Files Analyzed:** {}\n\n",
+        result.files_analyzed
+    ));
 
     // Health Score
     if let Some(ref score) = result.health_score {
         md.push_str("## Architecture Health Score\n\n");
-        md.push_str(&format!("# {} Score: {}/100\n\n", score.grade.as_str(), score.total));
+        md.push_str(&format!(
+            "# {} Score: {}/100\n\n",
+            score.grade.as_str(),
+            score.total
+        ));
 
         md.push_str("| Component | Score | Status |\n");
         md.push_str("|-----------|-------|--------|\n");
@@ -124,11 +134,20 @@ pub fn to_markdown(result: &AnalysisResult) -> String {
 
     // Summary
     md.push_str("## Summary\n\n");
-    md.push_str(&format!("- **Total Violations:** {}\n", result.violations.len()));
+    md.push_str(&format!(
+        "- **Total Violations:** {}\n",
+        result.violations.len()
+    ));
     md.push_str(&format!("- **Blocked:** {}\n", result.blocked_count()));
     md.push_str(&format!("- **Warnings:** {}\n", result.warning_count()));
-    md.push_str(&format!("- **Circular Dependencies:** {}\n", result.circular_dependencies.len()));
-    md.push_str(&format!("- **Long Functions:** {}\n\n", result.long_functions.len()));
+    md.push_str(&format!(
+        "- **Circular Dependencies:** {}\n",
+        result.circular_dependencies.len()
+    ));
+    md.push_str(&format!(
+        "- **Long Functions:** {}\n\n",
+        result.long_functions.len()
+    ));
 
     // Violations
     if !result.violations.is_empty() {
@@ -140,14 +159,10 @@ pub fn to_markdown(result: &AnalysisResult) -> String {
                 cv.violation.file_path.display(),
                 cv.violation.line_number
             ));
-            md.push_str(&format!(
-                "- **Category:** {}\n",
-                cv.category.as_str()
-            ));
+            md.push_str(&format!("- **Category:** {}\n", cv.category.as_str()));
             md.push_str(&format!(
                 "- **Rule:** `{}` cannot import from `{}`\n",
-                cv.violation.rule.from,
-                cv.violation.rule.to
+                cv.violation.rule.from, cv.violation.rule.to
             ));
             md.push_str(&format!(
                 "- **Import:** `{}`\n\n",
@@ -212,8 +227,8 @@ pub fn write_stdout(content: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
     use crate::config::ArchPattern;
+    use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
 
     #[test]
     fn test_json_report_structure() {

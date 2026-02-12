@@ -140,7 +140,9 @@ impl ArchitectParser for TypeScriptParser {
             }
 
             // Extra rule: Controller → Repository
-            if file_path_str.contains("controller") && import.source.to_lowercase().contains(".repository") {
+            if file_path_str.contains("controller")
+                && import.source.to_lowercase().contains(".repository")
+            {
                 violations.push(Violation {
                     file_path: file_path.to_path_buf(),
                     file_content: source_code.to_string(),

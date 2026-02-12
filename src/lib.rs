@@ -16,7 +16,7 @@ mod discovery;
 mod git;
 pub mod metrics;
 mod output;
-mod parsers;
+pub mod parsers;
 mod report;
 pub mod scoring;
 mod ui;

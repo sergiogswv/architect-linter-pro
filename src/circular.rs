@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use swc_common::SourceMap;
-use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax, TsConfig, EsConfig};
+use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser, StringInput, Syntax, TsConfig};
 
 /// Representa una dependencia cíclica detectada
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,7 +45,9 @@ impl CircularDependencyAnalyzer {
             let current_key = normalized_current.clone();
 
             // Insertar en el grafo
-            self.graph.entry(current_key.clone()).or_insert_with(Vec::new);
+            self.graph
+                .entry(current_key.clone())
+                .or_insert_with(Vec::new);
 
             // Procesar cada import
             for import_path in imports {
@@ -81,13 +83,7 @@ impl CircularDependencyAnalyzer {
 
         for node in self.graph.keys() {
             if !visited.contains(node) {
-                self.dfs_detect_cycles(
-                    node,
-                    &mut visited,
-                    &mut rec_stack,
-                    &mut path,
-                    &mut cycles,
-                );
+                self.dfs_detect_cycles(node, &mut visited, &mut rec_stack, &mut path, &mut cycles);
             }
         }
 
@@ -134,10 +130,7 @@ impl CircularDependencyAnalyzer {
         let mut imports = Vec::new();
 
         // Parsear según la extensión
-        let extension = file_path
-            .extension()
-            .and_then(|e| e.to_str())
-            .unwrap_or("");
+        let extension = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
         let syntax = match extension {
             "ts" | "tsx" => Syntax::Typescript(TsConfig {
@@ -163,9 +156,8 @@ impl CircularDependencyAnalyzer {
 
         // Extraer imports estáticos
         for item in &module.body {
-            if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::Import(
-                import,
-            )) = item
+            if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::Import(import)) =
+                item
             {
                 imports.push(import.src.value.to_string());
             }
@@ -225,7 +217,8 @@ impl CircularDependencyAnalyzer {
             canon
         } else {
             // Si falla la canonicalización, limpiar manualmente
-            let cleaned = path.components()
+            let cleaned = path
+                .components()
                 .filter(|c| !matches!(c, std::path::Component::CurDir))
                 .collect::<PathBuf>();
             cleaned
@@ -233,12 +226,12 @@ impl CircularDependencyAnalyzer {
 
         // Obtener ruta relativa al directorio raíz del proyecto
         if let Ok(relative) = canonical.strip_prefix(&self.project_root) {
-            relative
+            relative.to_string_lossy().replace('\\', "/").to_lowercase()
+        } else {
+            canonical
                 .to_string_lossy()
                 .replace('\\', "/")
                 .to_lowercase()
-        } else {
-            canonical.to_string_lossy().replace('\\', "/").to_lowercase()
         }
     }
 
@@ -278,7 +271,9 @@ impl CircularDependencyAnalyzer {
         let imports = self.extract_imports(file_path, cm)?;
 
         // Reconstruir aristas
-        self.graph.entry(normalized_current.clone()).or_insert_with(Vec::new);
+        self.graph
+            .entry(normalized_current.clone())
+            .or_insert_with(Vec::new);
 
         for import_path in imports {
             if let Some(resolved) = self.resolve_import_path(file_path, &import_path) {
@@ -452,7 +447,10 @@ pub fn print_circular_dependency_report(cycles: &[CircularDependency]) {
     }
 
     println!("\n🔴 DEPENDENCIAS CÍCLICAS DETECTADAS\n");
-    println!("Se encontraron {} ciclo(s) de dependencias:\n", cycles.len());
+    println!(
+        "Se encontraron {} ciclo(s) de dependencias:\n",
+        cycles.len()
+    );
 
     for (i, cycle) in cycles.iter().enumerate() {
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

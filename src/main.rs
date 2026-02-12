@@ -54,7 +54,11 @@ fn main() -> Result<()> {
 }
 
 /// Ejecuta el análisis en modo normal (una sola vez)
-fn run_normal_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, cli_args: &cli::CliArgs) -> Result<()> {
+fn run_normal_mode(
+    project_root: &PathBuf,
+    ctx: Arc<config::LinterContext>,
+    cli_args: &cli::CliArgs,
+) -> Result<()> {
     // Recolectar archivos de todos los lenguajes soportados
     let mut files = discovery::collect_files(project_root, &ctx.ignored_paths);
 
@@ -95,13 +99,8 @@ fn run_normal_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, cli_
     let cm = Arc::new(SourceMap::default());
 
     // v4.0: Use aggregated analysis for scoring
-    let mut analysis_result = analyzer::analyze_all_files(
-        &files,
-        project_root,
-        ctx.pattern.clone(),
-        &ctx,
-        &cm,
-    )?;
+    let mut analysis_result =
+        analyzer::analyze_all_files(&files, project_root, ctx.pattern.clone(), &ctx, &cm)?;
 
     // Análisis de Dependencias Cíclicas
     pb.set_message("Checking circular deps...");

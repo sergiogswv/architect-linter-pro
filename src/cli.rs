@@ -1,5 +1,4 @@
 /// Módulo CLI - Funciones relacionadas con la interfaz de línea de comandos
-
 use std::env;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -75,7 +74,9 @@ pub fn print_help() {
     println!("  architect-linter-pro --fix .                 # Analizar y auto-corregir con IA");
     println!("  architect-linter-pro --staged .              # Solo archivos staged");
     println!("  architect-linter-pro --report json .         # Exportar reporte JSON a stdout");
-    println!("  architect-linter-pro -r md -o report.md .    # Exportar reporte Markdown a archivo");
+    println!(
+        "  architect-linter-pro -r md -o report.md .    # Exportar reporte Markdown a archivo"
+    );
     println!();
     println!("SCORE GRADES:");
     println!("  A (90-100)  - Excellent architecture health");
@@ -134,7 +135,10 @@ pub fn process_args() -> Option<CliArgs> {
                     if let Some(fmt) = ReportFormat::from_str(&args[i]) {
                         report_format = Some(fmt);
                     } else {
-                        eprintln!("Error: Formato de reporte inválido '{}'. Usa 'json' o 'markdown'.", args[i]);
+                        eprintln!(
+                            "Error: Formato de reporte inválido '{}'. Usa 'json' o 'markdown'.",
+                            args[i]
+                        );
                         return None;
                     }
                 } else {
