@@ -45,3 +45,14 @@ tree-sitter-php = "0.22"
 # v4.0 additions
 git2 = "0.18"
 chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+# Testing framework
+tempfile = "3.10"          # Temporary directories and files for tests
+assert_cmd = "2.0"         # CLI testing utilities
+predicates = "3.1"         # Assertions for assert_cmd
+insta = "1.34"             # Snapshot testing
+pretty_assertions = "1.4"  # Better assertion output
+
+# Test utilities
+serial_test = "3.0"        # Run tests serially when needed
