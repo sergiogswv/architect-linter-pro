@@ -5,6 +5,188 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-02-12
+
+### 🎉 Major Release: Architecture Governance Platform & Enterprise Features
+
+This major release transforms Architect Linter from a simple architectural linter into a comprehensive **architecture governance platform** with scoring, reporting, and CI/CD integration. The project has been renamed to `architect-linter-pro` to reflect its evolution toward a hybrid open-core business model.
+
+### 🏆 Architecture Health Score System
+
+The headline feature of v4.0 is the new **Architecture Health Score** - a 0-100 grade system (A-F) that provides instant feedback on your codebase's architectural quality.
+
+#### Added
+- **Health Score Engine** (`src/metrics.rs`, `src/scoring.rs`):
+  - Letter grades: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
+  - Grade emojis: 🏆 (A), ✨ (B), 👍 (C), ⚠️ (D), ❌ (F)
+  - Four weighted components:
+    1. **Layer Isolation** (25%) - Measures forbidden import violations
+    2. **Circular Dependencies** (25%) - Binary score: 100 if no cycles, 0 if cycles exist
+    3. **Complexity** (25%) - Ratio of long functions to total functions
+    4. **Violations** (25%) - Overall architectural rule violations
+  - Individual component scoring with pass/warning/fail status
+  - Detailed breakdown of each component's health
+
+- **Visual Dashboard** (`src/output/dashboard.rs`):
+  - Professional terminal UI with ASCII box drawing
+  - Color-coded grades (green for A, red for F)
+  - Progress bars for each component score
+  - Detailed statistics display:
+    - Total files analyzed
+    - Architecture pattern detected
+    - Per-component breakdown with descriptions
+  - Categorized violations list
+
+- **Analysis Results Structure** (`src/analysis_result.rs`):
+  - Unified `AnalysisResult` type consolidating all analysis data
+  - Categorized violations: Forbidden Imports, Circular Deps, Complexity, Other
+  - Statistics tracking:
+    - Layer isolation stats (total imports, blocked violations)
+    - Circular dependency detection with cycle details
+    - Complexity metrics (total functions, long functions, max lines)
+  - Health score integration with component statuses
+
+### 📊 Reporting & Export
+
+- **Report Generation** (`src/report.rs`):
+  - **JSON Export**: Machine-readable format for CI/CD integration
+    - Full analysis results with scores and violations
+    - Timestamped reports
+    - Schema version: "4.0.0"
+  - **Markdown Export**: Human-readable documentation
+    - Formatted tables and sections
+    - Architecture pattern and score summary
+    - Detailed violation listings with severity
+  - New CLI flag: `--report-json <path>` and `--report-md <path>`
+
+### 🚀 CI/CD Integration
+
+- **GitHub Action** (`github-action/`):
+  - **Dockerfile**: Multi-stage Rust build (Debian Bookworm slim)
+    - Optimized image size with build caching
+    - All 6 languages supported (TS, JS, Python, Go, PHP, Java)
+  - **action.yml**: Full GitHub Action definition
+    - Input: `path` (project directory)
+    - Outputs: `score`, `grade`, `violations-count`, `passed`
+    - Automatic PR annotations with violations
+  - **entrypoint.sh**: Smart execution script (125 lines)
+    - Automatic config detection or creation
+    - JSON report generation
+    - Exit code based on score threshold
+  - **workflow-example.yml**: Ready-to-use workflow template
+    - PR checks with score validation
+    - Fail builds on grade F or D
+    - Upload reports as artifacts
+
+### 🔧 Git Integration
+
+- **Git Analysis Module** (`src/git.rs`):
+  - New dependency: `git2 = "0.18"`
+  - Repository detection and validation
+  - Commit history analysis foundation
+  - Author tracking preparation
+  - New dependency: `chrono = "0.4"` for timestamp handling
+
+### 📦 Project Rebranding
+
+- **Name Change**: `architect-linter` → `architect-linter-pro`
+  - Reflects evolution to enterprise-grade platform
+  - Preparation for open-core business model
+  - Updated Cargo.toml metadata
+
+### 🎨 Enhanced User Experience
+
+- **Improved CLI** (`src/cli.rs`):
+  - New flags for reporting: `--report-json`, `--report-md`
+  - Enhanced help text with examples
+  - Better error messages and formatting
+  - Score display in all outputs
+
+- **Analyzer Improvements** (`src/analyzer.rs`):
+  - Integration with new scoring system
+  - Better violation categorization
+  - Enhanced statistics tracking
+  - Optimized parallel processing with Rayon
+
+### 📋 Documentation & Planning
+
+- **Enterprise Design Document** (`plan/2026-02-11-v4-enterprise-design.md`):
+  - Complete architecture for 3-tier system:
+    - 🆓 **Open Source (Core)**: Forbidden imports, circular deps, watch mode, 6 languages
+    - 💎 **Pro ($15/month/dev)**: Advanced metrics, security analysis, reports, CI/CD premium
+    - 🏢 **Enterprise ($79/month/dev)**: Web dashboard, team features, SSO, alerts
+  - Repository structure planning (public vs private)
+  - Feature division matrix
+  - Monetization strategy
+
+- **Brainstorm Session** (`plan/2026-02-11-brainstorm-session.md`):
+  - Product vision and positioning
+  - Market analysis and competitive landscape
+  - Technical architecture decisions
+  - Roadmap priorities
+
+### Changed
+
+- **Main Entry Point** (`src/main.rs`):
+  - Refactored to use new analysis pipeline
+  - Integrated health score calculation
+  - Dashboard rendering by default
+  - Report generation support
+
+- **Configuration** (`src/config.rs`):
+  - Updated config loading for new features
+  - Enhanced architect.json schema support
+  - Better error handling and validation
+
+### Technical Details
+
+- **New Dependencies**:
+  - `git2 = "0.18"` - Git repository analysis
+  - `chrono = { version = "0.4", features = ["serde"] }` - Timestamp handling
+
+- **Lines of Code**: +2,729 additions, -62 deletions across 21 files
+
+- **New Modules**: 7 major new modules
+  - `analysis_result.rs` (197 lines)
+  - `metrics.rs` (175 lines)
+  - `scoring.rs` (162 lines)
+  - `report.rs` (244 lines)
+  - `git.rs` (113 lines)
+  - `output/dashboard.rs` (265 lines)
+  - `output/mod.rs` (7 lines)
+
+### Architectural Principles
+
+v4.0 maintains the core philosophy:
+> **"No pasas Architect, no haces commit"**
+
+Architect Linter Pro is a **gatekeeper**, not just a highlighter. It enforces architecture at commit-time, not just in your editor.
+
+### Roadmap Preview
+
+Planned for future releases (see ROADMAP.md):
+- License validation system (Pro/Enterprise tiers)
+- Security analysis (data flow, secrets detection)
+- Code smells detection
+- LSP (Language Server Protocol) integration
+- Web dashboard for Enterprise tier
+- Team analytics and leaderboards
+
+### Migration Guide from v3.x
+
+1. **Rename Binary**: If you have `architect-linter` in PATH, update to `architect-linter-pro`
+2. **New Flags**: Use `--report-json` and `--report-md` for exports
+3. **GitHub Action**: Replace manual CI scripts with the official action (see workflow-example.yml)
+4. **Config Compatibility**: No breaking changes to `architect.json` format
+
+### Breaking Changes
+
+- Binary name changed from `architect-linter` to `architect-linter-pro`
+- Default output now includes Health Score dashboard
+- Exit codes may differ based on score thresholds (use `--strict` flag for old behavior)
+
+---
+
 ## [3.2.0] - 2026-02-07
 
 ### 🎉 DeepSeek Integration & Multi-Model Fallback System
@@ -433,6 +615,8 @@ Esta es la primera versión estable de Architect Linter, lista para uso en produ
 - SourceMap para ubicación precisa de errores
 - Filtrado inteligente de directorios durante el walkdir
 
+[4.0.0]: https://github.com/sergiogswv/architect-linter/releases/tag/v4.0.0
+[3.2.0]: https://github.com/sergiogswv/architect-linter/releases/tag/v3.2.0
 [3.1.0]: https://github.com/sergiogswv/architect-linter/releases/tag/v3.1.0
 [2.0.0]: https://github.com/sergiogswv/architect-linter/releases/tag/v2.0.0
 [1.0.0]: https://github.com/sergiogswv/architect-linter/releases/tag/v1.0.0

@@ -3,14 +3,14 @@
 # Script unificado de instalación/actualización para Linux/macOS
 # Detecta automáticamente si es instalación inicial o actualización
 
-echo "🏛️  ARCHITECT-LINTER SETUP"
+echo "🏛️  ARCHITECT-LINTER PRO v4.0.0 SETUP"
 echo ""
 
 # Detectar si ya está instalado
-if command -v architect-linter &> /dev/null; then
+if command -v architect-linter-pro &> /dev/null; then
     MODE="actualización"
     echo "📦 Versión actual instalada:"
-    architect-linter --version
+    architect-linter-pro --version
     echo ""
 else
     MODE="instalación"
@@ -18,13 +18,13 @@ else
     echo ""
 fi
 
-# Verificar si hay instancias de architect-linter en ejecución
+# Verificar si hay instancias de architect-linter-pro en ejecución
 echo "🔍 Verificando procesos en ejecución..."
-RUNNING_PIDS=$(pgrep -f "architect-linter" 2>/dev/null)
+RUNNING_PIDS=$(pgrep -f "architect-linter-pro" 2>/dev/null)
 
 if [ ! -z "$RUNNING_PIDS" ]; then
     echo ""
-    echo "⚠️  ADVERTENCIA: Hay instancias de architect-linter en ejecución."
+    echo "⚠️  ADVERTENCIA: Hay instancias de architect-linter-pro en ejecución."
     echo "Es necesario cerrarlas para poder actualizar el binario."
     echo ""
     echo "Procesos encontrados:"
@@ -47,7 +47,7 @@ if [ ! -z "$RUNNING_PIDS" ]; then
     else
         echo ""
         echo "❌ Instalación cancelada."
-        echo "Por favor cierra manualmente las instancias de architect-linter y vuelve a ejecutar este script."
+        echo "Por favor cierra manualmente las instancias de architect-linter-pro y vuelve a ejecutar este script."
         echo ""
         exit 1
     fi
@@ -66,7 +66,7 @@ if [ $? -eq 0 ]; then
         echo "📋 Instalando binario en /usr/local/bin..."
     fi
 
-    sudo cp target/release/architect-linter /usr/local/bin/
+    sudo cp target/release/architect-linter-pro /usr/local/bin/
 
     if [ $? -eq 0 ]; then
         echo ""
@@ -77,29 +77,35 @@ if [ $? -eq 0 ]; then
         fi
         echo ""
         echo "Nueva versión:"
-        architect-linter --version
+        architect-linter-pro --version
         echo ""
 
         if [ "$MODE" = "instalación" ]; then
-            echo "🚀 Ahora puedes usar 'architect-linter' en cualquier carpeta."
+            echo "🚀 Ahora puedes usar 'architect-linter-pro' en cualquier carpeta."
+            echo ""
+            echo "📚 Ejemplos de uso (v4.0.0):"
+            echo "  architect-linter-pro                    # Análisis básico"
+            echo "  architect-linter-pro --watch            # Modo observación"
+            echo "  architect-linter-pro --report json -o report.json"
+            echo "  architect-linter-pro --help             # Ver todas las opciones"
             echo ""
             echo "Para verificar la instalación, ejecuta:"
-            echo "  architect-linter --help"
+            echo "  architect-linter-pro --version"
         else
             echo "💡 La nueva versión ya está disponible en tu terminal."
         fi
         echo ""
     else
         echo "⚠️  Error al copiar el binario. Intenta manualmente:"
-        echo "  sudo cp target/release/architect-linter /usr/local/bin/"
+        echo "  sudo cp target/release/architect-linter-pro /usr/local/bin/"
     fi
 else
     echo "❌ Error en la compilación."
     echo ""
     echo "Posibles causas:"
-    echo "  1. El archivo está en uso (cierra todas las instancias de architect-linter)"
+    echo "  1. El archivo está en uso (cierra todas las instancias de architect-linter-pro)"
     echo "  2. No tienes Rust instalado (https://rustup.rs/)"
-    echo "  3. No estás en el directorio del proyecto architect-linter"
+    echo "  3. No estás en el directorio del proyecto architect-linter-pro"
     echo ""
     echo "Si el problema persiste, ejecuta:"
     echo "  cargo clean"

@@ -1,0 +1,27 @@
+{
+  "max_lines_per_function": 50,
+  "architecture_pattern": "MVC",
+  "forbidden_imports": [
+    {
+      "from": "controller",
+      "to": "repository",
+      "reason": "Controllers should not directly access repositories. Use services instead."
+    },
+    {
+      "from": "service",
+      "to": "controller",
+      "reason": "Services should not import controllers. This violates layered architecture."
+    },
+    {
+      "from": "repository",
+      "to": "controller",
+      "reason": "Repositories should not know about controllers."
+    }
+  ],
+  "ignored_paths": [
+    "node_modules/",
+    ".git/",
+    "dist/",
+    "build/"
+  ]
+}

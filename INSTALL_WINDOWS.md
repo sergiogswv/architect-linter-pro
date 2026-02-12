@@ -1,11 +1,11 @@
-# Guía de Instalación para Windows
+# Guía de Instalación para Windows - Architect Linter Pro v4.0.0
 
 ## Instalación Rápida (Recomendada)
 
 ### Paso 1: Clonar el repositorio
 ```powershell
-git clone https://github.com/sergio/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergio/architect-linter-pro.git
+cd architect-linter-pro
 ```
 
 ### Paso 2: Ejecutar el script de instalación
@@ -48,10 +48,10 @@ $newPath = "$oldPath;C:\Users\TU_USUARIO\bin"
 
 ### Paso 5: Verificar la instalación
 ```powershell
-architect-linter --version
+architect-linter-pro --version
 ```
 
-Deberías ver: `architect-linter 0.8.0`
+Deberías ver: `architect-linter-pro 0.8.0`
 
 ---
 
@@ -113,7 +113,7 @@ mkdir $env:USERPROFILE\bin -Force
 
 ### Paso 3: Copiar el ejecutable
 ```powershell
-copy target\release\architect-linter.exe $env:USERPROFILE\bin\architect-linter.exe
+copy target\release\architect-linter-pro.exe $env:USERPROFILE\bin\architect-linter-pro.exe
 ```
 
 ### Paso 4: Agregar al PATH
@@ -136,7 +136,7 @@ $newPath = "$oldPath;$env:USERPROFILE\bin"
 ### Paso 5: Verificar
 Reinicia tu terminal y ejecuta:
 ```powershell
-architect-linter --help
+architect-linter-pro --help
 ```
 
 ---
@@ -145,17 +145,17 @@ architect-linter --help
 
 ### Verificar instalación
 ```powershell
-architect-linter --version
-# Salida: architect-linter 0.8.0
+architect-linter-pro --version
+# Salida: architect-linter-pro 0.8.0
 
-architect-linter --help
+architect-linter-pro --help
 # Muestra la ayuda completa
 ```
 
 ### Primer uso
 ```powershell
 cd C:\ruta\a\tu\proyecto
-architect-linter
+architect-linter-pro
 ```
 
 El linter:
@@ -171,7 +171,7 @@ Si quieres desinstalar el linter:
 
 ```powershell
 # Eliminar el binario
-del $env:USERPROFILE\bin\architect-linter.exe
+del $env:USERPROFILE\bin\architect-linter-pro.exe
 
 # Opcionalmente, eliminar la carpeta bin si está vacía
 rmdir $env:USERPROFILE\bin
@@ -203,7 +203,7 @@ Necesitas instalar Rust primero:
 
 3. **Abre una nueva terminal** y prueba de nuevo:
    ```powershell
-   architect-linter --version
+   architect-linter-pro --version
    ```
 
 4. Si usas VSCode, recarga la ventana (Ctrl+Shift+P → "Reload Window")
@@ -218,4 +218,4 @@ Necesitas ejecutar PowerShell como Administrador:
 
 ## Soporte
 
-Si tienes problemas, abre un issue en: https://github.com/sergio/architect-linter/issues
+Si tienes problemas, abre un issue en: https://github.com/sergio/architect-linter-pro/issues

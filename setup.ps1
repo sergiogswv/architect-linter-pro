@@ -1,11 +1,11 @@
 # Script unificado de instalación/actualización para Windows
 # Detecta automáticamente si es instalación inicial o actualización
 
-Write-Host "===========================================  ARCHITECT-LINTER SETUP" -ForegroundColor Cyan
+Write-Host "===========================================  ARCHITECT-LINTER PRO v4.0.0 SETUP" -ForegroundColor Cyan
 Write-Host ""
 
 # Detectar si ya está instalado
-$binPath = "$env:USERPROFILE\bin\architect-linter.exe"
+$binPath = "$env:USERPROFILE\bin\architect-linter-pro.exe"
 $isUpdate = Test-Path $binPath
 
 if ($isUpdate) {
@@ -21,13 +21,13 @@ if ($isUpdate) {
     Write-Host ""
 }
 
-# Verificar si hay instancias de architect-linter en ejecución
+# Verificar si hay instancias de architect-linter-pro en ejecución
 Write-Host "Verificando procesos en ejecucion..." -ForegroundColor Cyan
-$runningProcesses = Get-Process -Name "architect-linter" -ErrorAction SilentlyContinue
+$runningProcesses = Get-Process -Name "architect-linter-pro" -ErrorAction SilentlyContinue
 
 if ($runningProcesses) {
     Write-Host ""
-    Write-Host "ADVERTENCIA: Hay instancias de architect-linter en ejecucion." -ForegroundColor Yellow
+    Write-Host "ADVERTENCIA: Hay instancias de architect-linter-pro en ejecucion." -ForegroundColor Yellow
     Write-Host "Es necesario cerrarlas para poder actualizar el binario." -ForegroundColor Yellow
     Write-Host ""
 
@@ -49,7 +49,7 @@ if ($runningProcesses) {
     } else {
         Write-Host ""
         Write-Host "Instalacion cancelada." -ForegroundColor Red
-        Write-Host "Por favor cierra manualmente las instancias de architect-linter y vuelve a ejecutar este script." -ForegroundColor Yellow
+        Write-Host "Por favor cierra manualmente las instancias de architect-linter-pro y vuelve a ejecutar este script." -ForegroundColor Yellow
         Write-Host ""
         exit 1
     }
@@ -76,7 +76,7 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "Instalando binario en $destPath..." -ForegroundColor Cyan
     }
 
-    Copy-Item "target\release\architect-linter.exe" -Destination "$destPath\architect-linter.exe" -Force
+    Copy-Item "target\release\architect-linter-pro.exe" -Destination "$destPath\architect-linter-pro.exe" -Force
 
     Write-Host ""
     if ($isUpdate) {
@@ -87,7 +87,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
 
     Write-Host "Nueva version:" -ForegroundColor Cyan
-    & "$destPath\architect-linter.exe" --version
+    & "$destPath\architect-linter-pro.exe" --version
     Write-Host ""
 
     if ($isUpdate) {
@@ -117,10 +117,16 @@ if ($LASTEXITCODE -eq 0) {
             Write-Host "  6. Click 'Aceptar' en todas las ventanas" -ForegroundColor White
             Write-Host ""
         } else {
-            Write-Host "Ahora puedes usar 'architect-linter' en cualquier carpeta." -ForegroundColor Green
+            Write-Host "Ahora puedes usar 'architect-linter-pro' en cualquier carpeta." -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Ejemplos de uso (v4.0.0):" -ForegroundColor Cyan
+            Write-Host "  architect-linter-pro                    # Analisis basico" -ForegroundColor White
+            Write-Host "  architect-linter-pro --watch            # Modo observacion" -ForegroundColor White
+            Write-Host "  architect-linter-pro --report json -o report.json" -ForegroundColor White
+            Write-Host "  architect-linter-pro --help             # Ver todas las opciones" -ForegroundColor White
             Write-Host ""
             Write-Host "Para verificar la instalacion:" -ForegroundColor Cyan
-            Write-Host "  architect-linter --help" -ForegroundColor White
+            Write-Host "  architect-linter-pro --version" -ForegroundColor White
             Write-Host ""
         }
     }
@@ -129,9 +135,9 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Error en la compilacion." -ForegroundColor Red
     Write-Host ""
     Write-Host "Posibles causas:" -ForegroundColor Yellow
-    Write-Host "  1. El archivo esta en uso (cierra todas las instancias de architect-linter)" -ForegroundColor White
+    Write-Host "  1. El archivo esta en uso (cierra todas las instancias de architect-linter-pro)" -ForegroundColor White
     Write-Host "  2. No tienes Rust instalado (https://rustup.rs/)" -ForegroundColor White
-    Write-Host "  3. No estas en el directorio del proyecto architect-linter" -ForegroundColor White
+    Write-Host "  3. No estas en el directorio del proyecto architect-linter-pro" -ForegroundColor White
     Write-Host ""
     Write-Host "Si el problema persiste, ejecuta:" -ForegroundColor Cyan
     Write-Host "  cargo clean" -ForegroundColor White

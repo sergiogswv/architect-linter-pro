@@ -3,14 +3,14 @@
 
 echo "🏗️  Ejecutando Architect Linter..."
 
-# Ejecutar architect-linter en el directorio actual (.)
+# Ejecutar architect-linter-pro en el directorio actual (.)
 # Si está instalado globalmente, usa solo:
-#   architect-linter .
+#   architect-linter-pro .
 #
 # Si usas una ruta local al binario, usa:
-#   "/ruta/a/tu/architect-linter" .
+#   "/ruta/a/tu/architect-linter-pro" .
 
-architect-linter .
+architect-linter-pro .
 
 # Si el linter encuentra errores, el commit se cancelará
 if [ $? -ne 0 ]; then

@@ -220,14 +220,25 @@ impl CircularDependencyAnalyzer {
 
     /// Normaliza una ruta de archivo a una representación canónica
     fn normalize_file_path(&self, path: &Path) -> String {
+        // Canonicalizar el path para limpiar ./ y ../
+        let canonical = if let Ok(canon) = path.canonicalize() {
+            canon
+        } else {
+            // Si falla la canonicalización, limpiar manualmente
+            let cleaned = path.components()
+                .filter(|c| !matches!(c, std::path::Component::CurDir))
+                .collect::<PathBuf>();
+            cleaned
+        };
+
         // Obtener ruta relativa al directorio raíz del proyecto
-        if let Ok(relative) = path.strip_prefix(&self.project_root) {
+        if let Ok(relative) = canonical.strip_prefix(&self.project_root) {
             relative
                 .to_string_lossy()
                 .replace('\\', "/")
                 .to_lowercase()
         } else {
-            path.to_string_lossy().replace('\\', "/").to_lowercase()
+            canonical.to_string_lossy().replace('\\', "/").to_lowercase()
         }
     }
 

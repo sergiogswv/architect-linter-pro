@@ -1,11 +1,11 @@
-# Architect Linter
+# Architect Linter Pro
 
 <p align="center">
-  <img src="./public/architect-linter-banner.png" alt="Banner Architect Linter" width="100%">
+  <img src="./public/architect-linter-pro-banner.png" alt="Banner Architect Linter Pro" width="100%">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-3.2.0-blue.svg" alt="Versión">
+  <img src="https://img.shields.io/badge/versión-4.0.0-blue.svg" alt="Versión">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Edición Rust">
   <img src="https://img.shields.io/badge/licencia-MIT-green.svg" alt="Licencia">
   <img src="https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Plataforma">
@@ -17,23 +17,38 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 
 ## Características
 
+### Análisis Principal
 - **🌐 Soporte Multi-Lenguaje**: TypeScript, JavaScript, Python, Go, PHP y Java con análisis Tree-sitter
 - **🔧 Motor de Reglas Dinámicas**: Define restricciones personalizadas entre capas mediante `architect.json`
 - **🔍 Detección de Dependencias Cíclicas**: Analiza el grafo de dependencias y detecta ciclos automáticamente
-- **🤖 Auto-Fix con IA**: Sugiere y aplica correcciones automáticas para violaciones arquitectónicas (--fix) con **soporte de fallback multimodelo**
-- **🔌 IA Multi-Proveedor**: Soporte oficial para **Claude, Gemini, OpenAI, Groq, Ollama, Kimi y DeepSeek**
-- **👁️ Modo Watch**: Monitoreo en tiempo real con análisis incremental y debouncing inteligente (300ms)
-- **📂 Exclusión Inteligente de Rutas**: Ignora automáticamente node_modules, carpetas build y directorios específicos del framework
-- **💬 Configuración de IA**: Asistente arquitectónico con Claude que sugiere reglas basado en tu proyecto
-- **⚙️ Configuración Separada**: `architect.json` para reglas (compartible) y `.architect.ai.json` para API keys (privado)
-- **🎯 Detección Automática de Framework**: Reconoce NestJS, React, Angular, Express, Django, Laravel, Spring Boot y más
-- **🏗️ Patrones Arquitectónicos**: Soporte para Hexagonal, Clean Architecture, MVC y más
 - **📦 Validación de Importaciones**: Detecta y bloquea importaciones que violan la arquitectura definida en todos los lenguajes soportados
 - **📏 Control de Complejidad**: Valida que las funciones no excedan límites configurables de líneas
 - **⚡ Procesamiento Paralelo**: Análisis ultrarrápido usando procesamiento multi-hilo con Rayon
-- **📊 Reportes Visuales**: Errores detallados y coloridos con ubicación exacta del problema
+
+### Sistema de Puntuación de Salud (v4.0.0)
+- **🏆 Health Score (0-100)**: Medición integral de la salud del proyecto con calificación A-F
+- **📊 Dashboard Visual**: Hermoso dashboard en terminal mostrando desglose de puntuación por componentes
+- **📈 Cuatro Métricas de Calidad**: Aislamiento de Capas, Dependencias Cíclicas, Complejidad de Código, Violaciones de Reglas
+- **🎯 Insights Accionables**: Desglose detallado de qué afecta tu puntuación y cómo mejorarla
+
+### Reportes y Monitoreo
+- **📄 Generación de Reportes**: Exporta resultados de análisis en formato JSON o Markdown
+- **👁️ Modo Watch**: Monitoreo en tiempo real con análisis incremental y debouncing inteligente (300ms)
+- **🔄 Integración Git**: Analiza solo archivos staged con flag `--staged`
+- **📂 Exclusión Inteligente de Rutas**: Ignora automáticamente node_modules, carpetas build y directorios específicos del framework
+
+### IA y Automatización
+- **🤖 Auto-Fix con IA**: Sugiere y aplica correcciones automáticas para violaciones arquitectónicas (--fix) con **soporte de fallback multimodelo**
+- **🔌 IA Multi-Proveedor**: Soporte oficial para **Claude, Gemini, OpenAI, Groq, Ollama, Kimi y DeepSeek**
+- **💬 Configuración de IA**: Asistente arquitectónico con Claude que sugiere reglas basado en tu proyecto
+- **⚙️ Configuración Separada**: `architect.json` para reglas (compartible) y `.architect.ai.json` para API keys (privado)
+
+### Experiencia del Desarrollador
+- **🎯 Detección Automática de Framework**: Reconoce NestJS, React, Angular, Express, Django, Laravel, Spring Boot y más
+- **🏗️ Patrones Arquitectónicos**: Soporte para Hexagonal, Clean Architecture, MVC y más
 - **🎨 Modo Interactivo**: Configuración guiada en primera ejecución con banner visual mejorado
 - **🪝 Integración con Git Hooks**: Configuración automática de Husky y pre-commit hooks
+- **🐙 GitHub Action**: Action oficial para integración en pipelines CI/CD
 
 ## Lenguajes Soportados
 
@@ -62,20 +77,20 @@ Todos los lenguajes comparten el mismo motor de reglas, permitiéndote definir r
 
 ### Opción 1: Instalación Global (Recomendado)
 
-La instalación global te permite ejecutar `architect-linter` desde cualquier directorio.
+La instalación global te permite ejecutar `architect-linter-pro` desde cualquier directorio.
 
 #### Linux / macOS
 ```bash
-git clone https://github.com/sergio/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergio/architect-linter-pro.git
+cd architect-linter-pro
 chmod +x setup.sh
 ./setup.sh
 ```
 
 #### Windows (PowerShell)
 ```powershell
-git clone https://github.com/sergiogswv/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergiogswv/architect-linter-pro.git
+cd architect-linter-pro
 
 # Ejecutar el script de instalación (evita errores de políticas de ejecución)
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
@@ -85,7 +100,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 1. Abre PowerShell como Administrador
 2. Ejecuta los comandos que el script te muestra para agregar al PATH
 3. **Cierra TODAS las terminales** y abre una nueva
-4. Verifica: `architect-linter --version`
+4. Verifica: `architect-linter-pro --version`
 
 📖 **Guía completa para Windows con solución de problemas**: [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)
 
@@ -100,25 +115,25 @@ El script `setup.sh` / `setup.ps1` automáticamente:
 
 #### Linux / macOS
 ```bash
-git clone https://github.com/sergio/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergio/architect-linter-pro.git
+cd architect-linter-pro
 cargo build --release
 
 # Mover a una carpeta en tu PATH
-sudo cp target/release/architect-linter /usr/local/bin/
+sudo cp target/release/architect-linter-pro /usr/local/bin/
 ```
 
 #### Windows (Instalación Manual)
 ```powershell
-git clone https://github.com/sergio/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergio/architect-linter-pro.git
+cd architect-linter-pro
 cargo build --release
 
 # Crear carpeta bin si no existe
 mkdir $env:USERPROFILE\bin -Force
 
 # Copiar el binario
-copy target\release\architect-linter.exe $env:USERPROFILE\bin\
+copy target\release\architect-linter-pro.exe $env:USERPROFILE\bin\
 
 # Agregar al PATH (ejecutar PowerShell como administrador)
 $oldPath = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -132,13 +147,13 @@ $newPath = "$oldPath;$env:USERPROFILE\bin"
 
 ```bash
 # Si instalaste globalmente
-architect-linter /ruta/a/tu/proyecto
+architect-linter-pro /ruta/a/tu/proyecto
 
 # O si usas el binario local
-./target/release/architect-linter /ruta/a/tu/proyecto
+./target/release/architect-linter-pro /ruta/a/tu/proyecto
 
 # Modo interactivo (te muestra proyectos disponibles)
-architect-linter
+architect-linter-pro
 ```
 
 **Primera ejecución**: Si no existe `architect.json`, el linter:
@@ -154,23 +169,23 @@ architect-linter
 
 ## Actualización
 
-Si ya tienes architect-linter instalado y quieres actualizar a la versión más reciente, usa el **mismo script de instalación**:
+Si ya tienes architect-linter-pro instalado y quieres actualizar a la versión más reciente, usa el **mismo script de instalación**:
 
 ### Linux / macOS
 ```bash
-cd /ruta/al/repositorio/architect-linter
+cd /ruta/al/repositorio/architect-linter-pro
 git pull origin master  # O la rama que uses
 ./setup.sh
 ```
 
 ### Windows (PowerShell)
 ```powershell
-cd C:\ruta\al\repositorio\architect-linter
+cd C:\ruta\al\repositorio\architect-linter-pro
 git pull origin master  # O la rama que uses
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-**El script detecta automáticamente** si ya tienes architect-linter instalado:
+**El script detecta automáticamente** si ya tienes architect-linter-pro instalado:
 - ✅ Si existe: Modo actualización (muestra versión anterior → compila → instala → muestra nueva versión)
 - ✅ Si no existe: Modo instalación (compila → instala → configura PATH si es necesario)
 
@@ -190,10 +205,10 @@ cargo build --release
 # 3. Copiar el binario
 
 # Linux/macOS
-sudo cp target/release/architect-linter /usr/local/bin/
+sudo cp target/release/architect-linter-pro /usr/local/bin/
 
 # Windows PowerShell
-copy target\release\architect-linter.exe $env:USERPROFILE\bin\
+copy target\release\architect-linter-pro.exe $env:USERPROFILE\bin\
 ```
 
 ### Integración con Git Hooks (Automático)
@@ -216,7 +231,7 @@ npx husky-init && npm install
 . "$(dirname "$0")/_/husky.sh"
 
 echo "🏗️  Ejecutando Architect Linter..."
-architect-linter .
+architect-linter-pro .
 
 if [ $? -ne 0 ]; then
   echo ""
@@ -235,7 +250,7 @@ exit 0
 . "$(dirname "$0")/_/husky.sh"
 
 echo "🏗️  Ejecutando Architect Linter..."
-"/ruta/completa/architect-linter/target/release/architect-linter" .
+"/ruta/completa/architect-linter-pro/target/release/architect-linter-pro" .
 ```
 
 Edita el archivo `.husky/pre-commit` con el contenido de tu preferencia y dale permisos de ejecución:
@@ -248,7 +263,7 @@ chmod +x .husky/pre-commit
 
 ## Motor de Reglas Dinámicas
 
-El architect-linter utiliza un sistema de reglas dinámicas definidas en `architect.json` que permiten restringir qué carpetas pueden interactuar entre sí, asegurando que el diseño arquitectónico se respete.
+El architect-linter-pro utiliza un sistema de reglas dinámicas definidas en `architect.json` que permiten restringir qué carpetas pueden interactuar entre sí, asegurando que el diseño arquitectónico se respete.
 
 ### Concepto
 
@@ -389,7 +404,7 @@ Evita que los Controladores se salten la capa de servicio.
 ### Modo Interactivo (Primera Ejecución)
 
 ```bash
-./target/release/architect-linter
+./target/release/architect-linter-pro
 ```
 
 Si no existe `architect.json`, el linter:
@@ -410,7 +425,7 @@ Si no existe `architect.json`, el linter:
 Cuando ya existe `architect.json`, el linter ejecuta silenciosamente:
 
 ```bash
-./target/release/architect-linter /ruta/al/proyecto
+./target/release/architect-linter-pro /ruta/al/proyecto
 ```
 
 o
@@ -424,7 +439,7 @@ cargo run -- /ruta/al/proyecto
 El modo watch permite monitoreo continuo de tu código durante el desarrollo:
 
 ```bash
-architect-linter --watch .
+architect-linter-pro --watch .
 ```
 
 **Cómo funciona**:
@@ -460,7 +475,7 @@ architect-linter --watch .
 ### Argumentos CLI
 
 ```bash
-architect-linter [OPCIONES] [RUTA]
+architect-linter-pro [OPCIONES] [RUTA]
 ```
 
 **Opciones**:
@@ -468,17 +483,17 @@ architect-linter [OPCIONES] [RUTA]
 - `-h, --help`: Muestra la ayuda completa
 - `-w, --watch`: Modo watch - monitorea cambios y re-analiza automáticamente
 - **Sin argumentos**: Modo interactivo, muestra menú de proyectos disponibles
-- **Con ruta**: `architect-linter /ruta/proyecto` - Analiza el proyecto especificado
+- **Con ruta**: `architect-linter-pro /ruta/proyecto` - Analiza el proyecto especificado
 
 **Ejemplos**:
 ```bash
-architect-linter --version          # Muestra: architect-linter 2.0.0
-architect-linter --help             # Muestra ayuda completa
-architect-linter                    # Modo interactivo
-architect-linter .                  # Analiza directorio actual
-architect-linter /ruta/proyecto     # Analiza proyecto específico
-architect-linter --watch .          # Modo watch: monitorea cambios y re-analiza
-architect-linter -w /ruta/proyecto  # Modo watch con ruta específica
+architect-linter-pro --version          # Muestra: architect-linter-pro 2.0.0
+architect-linter-pro --help             # Muestra ayuda completa
+architect-linter-pro                    # Modo interactivo
+architect-linter-pro .                  # Analiza directorio actual
+architect-linter-pro /ruta/proyecto     # Analiza proyecto específico
+architect-linter-pro --watch .          # Modo watch: monitorea cambios y re-analiza
+architect-linter-pro -w /ruta/proyecto  # Modo watch con ruta específica
 ```
 
 ## El Flujo de Trabajo Completo
@@ -664,7 +679,7 @@ Dependencia cíclica detectada:
 ## Estructura del Proyecto
 
 ```
-architect-linter/
+architect-linter-pro/
 ├── src/
 │   ├── main.rs                 # Orquestación principal, análisis de dependencias cíclicas
 │   ├── analyzer.rs             # Orquestador de análisis multi-lenguaje
@@ -685,7 +700,7 @@ architect-linter/
 │       ├── php.rs              # Parser PHP (Tree-sitter)
 │       └── java.rs             # Parser Java (Tree-sitter)
 ├── public/
-│   └── architect-linter-banner.png  # Imagen del banner del proyecto
+│   └── architect-linter-pro-banner.png  # Imagen del banner del proyecto
 ├── Cargo.toml                  # Dependencias y configuración del proyecto
 ├── README_ES.md                # Esta documentación (español)
 ├── README.md                   # Documentación en inglés

@@ -1,11 +1,11 @@
-# Architect Linter
+# Architect Linter Pro
 
 <p align="center">
-  <img src="./public/architect-linter-banner.png" alt="Architect Linter Banner" width="100%">
+  <img src="./public/architect-linter-pro-banner.png" alt="Architect Linter Pro Banner" width="100%">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.2.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Rust Edition">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform">
@@ -17,23 +17,38 @@ A multi-language software architecture linter written in Rust that validates arc
 
 ## Features
 
+### Core Analysis
 - **🌐 Multi-Language Support**: TypeScript, JavaScript, Python, Go, PHP, and Java with Tree-sitter parsing
 - **🔧 Dynamic Rule Engine**: Define custom constraints between layers via `architect.json`
 - **🔍 Circular Dependency Detection**: Analyzes the dependency graph and automatically detects cycles
-- **🤖 AI-Powered Auto-Fix**: Automatically suggests and applies fixes for architectural violations (--fix) with **multi-model fallback support**
-- **🔌 Multi-Provider AI**: Official support for **Claude, Gemini, OpenAI, Groq, Ollama, Kimi, and DeepSeek**
-- **👁️ Watch Mode**: Real-time monitoring with incremental analysis and intelligent debouncing (300ms)
-- **📂 Smart Path Exclusion**: Automatically ignores node_modules, build folders, and framework-specific directories
-- **💬 AI Configuration**: Architect assistant with Claude that suggests rules based on your project
-- **⚙️ Separated Configuration**: `architect.json` for rules (sharable) and `.architect.ai.json` for API keys (private)
-- **🎯 Automatic Framework Detection**: Recognizes NestJS, React, Angular, Express, Django, Laravel, Spring Boot and more
-- **🏗️ Architectural Patterns**: Support for Hexagonal, Clean Architecture, MVC and more
 - **📦 Import Validation**: Detects and blocks imports that violate the defined architecture across all supported languages
 - **📏 Complexity Control**: Validates that functions don't exceed configurable line limits
 - **⚡ Parallel Processing**: Ultra-fast analysis using multi-threaded processing with Rayon
-- **📊 Visual Reports**: Detailed and colorful errors with exact problem location
+
+### Health Score System (v4.0.0)
+- **🏆 Health Score (0-100)**: Comprehensive project health measurement with A-F grading
+- **📊 Visual Dashboard**: Beautiful terminal dashboard showing score breakdown by components
+- **📈 Four Quality Metrics**: Layer Isolation, Circular Dependencies, Code Complexity, Rule Violations
+- **🎯 Actionable Insights**: Detailed breakdown of what affects your score and how to improve it
+
+### Reports & Monitoring
+- **📄 Report Generation**: Export analysis results in JSON or Markdown format
+- **👁️ Watch Mode**: Real-time monitoring with incremental analysis and intelligent debouncing (300ms)
+- **🔄 Git Integration**: Analyze only staged files with `--staged` flag
+- **📂 Smart Path Exclusion**: Automatically ignores node_modules, build folders, and framework-specific directories
+
+### AI & Automation
+- **🤖 AI-Powered Auto-Fix**: Automatically suggests and applies fixes for architectural violations (--fix) with **multi-model fallback support**
+- **🔌 Multi-Provider AI**: Official support for **Claude, Gemini, OpenAI, Groq, Ollama, Kimi, and DeepSeek**
+- **💬 AI Configuration**: Architect assistant with Claude that suggests rules based on your project
+- **⚙️ Separated Configuration**: `architect.json` for rules (sharable) and `.architect.ai.json` for API keys (private)
+
+### Developer Experience
+- **🎯 Automatic Framework Detection**: Recognizes NestJS, React, Angular, Express, Django, Laravel, Spring Boot and more
+- **🏗️ Architectural Patterns**: Support for Hexagonal, Clean Architecture, MVC and more
 - **🎨 Interactive Mode**: Guided configuration on first run with enhanced visual banner
 - **🪝 Git Hooks Integration**: Automatic Husky and pre-commit hook configuration
+- **🐙 GitHub Action**: Official action for CI/CD pipeline integration
 
 ## Supported Languages
 
@@ -62,20 +77,20 @@ All languages share the same rule engine, allowing you to define architectural c
 
 ### Option 1: Global Installation (Recommended)
 
-Global installation allows you to run `architect-linter` from any directory.
+Global installation allows you to run `architect-linter-pro` from any directory.
 
 #### Linux / macOS
 ```bash
-git clone https://github.com/sergio/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergio/architect-linter-pro.git
+cd architect-linter-pro
 chmod +x setup.sh
 ./setup.sh
 ```
 
 #### Windows (PowerShell)
 ```powershell
-git clone https://github.com/sergiogswv/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergiogswv/architect-linter-pro.git
+cd architect-linter-pro
 
 # Run the installation script (avoids execution policy errors)
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
@@ -85,7 +100,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 1. Open PowerShell as Administrator
 2. Run the commands the script shows you to add to PATH
 3. **Close ALL terminals** and open a new one
-4. Verify: `architect-linter --version`
+4. Verify: `architect-linter-pro --version`
 
 📖 **Complete Windows guide with troubleshooting**: [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)
 
@@ -100,25 +115,25 @@ The `setup.sh` / `setup.ps1` script automatically:
 
 #### Linux / macOS
 ```bash
-git clone https://github.com/sergiogswv/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergiogswv/architect-linter-pro.git
+cd architect-linter-pro
 cargo build --release
 
 # Move to a folder in your PATH
-sudo cp target/release/architect-linter /usr/local/bin/
+sudo cp target/release/architect-linter-pro /usr/local/bin/
 ```
 
 #### Windows (Manual Installation)
 ```powershell
-git clone https://github.com/sergiogswv/architect-linter.git
-cd architect-linter
+git clone https://github.com/sergiogswv/architect-linter-pro.git
+cd architect-linter-pro
 cargo build --release
 
 # Create bin folder if it doesn't exist
 mkdir $env:USERPROFILE\bin -Force
 
 # Copy the binary
-copy target\release\architect-linter.exe $env:USERPROFILE\bin\
+copy target\release\architect-linter-pro.exe $env:USERPROFILE\bin\
 
 # Add to PATH (run PowerShell as administrator)
 $oldPath = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -132,13 +147,13 @@ $newPath = "$oldPath;$env:USERPROFILE\bin"
 
 ```bash
 # If you installed globally
-architect-linter /path/to/your/project
+architect-linter-pro /path/to/your/project
 
 # Or if you use the local binary
-./target/release/architect-linter /path/to/your/project
+./target/release/architect-linter-pro /path/to/your/project
 
 # Interactive mode (shows you available projects)
-architect-linter
+architect-linter-pro
 ```
 
 **First run**: If `architect.json` doesn't exist, the linter:
@@ -156,23 +171,23 @@ architect-linter
 
 ## Update
 
-If you already have architect-linter installed and want to update to the latest version, use the **same installation script**:
+If you already have architect-linter-pro installed and want to update to the latest version, use the **same installation script**:
 
 ### Linux / macOS
 ```bash
-cd /path/to/repository/architect-linter
+cd /path/to/repository/architect-linter-pro
 git pull origin master  # Or the branch you use
 ./setup.sh
 ```
 
 ### Windows (PowerShell)
 ```powershell
-cd C:\path\to\repository\architect-linter
+cd C:\path\to\repository\architect-linter-pro
 git pull origin master  # Or the branch you use
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-**The script automatically detects** if you already have architect-linter installed:
+**The script automatically detects** if you already have architect-linter-pro installed:
 - ✅ If it exists: Update mode (shows old version → compiles → installs → shows new version)
 - ✅ If it doesn't exist: Installation mode (compiles → installs → configures PATH if necessary)
 
@@ -192,10 +207,10 @@ cargo build --release
 # 3. Copy the binary
 
 # Linux/macOS
-sudo cp target/release/architect-linter /usr/local/bin/
+sudo cp target/release/architect-linter-pro /usr/local/bin/
 
 # Windows PowerShell
-copy target\release\architect-linter.exe $env:USERPROFILE\bin\
+copy target\release\architect-linter-pro.exe $env:USERPROFILE\bin\
 ```
 
 ### Git Hooks Integration (Automatic)
@@ -218,7 +233,7 @@ npx husky-init && npm install
 . "$(dirname "$0")/_/husky.sh"
 
 echo "🏗️  Running Architect Linter..."
-architect-linter .
+architect-linter-pro .
 
 if [ $? -ne 0 ]; then
   echo ""
@@ -237,7 +252,7 @@ exit 0
 . "$(dirname "$0")/_/husky.sh"
 
 echo "🏗️  Running Architect Linter..."
-"/full/path/architect-linter/target/release/architect-linter" .
+"/full/path/architect-linter-pro/target/release/architect-linter-pro" .
 ```
 
 Edit the `.husky/pre-commit` file with the content of your preference and give it execution permissions:
@@ -391,7 +406,7 @@ Prevent Controllers from skipping the service layer.
 ### Interactive Mode (First Run)
 
 ```bash
-./target/release/architect-linter
+./target/release/architect-linter-pro
 ```
 
 If `architect.json` doesn't exist, the linter:
@@ -412,7 +427,7 @@ If `architect.json` doesn't exist, the linter:
 When `architect.json` already exists, the linter runs silently:
 
 ```bash
-./target/release/architect-linter /path/to/project
+./target/release/architect-linter-pro /path/to/project
 ```
 
 or
@@ -426,7 +441,7 @@ cargo run -- /path/to/project
 Watch mode enables continuous monitoring of your codebase during development:
 
 ```bash
-architect-linter --watch .
+architect-linter-pro --watch .
 ```
 
 **How it works**:
@@ -462,7 +477,7 @@ architect-linter --watch .
 ### CLI Arguments
 
 ```bash
-architect-linter [OPTIONS] [PATH]
+architect-linter-pro [OPTIONS] [PATH]
 ```
 
 **Options**:
@@ -470,18 +485,27 @@ architect-linter [OPTIONS] [PATH]
 - `-h, --help`: Shows complete help
 - `-w, --watch`: Watch mode - monitors file changes and re-analyzes automatically
 - `-f, --fix`: Fix mode - AI-powered automatic fixing of architectural violations
+- `-s, --staged`: Analyze only staged files (git integration)
+- `-r, --report <FORMAT>`: Generate report in specified format (json or markdown)
+- `-o, --output <FILE>`: Output file path for the report
 - **No arguments**: Interactive mode, shows menu of available projects
-- **With path**: `architect-linter /project/path` - Analyzes the specified project
+- **With path**: `architect-linter-pro /project/path` - Analyzes the specified project
 
 **Examples**:
 ```bash
-architect-linter --version          # Shows: architect-linter 2.3.0
-architect-linter --help             # Shows complete help
-architect-linter                    # Interactive mode
-architect-linter .                  # Analyzes current directory
-architect-linter /project/path      # Analyzes specific project
-architect-linter --watch .          # Watch mode: monitors changes and re-analyzes
-architect-linter --fix .            # Fix mode: auto-fix violations with AI
+# Basic usage
+architect-linter-pro --version          # Shows: architect-linter-pro 4.0.0
+architect-linter-pro --help             # Shows complete help
+architect-linter-pro                    # Interactive mode
+architect-linter-pro .                  # Analyzes current directory
+
+# Advanced features (v4.0.0)
+architect-linter-pro --watch .                          # Watch mode
+architect-linter-pro --fix .                            # Auto-fix with AI
+architect-linter-pro --staged                           # Analyze only staged files
+architect-linter-pro --report json -o report.json       # Generate JSON report
+architect-linter-pro --report markdown -o report.md     # Generate Markdown report
+architect-linter-pro -r json -o report.json .           # Analyze and generate report
 ```
 
 ## The Complete Workflow
@@ -667,7 +691,7 @@ Circular dependency detected:
 ## Project Structure
 
 ```
-architect-linter/
+architect-linter-pro/
 ├── src/
 │   ├── main.rs                 # Main orchestration, circular dependency analysis
 │   ├── analyzer.rs             # Multi-language analysis orchestrator
@@ -688,7 +712,7 @@ architect-linter/
 │       ├── php.rs              # PHP parser (Tree-sitter)
 │       └── java.rs             # Java parser (Tree-sitter)
 ├── public/
-│   └── architect-linter-banner.png  # Project banner image
+│   └── architect-linter-pro-banner.png  # Project banner image
 ├── Cargo.toml                  # Dependencies and project configuration
 ├── README.md                   # This documentation (English)
 ├── README_ES.md                # Spanish documentation
@@ -755,17 +779,24 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 - [x] **Multi-language support**: TypeScript, JavaScript, Python, Go, PHP, Java (6 languages)
 - [x] **Tree-sitter integration** for fast and accurate parsing across all languages
 - [x] **AI-powered auto-fix** for architectural violations (--fix)
+- [x] **Health Score System (v4.0.0)**: 0-100 scoring with A-F grades and component breakdown
+- [x] **Visual Dashboard (v4.0.0)**: Terminal-based dashboard showing architecture health
+- [x] **Report Generation (v4.0.0)**: Export analysis in JSON or Markdown format
+- [x] **GitHub Action (v4.0.0)**: Official action for CI/CD pipeline integration
+- [x] **Git Integration (v4.0.0)**: Analyze only staged files with --staged flag
 
 ### Coming Soon 🚧
-- [ ] Report export (JSON, HTML, Markdown)
-- [ ] Web dashboard to visualize historical violations
+- [ ] Web dashboard to visualize historical violations and trends
 - [ ] Support for more languages (Rust, C#, Ruby, Kotlin)
+- [ ] HTML report export with interactive visualizations
+- [ ] LSP (Language Server Protocol) integration for IDE support
 
 ### Future 🔮
 - [ ] Custom rules via Rust/WASM plugins
-- [ ] Native CI/CD integration (GitHub Actions, GitLab CI)
+- [ ] GitLab CI and other CI/CD platform integrations
 - [ ] Severity configuration per rule (error, warning, info)
 - [ ] Language-specific rule templates
+- [ ] Historical trend analysis and regression detection
 
 ## Contributing
 
@@ -788,6 +819,18 @@ Sergio Guadarrama - [GitHub](https://github.com/sergiogswv)
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+
+### v4.0.0 (2026-02-12) - Major Release: Health Score & Professional Analytics
+- 🏆 **Health Score System**: Comprehensive 0-100 scoring with A-F grading system
+- 📊 **Visual Dashboard**: Beautiful terminal dashboard showing architecture health breakdown
+- 📈 **Four Quality Metrics**: Layer Isolation, Circular Dependencies, Code Complexity, Rule Violations
+- 📄 **Report Generation**: Export analysis results in JSON or Markdown format
+- 🐙 **GitHub Action**: Official action for seamless CI/CD pipeline integration
+- 🔄 **Git Integration**: Analyze only staged files with `--staged` flag
+- 🎯 **Actionable Insights**: Detailed breakdown of what affects your score and how to improve it
+- 🚀 **Rebranding**: Project renamed to **Architect Linter Pro**
+- 🐛 **Bug Fixes**: Fixed 3 critical bugs (capacity overflow, circular deps detection, complexity analysis)
+- 📚 **Enhanced Documentation**: Comprehensive guides and examples for v4 features
 
 ### v3.2.0 (2026-02-07) - DeepSeek & Multi-Model Fallback
 - 🌑 **DeepSeek Integration**: Official support for DeepSeek API as a provider

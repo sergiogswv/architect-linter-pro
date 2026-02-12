@@ -458,6 +458,7 @@ fn find_long_functions(cm: &SourceMap, path: &PathBuf, max_lines: usize) -> Resu
     };
 
     for item in &module.body {
+        // Check class methods
         if let swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(
             swc_ecma_ast::Decl::Class(c),
         )) = item
@@ -485,6 +486,75 @@ fn find_long_functions(cm: &SourceMap, path: &PathBuf, max_lines: usize) -> Resu
                             lines,
                             threshold: max_lines,
                         });
+                    }
+                }
+            }
+        }
+        // Check standalone function declarations
+        else if let swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(
+            swc_ecma_ast::Decl::Fn(f),
+        )) = item
+        {
+            let lo = cm.lookup_char_pos(f.function.span.lo).line;
+            let hi = cm.lookup_char_pos(f.function.span.hi).line;
+            let lines = hi - lo;
+
+            if lines > max_lines {
+                let name = f.ident.sym.to_string();
+
+                long_functions.push(LongFunction {
+                    file_path: path.clone(),
+                    name,
+                    line_start: lo,
+                    lines,
+                    threshold: max_lines,
+                });
+            }
+        }
+        // Check exported functions
+        else if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::ExportDecl(e)) = item {
+            if let swc_ecma_ast::Decl::Fn(f) = &e.decl {
+                let lo = cm.lookup_char_pos(f.function.span.lo).line;
+                let hi = cm.lookup_char_pos(f.function.span.hi).line;
+                let lines = hi - lo;
+
+                if lines > max_lines {
+                    let name = f.ident.sym.to_string();
+
+                    long_functions.push(LongFunction {
+                        file_path: path.clone(),
+                        name,
+                        line_start: lo,
+                        lines,
+                        threshold: max_lines,
+                    });
+                }
+            }
+            // Also check exported classes
+            else if let swc_ecma_ast::Decl::Class(c) = &e.decl {
+                for member in &c.class.body {
+                    if let swc_ecma_ast::ClassMember::Method(m) = member {
+                        let lo = cm.lookup_char_pos(m.span.lo).line;
+                        let hi = cm.lookup_char_pos(m.span.hi).line;
+                        let lines = hi - lo;
+
+                        if lines > max_lines {
+                            let name = match &m.key {
+                                swc_ecma_ast::PropName::Ident(id) => id.sym.to_string(),
+                                swc_ecma_ast::PropName::Str(s) => s.value.to_string(),
+                                swc_ecma_ast::PropName::Num(n) => n.value.to_string(),
+                                swc_ecma_ast::PropName::BigInt(b) => b.value.to_string(),
+                                _ => "anonymous".to_string(),
+                            };
+
+                            long_functions.push(LongFunction {
+                                file_path: path.clone(),
+                                name,
+                                line_start: lo,
+                                lines,
+                                threshold: max_lines,
+                            });
+                        }
                     }
                 }
             }

@@ -1,0 +1,135 @@
+{
+  "circular_dependencies": [],
+  "health_score": {
+    "components": {
+      "circular_deps": 100,
+      "complexity": 0,
+      "layer_isolation": 100,
+      "violations": 100
+    },
+    "grade": "B",
+    "total": 80
+  },
+  "long_functions": [
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/notifications/notifications.service.ts",
+      "line_start": 151,
+      "lines": 101,
+      "name": "sendLiverpoolCareRenovaciones",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/reports/reports.service.ts",
+      "line_start": 26,
+      "lines": 127,
+      "name": "getFirstLastCallReport",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/user/user.service.ts",
+      "line_start": 63,
+      "lines": 108,
+      "name": "create",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/deal/services/deal-statistics.service.ts",
+      "line_start": 323,
+      "lines": 133,
+      "name": "calculateContactStatistics",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/deal/services/deal-statistics.service.ts",
+      "line_start": 458,
+      "lines": 171,
+      "name": "getDealsByLastTypificationCategory",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/deal/deal.service.ts",
+      "line_start": 1093,
+      "lines": 159,
+      "name": "findTypeRDeals",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/store/store.service.ts",
+      "line_start": 29,
+      "lines": 108,
+      "name": "findAll",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/store/store.service.ts",
+      "line_start": 304,
+      "lines": 119,
+      "name": "getStoreDataById",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/store/store.service.ts",
+      "line_start": 496,
+      "lines": 107,
+      "name": "getAgentPerformanceMetrics",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/lead/utils/index.ts",
+      "line_start": 82,
+      "lines": 110,
+      "name": "buildMetricsArray",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/lead/lead.service.ts",
+      "line_start": 489,
+      "lines": 107,
+      "name": "findPoolLeads",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/lead/lead.service.ts",
+      "line_start": 597,
+      "lines": 124,
+      "name": "getComprehensiveLeadAnalytics",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/lead/lead.service.ts",
+      "line_start": 800,
+      "lines": 231,
+      "name": "findRoleBasedMetrics",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/lead/lead.service.ts",
+      "line_start": 1033,
+      "lines": 173,
+      "name": "countDealsByType",
+      "threshold": 100
+    },
+    {
+      "file": "/home/protec/Documentos/dev/gestion-leads-operaciones-backend/src/modules/import/import.service.ts",
+      "line_start": 36,
+      "lines": 116,
+      "name": "importFromFile",
+      "threshold": 100
+    }
+  ],
+  "project": {
+    "files_analyzed": 315,
+    "name": "gestion-leads-operaciones-backend",
+    "pattern": "MVC Pattern"
+  },
+  "summary": {
+    "blocked_violations": 0,
+    "circular_dependencies": 0,
+    "long_functions": 15,
+    "total_violations": 0,
+    "warning_violations": 0
+  },
+  "timestamp": "2026-02-12T22:24:10.177999479+00:00",
+  "version": "4.0.0",
+  "violations": []
+}

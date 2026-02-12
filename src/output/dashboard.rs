@@ -168,35 +168,41 @@ fn print_violations_list(violations: &[CategorizedViolation]) {
     let warning_count = violations.iter().filter(|v| v.category == crate::analysis_result::ViolationCategory::Warning).count();
 
     print_horizontal_line(BOX_T_LEFT, BOX_T_RIGHT, BOX_HORIZONTAL);
+    let header_text_len = 30 + blocked_count.to_string().len() + warning_count.to_string().len();
+    let header_padding = DASHBOARD_WIDTH.saturating_sub(header_text_len);
     println!(
         "{}  VIOLATIONS ({} blocked, {} warnings){}",
         BOX_VERTICAL,
         blocked_count,
         warning_count,
-        " ".repeat(DASHBOARD_WIDTH - 30 - blocked_count.to_string().len() - warning_count.to_string().len())
+        " ".repeat(header_padding)
     );
     print_horizontal_line(BOX_T_LEFT, BOX_T_RIGHT, BOX_HORIZONTAL);
 
     for (i, categorized) in violations.iter().enumerate() {
         let v = &categorized.violation;
+        let file_line_len = 10 + v.file_path.to_string_lossy().len() + v.line_number.to_string().len();
+        let file_padding = DASHBOARD_WIDTH.saturating_sub(file_line_len);
         println!(
             "{}  {}. {}:{}{}",
             BOX_VERTICAL,
             i + 1,
             v.file_path.display(),
             v.line_number,
-            " ".repeat(DASHBOARD_WIDTH - 10 - v.file_path.to_string_lossy().len() - v.line_number.to_string().len())
+            " ".repeat(file_padding)
         );
+        let rule_line_len = 20 + v.rule.from.len() + v.rule.to.len();
+        let rule_padding = DASHBOARD_WIDTH.saturating_sub(rule_line_len);
         println!(
             "{}     Rule: {} cannot import from {}{}",
             BOX_VERTICAL,
             v.rule.from,
             v.rule.to,
-            " ".repeat(DASHBOARD_WIDTH - 20 - v.rule.from.len() - v.rule.to.len())
+            " ".repeat(rule_padding)
         );
 
         if i < violations.len() - 1 {
-            println!("{}{}", BOX_VERTICAL, " ".repeat(DASHBOARD_WIDTH - 1));
+            println!("{}{}", BOX_VERTICAL, " ".repeat(DASHBOARD_WIDTH.saturating_sub(1)));
         }
     }
 
