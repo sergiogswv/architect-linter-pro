@@ -1,10 +1,11 @@
 use crate::analysis_result::{CategorizedViolation, LongFunction};
 use crate::config::LinterContext;
+use crate::memory_cache::MemoryCache;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const CACHE_VERSION: u32 = 1;
 const CACHE_DIR: &str = ".architect-cache";
@@ -101,5 +102,56 @@ impl AnalysisCache {
     /// Remove a file from the cache (e.g. when a watched file changes)
     pub fn remove(&mut self, key: &str) {
         self.files.remove(key);
+    }
+}
+
+/// Hybrid cache combining memory (LRU) and disk cache layers
+pub struct HybridCache {
+    memory: MemoryCache,
+    disk: AnalysisCache,
+}
+
+impl HybridCache {
+    pub fn new(memory_capacity: usize, project_root: &Path, config_hash: String) -> Result<Self, Box<dyn std::error::Error>> {
+        // Load disk cache from disk if it exists, otherwise create new
+        let disk = AnalysisCache::load(project_root, &config_hash)
+            .unwrap_or_else(|| AnalysisCache::new(config_hash));
+
+        Ok(Self {
+            memory: MemoryCache::new(memory_capacity),
+            disk,
+        })
+    }
+
+    pub fn get(&self, path: &PathBuf) -> Option<String> {
+        // Layer 1: Memory cache
+        if let Some(content) = self.memory.get(path) {
+            return Some(content);
+        }
+
+        // Layer 2: Disk cache
+        let key = path.to_string_lossy().replace('\\', "/");
+        if let Some(entry) = self.disk.files.get(&key) {
+            // Promote to memory cache
+            self.memory.put(path.clone(), entry.content_hash.clone());
+            return Some(entry.content_hash.clone());
+        }
+
+        None
+    }
+
+    pub fn put(&mut self, path: PathBuf, entry: FileCacheEntry) {
+        let key = path.to_string_lossy().replace('\\', "/");
+        // Update both layers
+        self.memory.put(path, entry.content_hash.clone());
+        self.disk.files.insert(key, entry);
+    }
+
+    pub fn clear_memory(&self) {
+        self.memory.clear();
+    }
+
+    pub fn save(&self, project_root: &Path) -> io::Result<()> {
+        self.disk.save(project_root)
     }
 }

@@ -15,6 +15,7 @@ mod config;
 mod detector;
 mod discovery;
 mod git;
+mod memory_cache;
 mod metrics;
 mod output;
 mod parsers;
