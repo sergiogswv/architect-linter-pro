@@ -3,24 +3,24 @@
 // This module exposes the internal modules publicly so they can be tested
 // and potentially used as a library.
 
-// Internal modules (same as main.rs)
-mod ai;
+pub mod ai;
 pub mod analysis_result;
 pub mod analyzer;
-mod autofix;
+pub mod autofix;
+pub mod cache;
 pub mod circular;
-mod cli;
+pub mod cli;
 pub mod config;
-mod detector;
-mod discovery;
-mod git;
+pub mod detector;
+pub mod discovery;
+pub mod git;
 pub mod metrics;
-mod output;
+pub mod output;
 pub mod parsers;
-mod report;
+pub mod report;
 pub mod scoring;
-mod ui;
-mod watch;
+pub mod ui;
+pub mod watch;
 
 // Re-export commonly used types for convenience
 pub use analysis_result::AnalysisResult;

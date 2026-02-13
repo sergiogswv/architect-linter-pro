@@ -145,10 +145,12 @@ pub fn sugerir_arquitectura_inicial(
 ) -> anyhow::Result<AISuggestionResponse> {
     let prompt = format!(
         "Eres un Arquitecto de Software Senior. Analiza este proyecto {framework} con las siguientes dependencias: {deps:?}
-        y esta estructura de archivos: {files:?}.
+        y esta estructura de carpetas: {files:?}.
+        Además, estos son los archivos arquitectónicos clave del proyecto: {key_files:?}.
 
         TAREA:
         Identifica el patrón (Hexagonal, Clean o MVC) y sugiere reglas de importaciones prohibidas basándote en las mejores prácticas.
+        Usa los archivos arquitectónicos clave para entender mejor la estructura del proyecto (ej: user.controller.ts, auth_service.py indican convenciones de nomenclatura).
 
         RESPONDE EXCLUSIVAMENTE EN FORMATO JSON con esta estructura:
         {{
@@ -160,7 +162,8 @@ pub fn sugerir_arquitectura_inicial(
         }}",
         framework = context.framework,
         deps = context.dependencies,
-        files = context.folder_structure
+        files = context.folder_structure,
+        key_files = context.key_files
     );
 
     // Obtener respuesta con fallback

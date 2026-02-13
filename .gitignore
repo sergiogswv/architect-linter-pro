@@ -21,3 +21,6 @@ Thumbs.db
 
 # Architect Linter - AI Config (contiene API keys)
 .architect.ai.json
+
+# Architect Linter - Analysis Cache
+.architect-cache/

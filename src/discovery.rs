@@ -1,3 +1,4 @@
+use crate::config::default_ignored_paths;
 use crate::detector;
 use crate::parsers;
 use serde::Serialize;
@@ -56,9 +57,12 @@ pub fn get_architecture_snapshot(root: &Path) -> ProjectContext {
         root.to_path_buf()
     };
 
+    // Use default_ignored_paths instead of hardcoded filter
+    let ignored = default_ignored_paths();
+
     let walker = WalkDir::new(scan_path)
         .into_iter()
-        .filter_entry(|e| is_not_ignored(e));
+        .filter_entry(|e| is_not_ignored_with_patterns(e, root, &ignored));
 
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
@@ -83,35 +87,212 @@ pub fn get_architecture_snapshot(root: &Path) -> ProjectContext {
 }
 
 fn get_dependency_list(root: &Path) -> Vec<String> {
-    let pkg_path = root.join("package.json");
     let mut deps_list = Vec::new();
 
-    if let Ok(content) = fs::read_to_string(pkg_path) {
+    // 1. JavaScript/TypeScript: package.json
+    let pkg_path = root.join("package.json");
+    if let Ok(content) = fs::read_to_string(&pkg_path) {
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
             if let Some(deps) = json.get("dependencies").and_then(|d| d.as_object()) {
-                deps_list.extend(deps.keys().cloned()); // Simplificado .cloned()
+                deps_list.extend(deps.keys().cloned());
             }
             if let Some(dev_deps) = json.get("devDependencies").and_then(|d| d.as_object()) {
                 deps_list.extend(dev_deps.keys().cloned());
             }
         }
     }
+
+    // 2. Python: requirements.txt
+    let requirements_path = root.join("requirements.txt");
+    if let Ok(content) = fs::read_to_string(&requirements_path) {
+        for line in content.lines() {
+            let line = line.trim();
+            // Skip comments and empty lines
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            // Extract package name (strip version specifiers like ==, >=, <=, ~=, !=, etc.)
+            let pkg_name = line
+                .split(&['=', '<', '>', '~', '!', ';'][..])
+                .next()
+                .unwrap_or(line)
+                .trim()
+                .to_string();
+            if !pkg_name.is_empty() {
+                deps_list.push(pkg_name);
+            }
+        }
+    }
+
+    // 3. Python: pyproject.toml (simple line-by-line parsing)
+    let pyproject_path = root.join("pyproject.toml");
+    if let Ok(content) = fs::read_to_string(&pyproject_path) {
+        let mut in_dependencies = false;
+        let mut bracket_count = 0;
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            // Detect dependencies section start
+            if trimmed.starts_with("dependencies") && trimmed.contains('[') {
+                in_dependencies = true;
+                bracket_count = trimmed.matches('[').count() as i32 - trimmed.matches(']').count() as i32;
+                continue;
+            }
+
+            if in_dependencies {
+                // Track brackets for multi-line arrays
+                bracket_count += trimmed.matches('[').count() as i32;
+                bracket_count -= trimmed.matches(']').count() as i32;
+
+                if bracket_count <= 0 && trimmed.ends_with(']') {
+                    in_dependencies = false;
+                    continue;
+                }
+
+                // Extract quoted package names
+                if trimmed.starts_with('"') || trimmed.starts_with("'") {
+                    let pkg = trimmed
+                        .trim_start_matches('"')
+                        .trim_start_matches('\'')
+                        .split(&['"', '\'', ' ', '>', '<', '=', '~', '^'][..])
+                        .next()
+                        .unwrap_or("")
+                        .to_string();
+                    if !pkg.is_empty() {
+                        deps_list.push(pkg);
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Go: go.mod
+    let go_mod_path = root.join("go.mod");
+    if let Ok(content) = fs::read_to_string(&go_mod_path) {
+        let mut in_require = false;
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            // Detect require block
+            if trimmed == "require (" {
+                in_require = true;
+                continue;
+            }
+            if in_require && trimmed == ")" {
+                in_require = false;
+                continue;
+            }
+
+            // Parse require entries
+            if in_require && !trimmed.is_empty() && !trimmed.starts_with("//") {
+                // Format: module/path version
+                if let Some(module) = trimmed.split_whitespace().next() {
+                    deps_list.push(module.to_string());
+                }
+            }
+
+            // Single-line require: require module/path version
+            if trimmed.starts_with("require ") && !trimmed.starts_with("require (") {
+                if let Some(rest) = trimmed.strip_prefix("require ") {
+                    if let Some(module) = rest.split_whitespace().next() {
+                        deps_list.push(module.to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    // 5. PHP: composer.json
+    let composer_path = root.join("composer.json");
+    if let Ok(content) = fs::read_to_string(&composer_path) {
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(deps) = json.get("require").and_then(|d| d.as_object()) {
+                deps_list.extend(deps.keys().cloned());
+            }
+            if let Some(dev_deps) = json.get("require-dev").and_then(|d| d.as_object()) {
+                deps_list.extend(dev_deps.keys().cloned());
+            }
+        }
+    }
+
+    // 6. Java: pom.xml (Maven) - simple line scan for artifactId
+    let pom_path = root.join("pom.xml");
+    if let Ok(content) = fs::read_to_string(&pom_path) {
+        let mut in_dependencies = false;
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            if trimmed == "<dependencies>" {
+                in_dependencies = true;
+                continue;
+            }
+            if trimmed == "</dependencies>" {
+                in_dependencies = false;
+                continue;
+            }
+
+            if in_dependencies && trimmed.starts_with("<artifactId>") && trimmed.ends_with("</artifactId>") {
+                let artifact = trimmed
+                    .trim_start_matches("<artifactId>")
+                    .trim_end_matches("</artifactId>");
+                if !artifact.is_empty() {
+                    deps_list.push(artifact.to_string());
+                }
+            }
+        }
+    }
+
+    // 7. Java: build.gradle (Gradle) - simple line scan
+    let gradle_path = root.join("build.gradle");
+    if let Ok(content) = fs::read_to_string(&gradle_path) {
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            // Match: implementation 'group:artifact:version' or implementation "group:artifact:version"
+            if trimmed.starts_with("implementation ") || trimmed.starts_with("api ") {
+                let quote_char = if trimmed.contains('\'') { '\'' } else { '"' };
+                if let Some(start) = trimmed.find(quote_char) {
+                    if let Some(end) = trimmed.rfind(quote_char) {
+                        if start < end {
+                            let dep = &trimmed[start + 1..end];
+                            // Extract artifact name (last part before version)
+                            if let Some(artifact) = dep.split(':').nth(1) {
+                                deps_list.push(artifact.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Also check build.gradle.kts
+    let gradle_kts_path = root.join("build.gradle.kts");
+    if let Ok(content) = fs::read_to_string(&gradle_kts_path) {
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            // Match: implementation("group:artifact:version")
+            if trimmed.starts_with("implementation(") || trimmed.starts_with("api(") {
+                if let Some(start) = trimmed.find('"') {
+                    if let Some(end) = trimmed.rfind('"') {
+                        if start < end {
+                            let dep = &trimmed[start + 1..end];
+                            if let Some(artifact) = dep.split(':').nth(1) {
+                                deps_list.push(artifact.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     deps_list
 }
 
-/// Función de compatibilidad para discovery sin patrones personalizados
-fn is_not_ignored(entry: &DirEntry) -> bool {
-    entry
-        .file_name()
-        .to_str()
-        .map(|s| {
-            s != "node_modules" && s != "dist" && s != ".git" && s != "target" && s != ".suggested"
-        })
-        .unwrap_or(false)
-}
-
 /// Verifica si una entrada debe ser ignorada según los patrones configurados
-fn is_not_ignored_with_patterns(entry: &DirEntry, root: &Path, ignored_paths: &[String]) -> bool {
+pub fn is_not_ignored_with_patterns(entry: &DirEntry, root: &Path, ignored_paths: &[String]) -> bool {
     // Obtener la ruta relativa al root del proyecto
     let entry_path = entry.path();
     let relative_path = entry_path

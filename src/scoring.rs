@@ -4,7 +4,7 @@
 //! into a 0-100 health score with letter grades.
 
 use crate::analysis_result::AnalysisResult;
-use crate::metrics::{ComponentStatus, HealthGrade, HealthScore, ScoreComponents};
+use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
 
 /// Calculate the health score from an analysis result
 pub fn calculate(result: &AnalysisResult) -> HealthScore {
@@ -76,11 +76,6 @@ fn calculate_violations_score(result: &AnalysisResult) -> u8 {
     let penalty = (blocked * 2) as f64 + warnings as f64;
     let score = 100.0 - (penalty / total_checks as f64 * 100.0);
     score.max(0.0).min(100.0) as u8
-}
-
-/// Get a visual status indicator for display
-pub fn get_status_indicator(status: ComponentStatus) -> &'static str {
-    status.emoji()
 }
 
 /// Get a visual progress bar for a score

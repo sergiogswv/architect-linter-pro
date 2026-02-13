@@ -57,33 +57,6 @@ pub fn get_staged_files(repo_path: &Path) -> Result<Vec<PathBuf>> {
     Ok(staged_files)
 }
 
-/// Get the repository root path
-pub fn get_repo_root(path: &Path) -> Result<PathBuf> {
-    let repo = Repository::discover(path)
-        .map_err(|e| miette::miette!("No se encontró repositorio git: {}", e))?;
-
-    repo.workdir()
-        .map(|p| p.to_path_buf())
-        .ok_or_else(|| miette::miette!("El repositorio no tiene directorio de trabajo"))
-}
-
-/// Get current branch name
-pub fn get_current_branch(repo_path: &Path) -> Result<String> {
-    let repo = Repository::discover(repo_path)
-        .map_err(|e| miette::miette!("No se encontró repositorio git: {}", e))?;
-
-    let head = repo
-        .head()
-        .map_err(|e| miette::miette!("Error al obtener HEAD: {}", e))?;
-
-    if head.is_branch() {
-        let branch = head.shorthand().unwrap_or("unknown").to_string();
-        Ok(branch)
-    } else {
-        Ok("detached HEAD".to_string())
-    }
-}
-
 /// Filter files to only include those that are staged
 pub fn filter_staged_files(all_files: &[PathBuf], repo_path: &Path) -> Result<Vec<PathBuf>> {
     let staged = get_staged_files(repo_path)?;

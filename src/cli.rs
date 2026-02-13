@@ -18,13 +18,6 @@ impl ReportFormat {
             _ => None,
         }
     }
-
-    pub fn extension(&self) -> &'static str {
-        match self {
-            ReportFormat::Json => "json",
-            ReportFormat::Markdown => "md",
-        }
-    }
 }
 
 /// Argumentos procesados de la línea de comandos
@@ -42,6 +35,8 @@ pub struct CliArgs {
     pub report_format: Option<ReportFormat>,
     /// Ruta del archivo de salida para el reporte
     pub output_path: Option<String>,
+    /// Disable analysis cache
+    pub no_cache: bool,
 }
 
 /// Muestra la ayuda del CLI
@@ -65,6 +60,7 @@ pub fn print_help() {
     println!("  -s, --staged         Solo analizar archivos staged (git)");
     println!("  -r, --report <FMT>   Exportar reporte: json, markdown");
     println!("  -o, --output <PATH>  Archivo de salida para el reporte");
+    println!("  --no-cache           Disable analysis cache");
     println!();
     println!("EJEMPLOS:");
     println!("  architect-linter-pro                         # Modo interactivo");
@@ -77,6 +73,18 @@ pub fn print_help() {
     println!(
         "  architect-linter-pro -r md -o report.md .    # Exportar reporte Markdown a archivo"
     );
+    println!();
+    println!("INTERACTIVE WATCH MODE:");
+    println!("  When running with --watch, type a command + Enter:");
+    println!("    f  Fix: auto-fix violations with AI");
+    println!("    r  Report: generate JSON report");
+    println!("    m  Markdown: generate Markdown report");
+    println!("    a  Analyze: full analysis with dashboard");
+    println!("    v  Violations: list all current violations");
+    println!("    d  Dashboard: show health score");
+    println!("    c  Clear: clear terminal screen");
+    println!("    h  Help: show available commands");
+    println!("    q  Quit: exit watch mode");
     println!();
     println!("SCORE GRADES:");
     println!("  A (90-100)  - Excellent architecture health");
@@ -103,6 +111,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut watch_mode = false;
     let mut fix_mode = false;
     let mut staged_mode = false;
+    let mut no_cache = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
     let mut project_path: Option<String> = None;
@@ -127,6 +136,9 @@ pub fn process_args() -> Option<CliArgs> {
             }
             "--staged" | "-s" => {
                 staged_mode = true;
+            }
+            "--no-cache" => {
+                no_cache = true;
             }
             "--report" | "-r" => {
                 // Next argument should be the format
@@ -171,6 +183,7 @@ pub fn process_args() -> Option<CliArgs> {
         watch_mode,
         fix_mode,
         staged_mode,
+        no_cache,
         report_format,
         output_path,
     })

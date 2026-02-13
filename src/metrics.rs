@@ -114,6 +114,7 @@ impl HealthScore {
     }
 
     /// Get the status indicator string for display
+    #[allow(dead_code)] // Used by integration tests
     pub fn status_indicator(&self) -> &'static str {
         match self.grade {
             HealthGrade::A => "✅ Excellent",
@@ -166,10 +167,3 @@ pub struct ComplexityStats {
     pub max_lines_threshold: usize,
 }
 
-/// Statistics for violations
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct ViolationStats {
-    pub blocked_count: usize,
-    pub warning_count: usize,
-    pub info_count: usize,
-}

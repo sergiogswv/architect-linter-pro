@@ -228,7 +228,7 @@ pub fn write_stdout(content: &str) -> Result<()> {
 mod tests {
     use super::*;
     use crate::config::ArchPattern;
-    use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
+    use crate::metrics::{HealthScore, ScoreComponents};
 
     #[test]
     fn test_json_report_structure() {

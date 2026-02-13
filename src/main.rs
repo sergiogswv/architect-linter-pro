@@ -8,6 +8,7 @@ mod ai;
 mod analysis_result;
 mod analyzer;
 mod autofix;
+mod cache;
 mod circular;
 mod cli;
 mod config;
@@ -41,11 +42,13 @@ fn main() -> Result<()> {
     // 3. Cargar o crear configuración asistida por IA
     let ctx = Arc::new(config::setup_or_load_config(&project_root)?);
 
+    let no_cache = cli_args.no_cache;
+
     // 4. Decidir entre modo normal, watch o fix
     if cli_args.fix_mode {
         run_fix_mode(&project_root, Arc::clone(&ctx))?;
     } else if cli_args.watch_mode {
-        run_watch_mode(&project_root, Arc::clone(&ctx))?;
+        run_watch_mode(&project_root, Arc::clone(&ctx), no_cache)?;
     } else {
         run_normal_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     }
@@ -98,9 +101,32 @@ fn run_normal_mode(
 
     let cm = Arc::new(SourceMap::default());
 
+    // Load or create analysis cache
+    let use_cache = !cli_args.no_cache;
+    let config_hash = cache::hash_config(&ctx);
+    let mut analysis_cache = if use_cache {
+        cache::AnalysisCache::load(project_root, &config_hash)
+            .unwrap_or_else(|| cache::AnalysisCache::new(config_hash.clone()))
+    } else {
+        cache::AnalysisCache::new(config_hash.clone())
+    };
+
     // v4.0: Use aggregated analysis for scoring
-    let mut analysis_result =
-        analyzer::analyze_all_files(&files, project_root, ctx.pattern.clone(), &ctx, &cm)?;
+    let mut analysis_result = analyzer::analyze_all_files(
+        &files,
+        project_root,
+        ctx.pattern.clone(),
+        &ctx,
+        &cm,
+        if use_cache { Some(&mut analysis_cache) } else { None },
+    )?;
+
+    // Save cache to disk
+    if use_cache {
+        if let Err(e) = analysis_cache.save(project_root) {
+            eprintln!("⚠️  Could not save analysis cache: {}", e);
+        }
+    }
 
     // Análisis de Dependencias Cíclicas
     pb.set_message("Checking circular deps...");
@@ -162,172 +188,68 @@ fn run_normal_mode(
     }
 }
 
-/// Ejecuta el análisis en modo watch (observación continua)
-fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Result<()> {
-    println!("🚀 Iniciando modo watch...\n");
-
-    // Análisis inicial completo
+/// Run a full analysis and return the AnalysisResult (reused by watch commands)
+fn run_full_analysis(
+    project_root: &PathBuf,
+    ctx: &config::LinterContext,
+    analysis_cache: Option<&mut cache::AnalysisCache>,
+) -> Result<analysis_result::AnalysisResult> {
     let files = discovery::collect_files(project_root, &ctx.ignored_paths);
+    let cm = Arc::new(SourceMap::default());
 
-    // Mostrar información de directorios ignorados
-    if !ctx.ignored_paths.is_empty() {
-        println!("📂 Ignorando directorios: {}", ctx.ignored_paths.join(", "));
+    let mut analysis_result = analyzer::analyze_all_files(
+        &files,
+        project_root,
+        ctx.pattern.clone(),
+        ctx,
+        &cm,
+        analysis_cache,
+    )?;
+
+    // Circular dependencies
+    match circular::analyze_circular_dependencies(&files, project_root, &cm) {
+        Ok(detected_cycles) => {
+            for cycle in &detected_cycles {
+                analysis_result.add_circular_dependency(cycle.clone());
+            }
+        }
+        Err(e) => {
+            eprintln!("⚠️  No se pudo analizar dependencias cíclicas: {}", e);
+        }
     }
 
-    if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+    // Health score
+    let health_score = scoring::calculate(&analysis_result);
+    analysis_result.health_score = Some(health_score);
+
+    Ok(analysis_result)
+}
+
+/// Run the AI auto-fix flow (reused by watch commands)
+fn run_fix_flow(project_root: &PathBuf, ctx: &config::LinterContext) -> Result<()> {
+    use dialoguer::Confirm;
+
+    if ctx.ai_configs.is_empty() {
+        println!("⚠️  No se encontró configuración de IA (.architect.ai.json).");
+        println!("   El modo fix requiere configuración de IA para funcionar.");
         return Ok(());
     }
 
-    println!("📊 Análisis inicial de {} archivos...", files.len());
-    let cm = Arc::new(SourceMap::default());
-
-    // Construir grafo de dependencias inicial
-    let mut analyzer = circular::CircularDependencyAnalyzer::new(project_root);
-    analyzer.build_graph(&files, &cm)?;
-
-    // Análisis inicial de violaciones
-    let mut error_count = 0;
-    for file_path in &files {
-        if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
-            error_count += 1;
-            let mut out = String::new();
-            let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-            println!("\n📌 Violación en: {}", file_path.display());
-            println!("{}", out);
-        }
-    }
-
-    // Análisis de ciclos inicial
-    let cycles = analyzer.detect_cycles();
-    if !cycles.is_empty() {
-        circular::print_circular_dependency_report(&cycles);
-        println!(
-            "\n⚠️  Se encontraron {} dependencias cíclicas.",
-            cycles.len()
-        );
-    }
-
-    if error_count > 0 {
-        println!(
-            "\n❌ Se encontraron {} violaciones arquitectónicas.",
-            error_count
-        );
-    } else {
-        println!("\n✨ ¡Proyecto impecable! La arquitectura se respeta.");
-    }
-
-    // Iniciar observación de archivos
-    let analyzer = Arc::new(Mutex::new(analyzer));
-    let project_root_arc = Arc::new(project_root.clone());
-    let ignored_paths = ctx.ignored_paths.clone();
-
-    watch::start_watch_mode(project_root_arc.as_ref(), ignored_paths, |changed_files| {
-        let analyzer = Arc::clone(&analyzer);
-        let ctx = Arc::clone(&ctx);
-        let cm = Arc::clone(&cm);
-        let project_root = Arc::clone(&project_root_arc);
-
-        // Re-analizar solo archivos cambiados
-        let mut error_count = 0;
-        for file_path in changed_files {
-            // Validar reglas arquitectónicas
-            if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
-                error_count += 1;
-                let mut out = String::new();
-                let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-                println!("\n📌 Violación en: {}", file_path.display());
-                println!("{}", out);
-            }
-
-            // Actualizar grafo de dependencias
-            let mut analyzer = analyzer.lock().unwrap();
-            if let Err(e) = analyzer.update_file(file_path, &cm) {
-                eprintln!("⚠️  Error actualizando grafo: {}", e);
-                continue;
-            }
-
-            // Análisis incremental de ciclos
-            // Normalizar path relativo al proyecto
-            let normalized_path =
-                if let Ok(relative) = file_path.strip_prefix(project_root.as_ref()) {
-                    relative.to_string_lossy().replace('\\', "/").to_lowercase()
-                } else {
-                    file_path
-                        .to_string_lossy()
-                        .replace('\\', "/")
-                        .to_lowercase()
-                };
-
-            let affected_nodes = analyzer.get_affected_nodes(&normalized_path);
-
-            if !affected_nodes.is_empty() {
-                let cycles = analyzer.detect_cycles_in_subgraph(&affected_nodes);
-                if !cycles.is_empty() {
-                    circular::print_circular_dependency_report(&cycles);
-                    println!(
-                        "\n⚠️  Se encontraron {} dependencias cíclicas.",
-                        cycles.len()
-                    );
-                }
-            }
-        }
-
-        if error_count > 0 {
-            println!(
-                "\n❌ Se encontraron {} violaciones arquitectónicas.",
-                error_count
-            );
-        } else {
-            println!("\n✨ Todo correcto!");
-        }
-
-        Ok(())
-    })?;
-
-    Ok(())
-}
-
-/// Ejecuta el análisis en modo fix (auto-reparación con IA)
-fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Result<()> {
-    use dialoguer::Confirm;
-
-    println!("🔧 Modo Fix: Auto-reparación con IA\n");
-
-    // Verificar que hay configuración de IA
-    if ctx.ai_configs.is_empty() {
-        return Err(miette::miette!(
-            "No se encontró configuración de IA (.architect.ai.json).\n\
-             El modo --fix requiere configuración de IA para funcionar."
-        ));
-    }
-
-    // Recolectar archivos
     let files = discovery::collect_files(project_root, &ctx.ignored_paths);
-
-    if !ctx.ignored_paths.is_empty() {
-        println!("📂 Ignorando directorios: {}", ctx.ignored_paths.join(", "));
-    }
-
     if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        println!("✅ No se encontraron archivos para analizar.");
         return Ok(());
     }
 
     println!("📊 Analizando {} archivos...\n", files.len());
 
-    // Recolectar todas las violaciones
     let cm = Arc::new(SourceMap::default());
     let mut all_violations = Vec::new();
 
     for file_path in &files {
-        match analyzer::collect_violations_from_file(&cm, file_path, &ctx) {
-            Ok(violations) => {
-                all_violations.extend(violations);
-            }
-            Err(e) => {
-                eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e);
-            }
+        match analyzer::collect_violations_from_file(&cm, file_path, ctx) {
+            Ok(violations) => all_violations.extend(violations),
+            Err(e) => eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e),
         }
     }
 
@@ -341,7 +263,6 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
         all_violations.len()
     );
 
-    // Procesar cada violación
     let mut fixed_count = 0;
     let mut skipped_count = 0;
 
@@ -358,7 +279,6 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
         println!("💥 Import ofensivo: {}", violation.offensive_import);
         println!();
 
-        // Consultar a la IA con fallback
         println!("🤖 Consultando sugerencia de fix (usando sistema de fallback multimodelo)...");
 
         let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
@@ -369,14 +289,15 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
         )) {
             Ok(s) => s,
             Err(_e) => {
-                eprintln!("❌ No se pudo obtener ninguna sugerencia de los modelos configurados.");
+                eprintln!(
+                    "❌ No se pudo obtener ninguna sugerencia de los modelos configurados."
+                );
                 println!("⏭️  Saltando esta violación...\n");
                 skipped_count += 1;
                 continue;
             }
         };
 
-        // Mostrar la sugerencia
         println!();
         println!(
             "💡 Sugerencia de la IA (confianza: {}):",
@@ -412,7 +333,6 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
 
         println!();
 
-        // Pedir confirmación
         let should_apply = Confirm::new()
             .with_prompt("¿Aplicar este fix?")
             .default(false)
@@ -438,7 +358,6 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
         println!();
     }
 
-    // Resumen final
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("📊 RESUMEN");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -449,8 +368,334 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
 
     if fixed_count > 0 {
         println!("🎉 ¡Se aplicaron {} fix(es) exitosamente!", fixed_count);
-        println!("💡 Tip: Ejecuta el linter nuevamente para verificar que todo esté correcto.");
+        println!(
+            "💡 Tip: Ejecuta el linter nuevamente para verificar que todo esté correcto."
+        );
     }
 
     Ok(())
+}
+
+/// Ejecuta el análisis en modo watch (observación continua e interactiva)
+fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_cache: bool) -> Result<()> {
+    println!("🚀 Iniciando modo watch...\n");
+
+    // Análisis inicial completo
+    let files = discovery::collect_files(project_root, &ctx.ignored_paths);
+
+    if !ctx.ignored_paths.is_empty() {
+        println!("📂 Ignorando directorios: {}", ctx.ignored_paths.join(", "));
+    }
+
+    if files.is_empty() {
+        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        return Ok(());
+    }
+
+    println!("📊 Análisis inicial de {} archivos...", files.len());
+    let cm = Arc::new(SourceMap::default());
+
+    // Construir grafo de dependencias inicial
+    let mut dep_analyzer = circular::CircularDependencyAnalyzer::new(project_root);
+    dep_analyzer.build_graph(&files, &cm)?;
+
+    // Análisis inicial de violaciones
+    let mut error_count = 0;
+    for file_path in &files {
+        if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
+            error_count += 1;
+            let mut out = String::new();
+            let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
+            println!("\n📌 Violación en: {}", file_path.display());
+            println!("{}", out);
+        }
+    }
+
+    // Análisis de ciclos inicial
+    let cycles = dep_analyzer.detect_cycles();
+    if !cycles.is_empty() {
+        circular::print_circular_dependency_report(&cycles);
+        println!(
+            "\n⚠️  Se encontraron {} dependencias cíclicas.",
+            cycles.len()
+        );
+    }
+
+    if error_count > 0 {
+        println!(
+            "\n❌ Se encontraron {} violaciones arquitectónicas.",
+            error_count
+        );
+    } else {
+        println!("\n✨ ¡Proyecto impecable! La arquitectura se respeta.");
+    }
+
+    println!();
+
+    // Initialize analysis cache for watch session
+    let config_hash = cache::hash_config(&ctx);
+    let watch_cache: Arc<Mutex<Option<cache::AnalysisCache>>> = if no_cache {
+        Arc::new(Mutex::new(None))
+    } else {
+        let c = cache::AnalysisCache::load(project_root, &config_hash)
+            .unwrap_or_else(|| cache::AnalysisCache::new(config_hash));
+        Arc::new(Mutex::new(Some(c)))
+    };
+
+    // Shared state for the watch loop
+    let dep_analyzer = Arc::new(Mutex::new(dep_analyzer));
+    let project_root_arc = Arc::new(project_root.clone());
+    let ignored_paths = ctx.ignored_paths.clone();
+
+    // Clone Arcs for the on_command closure
+    let cmd_ctx = Arc::clone(&ctx);
+    let cmd_project_root = Arc::clone(&project_root_arc);
+    let cmd_cache = Arc::clone(&watch_cache);
+
+    let change_cache = Arc::clone(&watch_cache);
+
+    watch::start_watch_mode(
+        project_root_arc.as_ref(),
+        ignored_paths,
+        // on_change: incremental analysis for file changes
+        |changed_files| {
+            let dep_analyzer = Arc::clone(&dep_analyzer);
+            let ctx = Arc::clone(&ctx);
+            let cm = Arc::clone(&cm);
+            let project_root = Arc::clone(&project_root_arc);
+            let change_cache = Arc::clone(&change_cache);
+
+            // Invalidate changed files in cache
+            {
+                let mut cache_guard = change_cache.lock().unwrap();
+                if let Some(ref mut c) = *cache_guard {
+                    for file_path in changed_files {
+                        let key = cache::AnalysisCache::normalize_path(file_path, &project_root);
+                        c.remove(&key);
+                    }
+                }
+            }
+
+            let mut error_count = 0;
+            for file_path in changed_files {
+                if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
+                    error_count += 1;
+                    let mut out = String::new();
+                    let _ =
+                        GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
+                    println!("\n📌 Violación en: {}", file_path.display());
+                    println!("{}", out);
+                }
+
+                let mut dep_analyzer = dep_analyzer.lock().unwrap();
+                if let Err(e) = dep_analyzer.update_file(file_path, &cm) {
+                    eprintln!("⚠️  Error actualizando grafo: {}", e);
+                    continue;
+                }
+
+                let normalized_path =
+                    if let Ok(relative) = file_path.strip_prefix(project_root.as_ref()) {
+                        relative
+                            .to_string_lossy()
+                            .replace('\\', "/")
+                            .to_lowercase()
+                    } else {
+                        file_path
+                            .to_string_lossy()
+                            .replace('\\', "/")
+                            .to_lowercase()
+                    };
+
+                let affected_nodes = dep_analyzer.get_affected_nodes(&normalized_path);
+
+                if !affected_nodes.is_empty() {
+                    let cycles = dep_analyzer.detect_cycles_in_subgraph(&affected_nodes);
+                    if !cycles.is_empty() {
+                        circular::print_circular_dependency_report(&cycles);
+                        println!(
+                            "\n⚠️  Se encontraron {} dependencias cíclicas.",
+                            cycles.len()
+                        );
+                    }
+                }
+            }
+
+            if error_count > 0 {
+                println!(
+                    "\n❌ Se encontraron {} violaciones arquitectónicas.",
+                    error_count
+                );
+            } else {
+                println!("\n✨ Todo correcto!");
+            }
+
+            Ok(())
+        },
+        // on_command: handle interactive commands
+        |cmd| {
+            let ctx = Arc::clone(&cmd_ctx);
+            let project_root = cmd_project_root.as_ref();
+            let cmd_cache = Arc::clone(&cmd_cache);
+
+            // Helper: run full analysis with cache, then save
+            let run_cached_analysis = |cache_arc: &Arc<Mutex<Option<cache::AnalysisCache>>>| -> Result<analysis_result::AnalysisResult> {
+                let mut guard = cache_arc.lock().unwrap();
+                let result = run_full_analysis(
+                    project_root,
+                    &ctx,
+                    guard.as_mut(),
+                )?;
+                // Save cache after analysis
+                if let Some(ref c) = *guard {
+                    if let Err(e) = c.save(project_root) {
+                        eprintln!("⚠️  Could not save analysis cache: {}", e);
+                    }
+                }
+                Ok(result)
+            };
+
+            match cmd {
+                watch::WatchCommand::Fix => {
+                    println!("\n🔧 Ejecutando auto-fix con IA...\n");
+                    run_fix_flow(project_root, &ctx)?;
+                }
+                watch::WatchCommand::ReportJson => {
+                    println!("\n📄 Generando reporte JSON...\n");
+                    let result = run_cached_analysis(&cmd_cache)?;
+                    let content =
+                        report::generate_report(&result, cli::ReportFormat::Json);
+                    let path = project_root.join("report.json");
+                    report::write_report(&content, &path)?;
+                    println!("📄 Reporte guardado en: {}", path.display());
+                }
+                watch::WatchCommand::ReportMarkdown => {
+                    println!("\n📄 Generando reporte Markdown...\n");
+                    let result = run_cached_analysis(&cmd_cache)?;
+                    let content =
+                        report::generate_report(&result, cli::ReportFormat::Markdown);
+                    let path = project_root.join("report.md");
+                    report::write_report(&content, &path)?;
+                    println!("📄 Reporte guardado en: {}", path.display());
+                }
+                watch::WatchCommand::FullAnalysis => {
+                    println!("\n📊 Ejecutando análisis completo...\n");
+                    let result = run_cached_analysis(&cmd_cache)?;
+                    output::print_dashboard(&result);
+                    output::dashboard::print_summary(&result);
+                    if !result.circular_dependencies.is_empty() {
+                        println!();
+                        circular::print_circular_dependency_report(
+                            &result.circular_dependencies,
+                        );
+                    }
+                }
+                watch::WatchCommand::Violations => {
+                    println!("\n🔍 Escaneando todas las violaciones...\n");
+                    let result = run_cached_analysis(&cmd_cache)?;
+
+                    if result.violations.is_empty()
+                        && result.circular_dependencies.is_empty()
+                    {
+                        println!(
+                            "✨ ¡No se encontraron violaciones! La arquitectura se respeta."
+                        );
+                    } else {
+                        // Violations
+                        if !result.violations.is_empty() {
+                            println!(
+                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            );
+                            println!(
+                                "  🚫 {} violación(es) arquitectónicas",
+                                result.violations.len()
+                            );
+                            println!(
+                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            );
+                            for (i, cv) in result.violations.iter().enumerate() {
+                                let icon = match cv.category {
+                                    analysis_result::ViolationCategory::Blocked => {
+                                        "❌"
+                                    }
+                                    analysis_result::ViolationCategory::Warning => {
+                                        "⚠️"
+                                    }
+                                    analysis_result::ViolationCategory::Info => "ℹ️",
+                                };
+                                println!(
+                                    "\n  {} #{} [{}]",
+                                    icon,
+                                    i + 1,
+                                    cv.category.as_str().to_uppercase()
+                                );
+                                println!(
+                                    "     📄 {}:{}",
+                                    cv.violation.file_path.display(),
+                                    cv.violation.line_number
+                                );
+                                println!(
+                                    "     🚫 '{}' no puede importar de '{}'",
+                                    cv.violation.rule.from, cv.violation.rule.to
+                                );
+                                println!(
+                                    "     💥 {}",
+                                    cv.violation.offensive_import
+                                );
+                            }
+                            println!();
+                        }
+
+                        // Circular dependencies
+                        if !result.circular_dependencies.is_empty() {
+                            circular::print_circular_dependency_report(
+                                &result.circular_dependencies,
+                            );
+                        }
+
+                        // Summary line
+                        println!(
+                            "📊 Total: {} violaciones, {} dependencias cíclicas",
+                            result.violations.len(),
+                            result.circular_dependencies.len()
+                        );
+                    }
+                }
+                watch::WatchCommand::Dashboard => {
+                    println!("\n📊 Calculando health score...\n");
+                    let result = run_cached_analysis(&cmd_cache)?;
+                    output::print_dashboard(&result);
+                }
+                watch::WatchCommand::Clear => {
+                    // ANSI escape to clear screen and move cursor to top
+                    print!("\x1B[2J\x1B[1;1H");
+                    println!("👁️  Modo Watch activo");
+                }
+                watch::WatchCommand::Help => {
+                    println!();
+                    watch::print_watch_help();
+                }
+                watch::WatchCommand::Quit => {
+                    return Ok(false);
+                }
+            }
+
+            Ok(true)
+        },
+    )?;
+
+    Ok(())
+}
+
+/// Ejecuta el análisis en modo fix (auto-reparación con IA)
+fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Result<()> {
+    println!("🔧 Modo Fix: Auto-reparación con IA\n");
+
+    if ctx.ai_configs.is_empty() {
+        return Err(miette::miette!(
+            "No se encontró configuración de IA (.architect.ai.json).\n\
+             El modo --fix requiere configuración de IA para funcionar."
+        ));
+    }
+
+    run_fix_flow(project_root, &ctx)
 }

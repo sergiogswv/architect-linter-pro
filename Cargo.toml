@@ -46,6 +46,9 @@ tree-sitter-php = "0.22"
 git2 = "0.18"
 chrono = { version = "0.4", features = ["serde"] }
 
+# Analysis caching
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+
 [dev-dependencies]
 # Testing framework
 tempfile = "3.10"          # Temporary directories and files for tests

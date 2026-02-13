@@ -52,10 +52,6 @@ impl CategorizedViolation {
         }
     }
 
-    pub fn with_suggestion(mut self, suggestion: String) -> Self {
-        self.suggestion = Some(suggestion);
-        self
-    }
 }
 
 /// Long function detected during complexity analysis
@@ -166,32 +162,4 @@ impl AnalysisResult {
         }
     }
 
-    /// Generate a summary for display
-    pub fn summary(&self) -> AnalysisSummary {
-        AnalysisSummary {
-            total_files: self.files_analyzed,
-            total_violations: self.violations.len(),
-            blocked_violations: self.blocked_count(),
-            warning_violations: self.warning_count(),
-            circular_deps: self.circular_dependencies.len(),
-            long_functions: self.long_functions.len(),
-        }
-    }
-}
-
-/// Summary of analysis results
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalysisSummary {
-    pub total_files: usize,
-    pub total_violations: usize,
-    pub blocked_violations: usize,
-    pub warning_violations: usize,
-    pub circular_deps: usize,
-    pub long_functions: usize,
-}
-
-impl AnalysisSummary {
-    pub fn is_clean(&self) -> bool {
-        self.blocked_violations == 0 && self.circular_deps == 0
-    }
 }
