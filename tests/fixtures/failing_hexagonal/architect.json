@@ -1,0 +1,19 @@
+{
+  "max_lines_per_function": 40,
+  "framework": "Unknown",
+  "pattern": "Hexagonal",
+  "forbidden_imports": [
+    {
+      "from": "domain",
+      "to": "infrastructure"
+    },
+    {
+      "from": "domain",
+      "to": "application"
+    },
+    {
+      "from": "application",
+      "to": "infrastructure"
+    }
+  ]
+}

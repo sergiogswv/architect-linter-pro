@@ -6,7 +6,7 @@
 //! - Metrics collection (imports, functions)
 //! - File collection with caching
 
-mod collector;
+pub mod collector;
 mod metrics;
 mod pattern_matcher;
 mod swc_parser;

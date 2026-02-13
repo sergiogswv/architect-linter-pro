@@ -1,0 +1,19 @@
+{
+  "max_lines_per_function": 40,
+  "framework": "Unknown",
+  "pattern": "Clean",
+  "forbidden_imports": [
+    {
+      "from": "entities",
+      "to": "usecases"
+    },
+    {
+      "from": "entities",
+      "to": "adapters"
+    },
+    {
+      "from": "usecases",
+      "to": "adapters"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "max_lines_per_function": 40,
+  "framework": "Unknown",
+  "pattern": "MVC",
+  "forbidden_imports": [
+    {
+      "from": "models",
+      "to": "views"
+    },
+    {
+      "from": "models",
+      "to": "controllers"
+    },
+    {
+      "from": "views",
+      "to": "models"
+    },
+    {
+      "from": "views",
+      "to": "controllers"
+    }
+  ]
+}

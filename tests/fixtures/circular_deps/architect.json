@@ -1,11 +1,6 @@
 {
-  "max_lines_per_function": 50,
-  "architecture_pattern": "MVC",
-  "forbidden_imports": [],
-  "ignored_paths": [
-    "node_modules/",
-    ".git/",
-    "dist/",
-    "build/"
-  ]
+  "max_lines_per_function": 40,
+  "framework": "Unknown",
+  "pattern": "MVC",
+  "forbidden_imports": []
 }

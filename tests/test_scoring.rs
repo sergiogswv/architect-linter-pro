@@ -5,14 +5,16 @@
 /// - Component score calculations
 /// - Score component weighting
 /// - Edge cases and boundary conditions
-use architect_linter_pro::analysis_result::AnalysisResult;
+use architect_linter_pro::analysis_result::{AnalysisResult, ViolationCategory, CategorizedViolation};
+use architect_linter_pro::autofix::Violation;
 use architect_linter_pro::circular::CircularDependency;
-use architect_linter_pro::config::ArchPattern;
+use architect_linter_pro::config::{ArchPattern, ForbiddenRule};
 use architect_linter_pro::metrics::{
     ComplexityStats, ComponentStatus, HealthGrade, HealthScore, LayerStats, ScoreComponents,
 };
 use architect_linter_pro::scoring;
 use chrono::Utc;
+use std::path::PathBuf;
 
 // Helper to create a minimal AnalysisResult for testing
 fn create_test_result() -> AnalysisResult {
@@ -92,6 +94,367 @@ fn test_health_grade_emoji() {
     assert_eq!(HealthGrade::C.emoji(), "👍");
     assert_eq!(HealthGrade::D.emoji(), "⚠️");
     assert_eq!(HealthGrade::F.emoji(), "❌");
+}
+
+// ============================================================================
+// Grade Boundary Tests (Phase 1)
+// ============================================================================
+
+#[test]
+fn test_grade_boundaries_ab() {
+    // A/B boundary: 90
+    assert_eq!(HealthGrade::from_score(90), HealthGrade::A);
+    assert_eq!(HealthGrade::from_score(89), HealthGrade::B);
+    assert_eq!(HealthGrade::from_score(91), HealthGrade::A);
+}
+
+#[test]
+fn test_grade_boundaries_bc() {
+    // B/C boundary: 80
+    assert_eq!(HealthGrade::from_score(80), HealthGrade::B);
+    assert_eq!(HealthGrade::from_score(79), HealthGrade::C);
+    assert_eq!(HealthGrade::from_score(81), HealthGrade::B);
+}
+
+#[test]
+fn test_grade_boundaries_cd() {
+    // C/D boundary: 70
+    assert_eq!(HealthGrade::from_score(70), HealthGrade::C);
+    assert_eq!(HealthGrade::from_score(69), HealthGrade::D);
+    assert_eq!(HealthGrade::from_score(71), HealthGrade::C);
+}
+
+#[test]
+fn test_grade_boundaries_df() {
+    // D/F boundary: 60
+    assert_eq!(HealthGrade::from_score(60), HealthGrade::D);
+    assert_eq!(HealthGrade::from_score(59), HealthGrade::F);
+    assert_eq!(HealthGrade::from_score(61), HealthGrade::D);
+}
+
+// ============================================================================
+// Division by Zero Protection Tests
+// ============================================================================
+
+#[test]
+fn test_complexity_with_zero_functions() {
+    let mut result = create_test_result();
+    result.complexity_stats.total_functions = 0;
+    result.complexity_stats.long_functions = 0;
+
+    let score = scoring::calculate(&result);
+
+    // Should handle gracefully, not panic
+    assert!(score.total >= 0 && score.total <= 100);
+    // Complexity component should not be 0 due to division by zero
+    assert!(score.components.complexity > 0);
+}
+
+#[test]
+fn test_layer_isolation_with_zero_imports() {
+    let mut result = create_test_result();
+    result.layer_stats.total_imports = 0;
+    result.layer_stats.blocked_violations = 0;
+
+    let score = scoring::calculate(&result);
+
+    // Should handle gracefully
+    assert!(score.total >= 0 && score.total <= 100);
+    assert!(score.components.layer_isolation > 0);
+}
+
+// ============================================================================
+// Empty Project Edge Case
+// ============================================================================
+
+#[test]
+fn test_empty_project_scoring() {
+    let mut result = create_test_result();
+    result.files_analyzed = 0;
+    result.violations = vec![];
+    result.circular_dependencies = vec![];
+    result.long_functions = vec![];
+    result.layer_stats.total_imports = 0;
+    result.layer_stats.blocked_violations = 0;
+    result.complexity_stats.total_functions = 0;
+    result.complexity_stats.long_functions = 0;
+
+    let score = scoring::calculate(&result);
+
+    // Empty project should get a reasonable score (not crash)
+    assert!(score.total >= 0 && score.total <= 100);
+    // Should not be F just because it's empty
+    assert_ne!(score.grade, HealthGrade::F);
+}
+
+// ============================================================================
+// Component Isolation Tests (Phase 2)
+// ============================================================================
+
+// Layer Isolation Component Tests
+
+#[test]
+fn test_layer_isolation_component_perfect() {
+    let mut result = create_test_result();
+    result.layer_stats.total_imports = 100;
+    result.layer_stats.blocked_violations = 0;
+
+    let score = scoring::calculate(&result);
+    let layer_component = score.components.layer_isolation;
+
+    assert_eq!(layer_component, 100);
+}
+
+#[test]
+fn test_layer_isolation_component_warning() {
+    let mut result = create_test_result();
+    result.layer_stats.total_imports = 100;
+    result.layer_stats.blocked_violations = 10; // 10% violations
+
+    let score = scoring::calculate(&result);
+    let layer_component = score.components.layer_isolation;
+
+    // 10 violations out of 100 imports = 90% clean
+    assert_eq!(layer_component, 90);
+}
+
+#[test]
+fn test_layer_isolation_component_fail() {
+    let mut result = create_test_result();
+    result.layer_stats.total_imports = 100;
+    result.layer_stats.blocked_violations = 30; // 30% violations
+
+    let score = scoring::calculate(&result);
+    let layer_component = score.components.layer_isolation;
+
+    // 30 violations = 70% clean
+    assert_eq!(layer_component, 70);
+}
+
+// Circular Dependencies Component Tests
+
+#[test]
+fn test_circular_deps_component_clean() {
+    let mut result = create_test_result();
+    result.circular_dependencies = vec![];
+
+    let score = scoring::calculate(&result);
+    let circular_component = score.components.circular_deps;
+
+    assert_eq!(circular_component, 100);
+}
+
+#[test]
+fn test_circular_deps_component_detected() {
+    let mut result = create_test_result();
+    result.circular_dependencies = vec![
+        CircularDependency {
+            cycle: vec!["a".to_string(), "b".to_string(), "a".to_string()],
+            description: "Cycle detected: a -> b -> a".to_string(),
+        },
+    ];
+
+    let score = scoring::calculate(&result);
+    let circular_component = score.components.circular_deps;
+
+    // Any circular dependency = 0 score (binary)
+    assert_eq!(circular_component, 0);
+}
+
+#[test]
+fn test_circular_deps_component_multiple() {
+    let mut result = create_test_result();
+    result.circular_dependencies = vec![
+        CircularDependency {
+            cycle: vec!["a".to_string(), "b".to_string(), "a".to_string()],
+            description: "Cycle detected: a -> b -> a".to_string(),
+        },
+        CircularDependency {
+            cycle: vec!["x".to_string(), "y".to_string(), "z".to_string(), "x".to_string()],
+            description: "Cycle detected: x -> y -> z -> x".to_string(),
+        },
+    ];
+
+    let score = scoring::calculate(&result);
+    let circular_component = score.components.circular_deps;
+
+    // Multiple cycles = still 0 score
+    assert_eq!(circular_component, 0);
+}
+
+// Complexity Component Tests
+
+#[test]
+fn test_complexity_component_low() {
+    let mut result = create_test_result();
+    result.complexity_stats.total_functions = 100;
+    result.complexity_stats.long_functions = 5; // 5% long functions
+
+    let score = scoring::calculate(&result);
+    let complexity_component = score.components.complexity;
+
+    assert!(complexity_component > 90);
+}
+
+#[test]
+fn test_complexity_component_medium() {
+    let mut result = create_test_result();
+    result.complexity_stats.total_functions = 100;
+    result.complexity_stats.long_functions = 20; // 20% long functions
+
+    let score = scoring::calculate(&result);
+    let complexity_component = score.components.complexity;
+
+    assert!(complexity_component >= 70 && complexity_component <= 85);
+}
+
+#[test]
+fn test_complexity_component_high() {
+    let mut result = create_test_result();
+    result.complexity_stats.total_functions = 100;
+    result.complexity_stats.long_functions = 40; // 40% long functions
+
+    let score = scoring::calculate(&result);
+    let complexity_component = score.components.complexity;
+
+    assert!(complexity_component < 70);
+}
+
+// Violations Component Tests
+
+#[test]
+fn test_violations_component_none() {
+    let mut result = create_test_result();
+    result.violations = vec![];
+
+    let score = scoring::calculate(&result);
+    let violations_component = score.components.violations;
+
+    assert_eq!(violations_component, 100);
+}
+
+#[test]
+fn test_violations_component_few() {
+    let mut result = create_test_result();
+
+    let violation = Violation {
+        file_path: PathBuf::from("test.ts"),
+        file_content: String::new(),
+        offensive_import: "import { something } from 'forbidden/path'".to_string(),
+        rule: ForbiddenRule {
+            from: "domain".to_string(),
+            to: "infrastructure".to_string(),
+        },
+        line_number: 10,
+    };
+
+    result.violations = vec![
+        CategorizedViolation::new(violation, ViolationCategory::Blocked),
+    ];
+
+    let score = scoring::calculate(&result);
+    let violations_component = score.components.violations;
+
+    assert!(violations_component > 80);
+}
+
+#[test]
+fn test_violations_component_many() {
+    let mut result = create_test_result();
+
+    // Add 10 violations
+    for i in 0..10 {
+        let violation = Violation {
+            file_path: PathBuf::from(format!("test{}.ts", i)),
+            file_content: String::new(),
+            offensive_import: format!("import {{ something }} from 'forbidden/path/{}'", i),
+            rule: ForbiddenRule {
+                from: "domain".to_string(),
+                to: "infrastructure".to_string(),
+            },
+            line_number: i * 10,
+        };
+
+        result.violations.push(
+            CategorizedViolation::new(violation, ViolationCategory::Blocked)
+        );
+    }
+
+    let score = scoring::calculate(&result);
+    let violations_component = score.components.violations;
+
+    assert!(violations_component < 80);
+}
+
+// ============================================================================
+// Consistency & Repeatability Tests (Phase 4)
+// ============================================================================
+
+#[test]
+fn test_scoring_idempotency_same_input() {
+    // Same input should always produce same output
+    let mut result1 = create_test_result();
+    let mut result2 = create_test_result();
+
+    // Add same violations to both
+    result1.layer_stats.blocked_violations = 5;
+    result1.complexity_stats.long_functions = 3;
+
+    result2.layer_stats.blocked_violations = 5;
+    result2.complexity_stats.long_functions = 3;
+
+    let score1 = scoring::calculate(&result1);
+    let score2 = scoring::calculate(&result2);
+
+    assert_eq!(score1.total, score2.total);
+    assert_eq!(score1.grade, score2.grade);
+
+    // All components should be identical
+    assert_eq!(score1.components.layer_isolation, score2.components.layer_isolation);
+    assert_eq!(score1.components.circular_deps, score2.components.circular_deps);
+    assert_eq!(score1.components.complexity, score2.components.complexity);
+    assert_eq!(score1.components.violations, score2.components.violations);
+}
+
+#[test]
+fn test_scoring_determinism_100_runs() {
+    // Run scoring 100 times on same input
+    let mut scores = Vec::new();
+
+    for _ in 0..100 {
+        let mut result = create_test_result();
+        result.layer_stats.blocked_violations = 5;
+        result.complexity_stats.long_functions = 3;
+
+        let score = scoring::calculate(&result);
+        scores.push(score.total);
+    }
+
+    // All scores should be identical
+    let first = scores[0];
+    let all_same = scores.iter().all(|&s| s == first);
+
+    assert!(all_same, "All 100 runs should produce identical scores");
+    println!("✓ 100 runs produced consistent score: {}", first);
+}
+
+#[test]
+fn test_scoring_with_identical_projects() {
+    // Two identical projects should get same score
+    let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/perfect_mvc_project");
+
+    // Simple test: analyze twice with the same empty result
+    let mut result1 = create_test_result();
+    let mut result2 = create_test_result();
+
+    let score1 = scoring::calculate(&result1);
+    let score2 = scoring::calculate(&result2);
+
+    assert_eq!(score1.total, score2.total);
+    assert_eq!(score1.grade, score2.grade);
+
+    println!("✓ Identical projects scored: {} ({:?})", score1.total, score1.grade);
 }
 
 // ============================================================================

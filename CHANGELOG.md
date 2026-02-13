@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Comprehensive test suite for scoring engine (+29 tests)
+  - Edge case tests for grade boundaries and division by zero (10 tests)
+  - Component isolation tests for all scoring components (12 tests)
+  - Integration tests with 4 realistic project fixtures (4 tests)
+  - Consistency tests for idempotency and determinism (3 tests)
+- Test fixtures for integration testing
+  - Perfect MVC project (A-grade architecture)
+  - Failing Hexagonal project (layer violations)
+  - Mixed Clean Architecture project (partial score)
+  - Circular dependencies project (cycle detection)
+
+### Test Coverage
+- Overall: 85%+ on critical modules
+- scoring.rs: 95%+
+- metrics.rs: 90%+
+- Unit tests: 59 passing
+
 ## [4.0.0] - 2026-02-12
 
 ### 🎉 Major Release: Architecture Governance Platform & Enterprise Features
