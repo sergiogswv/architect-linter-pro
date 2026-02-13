@@ -22,7 +22,7 @@ swc_ecma_parser = "0.141.0"
 walkdir = "2.5.0"
 miette = { version = "7.2.0", features = ["fancy"] }
 thiserror = "1.0"
-rayon = "1.10.0"
+rayon = "1.10"
 dialoguer = "0.11.0"
 indicatif = "0.18.0"
 
@@ -43,11 +43,12 @@ tree-sitter-java = "0.21"
 tree-sitter-php = "0.22"
 
 # v4.0 additions
-git2 = "0.18"
+git2 = "0.19"
 chrono = { version = "0.4", features = ["serde"] }
 
 # Analysis caching
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
+lru = "0.12"
 
 [dev-dependencies]
 # Testing framework
@@ -59,3 +60,6 @@ pretty_assertions = "1.4"  # Better assertion output
 
 # Test utilities
 serial_test = "3.0"        # Run tests serially when needed
+
+# Benchmarking
+criterion = "0.5"
