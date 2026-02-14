@@ -9,7 +9,7 @@
 pub mod collector;
 mod metrics;
 mod pattern_matcher;
-mod swc_parser;
+pub mod swc_parser;
 
 // Re-export public functions
 pub use collector::analyze_all_files;
