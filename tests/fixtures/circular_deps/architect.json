@@ -1,6 +1,6 @@
 {
   "max_lines_per_function": 40,
   "framework": "Unknown",
-  "pattern": "MVC",
+  "architecture_pattern": "MVC",
   "forbidden_imports": []
 }

@@ -22,7 +22,7 @@ pub struct FileCacheEntry {
 }
 
 /// Disk-persisted analysis cache
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisCache {
     pub version: u32,
     pub config_hash: String,

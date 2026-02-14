@@ -1,7 +1,7 @@
 {
   "max_lines_per_function": 40,
   "framework": "Unknown",
-  "pattern": "Clean",
+  "architecture_pattern": "Clean",
   "forbidden_imports": [
     {
       "from": "entities",

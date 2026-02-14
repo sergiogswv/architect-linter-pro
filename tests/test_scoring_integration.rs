@@ -102,7 +102,7 @@ fn analyze_fixture(path: &PathBuf) -> AnalysisResult {
     use architect_linter_pro::analyzer::analyze_all_files;
     use walkdir::WalkDir;
 
-    let config = load_config(&path.join("architect.json")).expect("Failed to load config");
+    let config = load_config(path).expect("Failed to load config");
 
     // Collect all TypeScript/JavaScript files
     let files: Vec<PathBuf> = WalkDir::new(path)
