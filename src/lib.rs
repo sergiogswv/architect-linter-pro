@@ -14,6 +14,7 @@ pub mod config;
 pub mod detector;
 pub mod discovery;
 pub mod git;
+pub mod git_changes;
 pub mod memory_cache;
 pub mod metrics;
 pub mod output;
