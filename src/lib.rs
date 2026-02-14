@@ -30,5 +30,5 @@ pub mod watch;
 pub use analysis_result::AnalysisResult;
 pub use circular::CircularDependency;
 pub use config::ArchPattern;
-pub use metrics::{ComplexityStats, HealthGrade, HealthScore, LayerStats, ScoreComponents};
+pub use metrics::{ComplexityStats, HealthGrade, HealthScore, LayerStats, PerformanceMetrics, ScoreComponents};
 
