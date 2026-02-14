@@ -63,3 +63,7 @@ serial_test = "3.0"        # Run tests serially when needed
 
 # Benchmarking
 criterion = "0.5"
+
+[[bench]]
+name = "performance_bench"
+harness = false
