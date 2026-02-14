@@ -4,6 +4,8 @@
 // and potentially used as a library.
 
 pub mod ai;
+// Note: main module is only available in binary context
+// Functions from main are re-exported individually for testing
 pub mod analysis_result;
 pub mod analyzer;
 pub mod autofix;
@@ -29,3 +31,4 @@ pub use analysis_result::AnalysisResult;
 pub use circular::CircularDependency;
 pub use config::ArchPattern;
 pub use metrics::{ComplexityStats, HealthGrade, HealthScore, LayerStats, ScoreComponents};
+

@@ -15,6 +15,7 @@ mod config;
 mod detector;
 mod discovery;
 mod git;
+mod git_changes;
 mod memory_cache;
 mod metrics;
 mod output;
@@ -23,6 +24,66 @@ mod report;
 mod scoring;
 mod ui;
 mod watch;
+
+/// Analyzes only changed files since last commit (incremental analysis)
+/// This function is defined in main.rs to avoid circular import issues
+pub fn analyze_changed_files(
+    project_root: &PathBuf,
+    analysis_cache: Option<&mut cache::AnalysisCache>,
+) -> Result<analysis_result::AnalysisResult> {
+    // Use the collector function but we need to handle the circular dependency
+    // So we'll implement the logic directly here
+    let changed_files = match git_changes::get_changed_files(project_root) {
+        Ok(files) => files,
+        Err(e) => {
+            return Err(miette::miette!("Failed to get changed files from git: {}", e));
+        }
+    };
+
+    if changed_files.is_empty() {
+        println!("✅ No changed files detected");
+        println!("   Incremental analysis completed (no changes to analyze)");
+
+        // Return empty analysis result
+        let project_name = project_root
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("project")
+            .to_string();
+
+        let config = config::load_config(project_root)
+            .map_err(|e| miette::miette!("Failed to load config: {}", e))?;
+
+        let mut result = analysis_result::AnalysisResult::new(project_name, config.pattern);
+        result.files_analyzed = 0;
+        result.complexity_stats = metrics::ComplexityStats {
+            total_functions: 0,
+            long_functions: 0,
+            max_lines_threshold: config.max_lines,
+        };
+
+        return Ok(result);
+    }
+
+    println!("🔍 Found {} changed files to analyze", changed_files.len());
+
+    // Load config
+    let config = config::load_config(project_root)
+        .map_err(|e| miette::miette!("Failed to load config: {}", e))?;
+
+    let linter_context: config::LinterContext = config.into();
+    let cm = Arc::new(SourceMap::default());
+
+    // Analyze only changed files
+    analyzer::analyze_all_files(
+        &changed_files,
+        project_root,
+        linter_context.pattern.clone(),
+        &linter_context,
+        &cm,
+        analysis_cache,
+    )
+}
 
 fn main() -> Result<()> {
     // 1. Procesar argumentos de línea de comandos
@@ -50,6 +111,8 @@ fn main() -> Result<()> {
         run_fix_mode(&project_root, Arc::clone(&ctx))?;
     } else if cli_args.watch_mode {
         run_watch_mode(&project_root, Arc::clone(&ctx), no_cache)?;
+    } else if cli_args.incremental_mode {
+        run_incremental_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     } else {
         run_normal_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     }
@@ -699,4 +762,93 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
     }
 
     run_fix_flow(project_root, &ctx)
+}
+
+/// Ejecuta el análisis en modo incremental (solo archivos modificados)
+fn run_incremental_mode(
+    project_root: &PathBuf,
+    ctx: Arc<config::LinterContext>,
+    cli_args: &cli::CliArgs,
+) -> Result<()> {
+    println!("🚀 Modo Incremental: Analizando solo archivos modificados\n");
+
+    if !git::is_git_repo(project_root) {
+        return Err(miette::miette!(
+            "El flag --incremental requiere un repositorio git."
+        ));
+    }
+
+    // Get changed files from Git
+    let changed_files = git_changes::get_changed_files(project_root)
+        .map_err(|e| miette::miette!("Failed to get changed files from git: {}", e))?;
+
+    if changed_files.is_empty() {
+        println!("No changed files detected");
+        println!("✅ Análisis incremental completado (sin cambios)");
+        std::process::exit(0);
+    }
+
+    println!("🔍 Analizando {} archivos modificados incrementalmente", changed_files.len());
+
+    // Load config
+    let config = config::load_config(&project_root.join("architect.json"))?;
+    let linter_context: config::LinterContext = config.into();
+
+    // Analyze only changed files
+    let cm = Arc::new(SourceMap::default());
+    let mut analysis_result = analyzer::analyze_all_files(
+        &changed_files,
+        project_root,
+        linter_context.pattern.clone(),
+        &linter_context,
+        &cm,
+        None,
+    )?;
+
+    // Handle circular dependencies
+    if !analysis_result.circular_dependencies.is_empty() {
+        circular::print_circular_dependency_report(&analysis_result.circular_dependencies);
+    }
+
+    // Calculate health score
+    let health_score = scoring::calculate(&analysis_result);
+    analysis_result.health_score = Some(health_score.clone());
+
+    // Handle report export if requested
+    if let Some(format) = cli_args.report_format {
+        let report_content = report::generate_report(&analysis_result, format);
+
+        if let Some(output_path) = &cli_args.output_path {
+            let path = std::path::Path::new(output_path);
+            report::write_report(&report_content, path)?;
+            println!("📄 Report saved to: {}", output_path);
+        } else {
+            report::write_stdout(&report_content)?;
+        }
+
+        // Exit with appropriate code
+        if analysis_result.has_critical_issues() {
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
+
+    // Print dashboard
+    output::print_dashboard(&analysis_result);
+
+    // Print summary
+    output::dashboard::print_summary(&analysis_result);
+
+    // Print circular dependency details if any
+    if !analysis_result.circular_dependencies.is_empty() {
+        println!();
+        circular::print_circular_dependency_report(&analysis_result.circular_dependencies);
+    }
+
+    // Exit with appropriate code
+    if analysis_result.has_critical_issues() {
+        std::process::exit(1);
+    } else {
+        std::process::exit(0);
+    }
 }

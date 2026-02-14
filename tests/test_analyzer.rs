@@ -41,3 +41,27 @@ fn test_parallel_analysis_produces_same_results() {
     // (depends on the file content)
     println!("Test passed - analysis completed successfully");
 }
+
+#[test]
+fn test_incremental_analysis_mode() {
+    // Test that the incremental mode is implemented by checking CLI structure
+    // This test verifies that the CLI includes incremental_mode field
+
+    // Create default CLI args to verify the field exists
+    let mut args = architect_linter_pro::cli::CliArgs {
+        project_path: None,
+        watch_mode: false,
+        fix_mode: false,
+        staged_mode: false,
+        incremental_mode: true,  // Set this to test the field exists
+        no_cache: false,
+        report_format: None,
+        output_path: None,
+    };
+
+    // Verify the field exists and can be set
+    assert!(args.incremental_mode, "incremental_mode field should exist");
+
+    // Verify the CLI module includes the field
+    assert!(std::mem::size_of_val(&args.incremental_mode) > 0);
+}

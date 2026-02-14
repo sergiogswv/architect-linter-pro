@@ -31,6 +31,8 @@ pub struct CliArgs {
     pub fix_mode: bool,
     /// Solo analizar archivos staged en git
     pub staged_mode: bool,
+    /// Analizar solo archivos modificados (Git-based)
+    pub incremental_mode: bool,
     /// Formato de reporte para exportar (json, markdown)
     pub report_format: Option<ReportFormat>,
     /// Ruta del archivo de salida para el reporte
@@ -58,6 +60,7 @@ pub fn print_help() {
     println!("  -w, --watch          Modo watch: observa cambios y re-analiza automáticamente");
     println!("  -f, --fix            Modo fix: sugiere y aplica correcciones automáticas con IA");
     println!("  -s, --staged         Solo analizar archivos staged (git)");
+    println!("  -i, --incremental     Analizar solo archivos modificados (Git-based)");
     println!("  -r, --report <FMT>   Exportar reporte: json, markdown");
     println!("  -o, --output <PATH>  Archivo de salida para el reporte");
     println!("  --no-cache           Disable analysis cache");
@@ -69,6 +72,7 @@ pub fn print_help() {
     println!("  architect-linter-pro --watch .               # Modo watch en directorio actual");
     println!("  architect-linter-pro --fix .                 # Analizar y auto-corregir con IA");
     println!("  architect-linter-pro --staged .              # Solo archivos staged");
+    println!("  architect-linter-pro --incremental .        # Solo archivos modificados");
     println!("  architect-linter-pro --report json .         # Exportar reporte JSON a stdout");
     println!(
         "  architect-linter-pro -r md -o report.md .    # Exportar reporte Markdown a archivo"
@@ -111,6 +115,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut watch_mode = false;
     let mut fix_mode = false;
     let mut staged_mode = false;
+    let mut incremental_mode = false;
     let mut no_cache = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
@@ -136,6 +141,9 @@ pub fn process_args() -> Option<CliArgs> {
             }
             "--staged" | "-s" => {
                 staged_mode = true;
+            }
+            "--incremental" | "-i" => {
+                incremental_mode = true;
             }
             "--no-cache" => {
                 no_cache = true;
@@ -183,6 +191,7 @@ pub fn process_args() -> Option<CliArgs> {
         watch_mode,
         fix_mode,
         staged_mode,
+        incremental_mode,
         no_cache,
         report_format,
         output_path,
