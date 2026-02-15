@@ -24,12 +24,16 @@ fn test_parallel_analysis_produces_same_results() {
         linter_context.pattern.clone(),
         &linter_context,
         &cm,
-        None
-    ).unwrap();
+        None,
+    )
+    .unwrap();
 
     // Should analyze all 3 files
     println!("Files analyzed: {}", result.files_analyzed);
-    println!("Total functions: {}", result.complexity_stats.total_functions);
+    println!(
+        "Total functions: {}",
+        result.complexity_stats.total_functions
+    );
     println!("Violations: {}", result.violations.len());
     println!("Long functions: {}", result.long_functions.len());
     println!("Total imports: {}", result.layer_stats.total_imports);
@@ -53,7 +57,7 @@ fn test_incremental_analysis_mode() {
         watch_mode: false,
         fix_mode: false,
         staged_mode: false,
-        incremental_mode: true,  // Set this to test the field exists
+        incremental_mode: true, // Set this to test the field exists
         no_cache: false,
         report_format: None,
         output_path: None,

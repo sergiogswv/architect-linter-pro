@@ -51,7 +51,6 @@ impl CategorizedViolation {
             suggestion: None,
         }
     }
-
 }
 
 /// Long function detected during complexity analysis
@@ -161,5 +160,4 @@ impl AnalysisResult {
             ArchPattern::Ninguno => "No Pattern",
         }
     }
-
 }

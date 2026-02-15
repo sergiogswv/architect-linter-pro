@@ -5,7 +5,9 @@
 /// - Component score calculations
 /// - Score component weighting
 /// - Edge cases and boundary conditions
-use architect_linter_pro::analysis_result::{AnalysisResult, ViolationCategory, CategorizedViolation};
+use architect_linter_pro::analysis_result::{
+    AnalysisResult, CategorizedViolation, ViolationCategory,
+};
 use architect_linter_pro::autofix::Violation;
 use architect_linter_pro::circular::CircularDependency;
 use architect_linter_pro::config::{ArchPattern, ForbiddenRule};
@@ -247,12 +249,10 @@ fn test_circular_deps_component_clean() {
 #[test]
 fn test_circular_deps_component_detected() {
     let mut result = create_test_result();
-    result.circular_dependencies = vec![
-        CircularDependency {
-            cycle: vec!["a".to_string(), "b".to_string(), "a".to_string()],
-            description: "Cycle detected: a -> b -> a".to_string(),
-        },
-    ];
+    result.circular_dependencies = vec![CircularDependency {
+        cycle: vec!["a".to_string(), "b".to_string(), "a".to_string()],
+        description: "Cycle detected: a -> b -> a".to_string(),
+    }];
 
     let score = scoring::calculate(&result);
     let circular_component = score.components.circular_deps;
@@ -270,7 +270,12 @@ fn test_circular_deps_component_multiple() {
             description: "Cycle detected: a -> b -> a".to_string(),
         },
         CircularDependency {
-            cycle: vec!["x".to_string(), "y".to_string(), "z".to_string(), "x".to_string()],
+            cycle: vec![
+                "x".to_string(),
+                "y".to_string(),
+                "z".to_string(),
+                "x".to_string(),
+            ],
             description: "Cycle detected: x -> y -> z -> x".to_string(),
         },
     ];
@@ -348,9 +353,10 @@ fn test_violations_component_few() {
         line_number: 10,
     };
 
-    result.violations = vec![
-        CategorizedViolation::new(violation, ViolationCategory::Blocked),
-    ];
+    result.violations = vec![CategorizedViolation::new(
+        violation,
+        ViolationCategory::Blocked,
+    )];
 
     let score = scoring::calculate(&result);
     let violations_component = score.components.violations;
@@ -375,9 +381,10 @@ fn test_violations_component_many() {
             line_number: i * 10,
         };
 
-        result.violations.push(
-            CategorizedViolation::new(violation, ViolationCategory::Blocked)
-        );
+        result.violations.push(CategorizedViolation::new(
+            violation,
+            ViolationCategory::Blocked,
+        ));
     }
 
     let score = scoring::calculate(&result);
@@ -410,8 +417,14 @@ fn test_scoring_idempotency_same_input() {
     assert_eq!(score1.grade, score2.grade);
 
     // All components should be identical
-    assert_eq!(score1.components.layer_isolation, score2.components.layer_isolation);
-    assert_eq!(score1.components.circular_deps, score2.components.circular_deps);
+    assert_eq!(
+        score1.components.layer_isolation,
+        score2.components.layer_isolation
+    );
+    assert_eq!(
+        score1.components.circular_deps,
+        score2.components.circular_deps
+    );
     assert_eq!(score1.components.complexity, score2.components.complexity);
     assert_eq!(score1.components.violations, score2.components.violations);
 }
@@ -441,8 +454,8 @@ fn test_scoring_determinism_100_runs() {
 #[test]
 fn test_scoring_with_identical_projects() {
     // Two identical projects should get same score
-    let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/perfect_mvc_project");
+    let fixture_path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/perfect_mvc_project");
 
     // Simple test: analyze twice with the same empty result
     let mut result1 = create_test_result();
@@ -454,7 +467,10 @@ fn test_scoring_with_identical_projects() {
     assert_eq!(score1.total, score2.total);
     assert_eq!(score1.grade, score2.grade);
 
-    println!("✓ Identical projects scored: {} ({:?})", score1.total, score1.grade);
+    println!(
+        "✓ Identical projects scored: {} ({:?})",
+        score1.total, score1.grade
+    );
 }
 
 // ============================================================================

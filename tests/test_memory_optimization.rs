@@ -1,4 +1,4 @@
-use architect_linter_pro::analyzer::{swc_parser};
+use architect_linter_pro::analyzer::swc_parser;
 use std::path::PathBuf;
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
@@ -59,7 +59,8 @@ export class UserController {
     std::fs::write(&architect_config, config_content).unwrap();
 
     let project_root = architect_config.parent().unwrap().to_path_buf();
-    let config = architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
+    let config =
+        architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     // Test 1: Verify the file can be analyzed without memory leaks
@@ -71,19 +72,28 @@ export class UserController {
     // We'll call the method length validation separately to check it works
     let method_result = swc_parser::validate_method_length(&cm, &file_path, &linter_context);
 
-    assert!(method_result.is_ok(), "Method length validation should succeed");
+    assert!(
+        method_result.is_ok(),
+        "Method length validation should succeed"
+    );
 
     // Test 3: Verify the file doesn't contain forbidden imports
     // The test file has imports that should be allowed in a controller
     let result = swc_parser::analyze_file(&cm, &file_path, &linter_context);
 
-    assert!(result.is_ok(), "Controller should be allowed to import services and loggers");
+    assert!(
+        result.is_ok(),
+        "Controller should be allowed to import services and loggers"
+    );
 
     // Test 4: Verify AST objects are properly scoped (no reference after analysis)
     // This is tested by ensuring no panic occurs after multiple analyses
     for _ in 0..10 {
         let analysis_result = swc_parser::validate_method_length(&cm, &file_path, &linter_context);
-        assert!(analysis_result.is_ok(), "Repeated analysis should not cause memory issues");
+        assert!(
+            analysis_result.is_ok(),
+            "Repeated analysis should not cause memory issues"
+        );
     }
 
     // Clean up
@@ -125,7 +135,8 @@ export class TestClass {
     std::fs::write(&architect_config, config_content).unwrap();
 
     let project_root = temp_path.to_path_buf();
-    let config = architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
+    let config =
+        architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     // Test that AST objects are properly dropped after analysis
@@ -137,7 +148,11 @@ export class TestClass {
         // The validate_method_length function should drop AST after extraction
         let result = swc_parser::validate_method_length(&local_cm, &file_path, &linter_context);
 
-        assert!(result.is_ok(), "AST analysis should succeed on iteration {}", i);
+        assert!(
+            result.is_ok(),
+            "AST analysis should succeed on iteration {}",
+            i
+        );
 
         // Verify the analysis completes without issues
         // This ensures the AST was properly processed and dropped
@@ -158,7 +173,8 @@ fn test_parallel_analysis_memory_safety() {
             let temp_file = NamedTempFile::new().unwrap();
             let file_path = PathBuf::from(temp_file.path());
 
-            let ts_content = format!(r#"
+            let ts_content = format!(
+                r#"
 import {{ Service }} from './service';
 
 export class TestClass{{
@@ -166,7 +182,9 @@ export class TestClass{{
         console.log('Test method');
     }}
 }}
-"#, i);
+"#,
+                i
+            );
 
             std::fs::write(&file_path, ts_content).unwrap();
             (temp_file, file_path)
@@ -192,7 +210,8 @@ export class TestClass{{
     std::fs::write(&architect_config, config_content).unwrap();
 
     let project_root = temp_path.to_path_buf();
-    let config = architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
+    let config =
+        architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     // Test parallel analysis by processing files in sequence

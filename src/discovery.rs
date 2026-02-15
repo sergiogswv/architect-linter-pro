@@ -135,7 +135,8 @@ fn get_dependency_list(root: &Path) -> Vec<String> {
             // Detect dependencies section start
             if trimmed.starts_with("dependencies") && trimmed.contains('[') {
                 in_dependencies = true;
-                bracket_count = trimmed.matches('[').count() as i32 - trimmed.matches(']').count() as i32;
+                bracket_count =
+                    trimmed.matches('[').count() as i32 - trimmed.matches(']').count() as i32;
                 continue;
             }
 
@@ -231,7 +232,10 @@ fn get_dependency_list(root: &Path) -> Vec<String> {
                 continue;
             }
 
-            if in_dependencies && trimmed.starts_with("<artifactId>") && trimmed.ends_with("</artifactId>") {
+            if in_dependencies
+                && trimmed.starts_with("<artifactId>")
+                && trimmed.ends_with("</artifactId>")
+            {
                 let artifact = trimmed
                     .trim_start_matches("<artifactId>")
                     .trim_end_matches("</artifactId>");
@@ -292,7 +296,11 @@ fn get_dependency_list(root: &Path) -> Vec<String> {
 }
 
 /// Verifica si una entrada debe ser ignorada según los patrones configurados
-pub fn is_not_ignored_with_patterns(entry: &DirEntry, root: &Path, ignored_paths: &[String]) -> bool {
+pub fn is_not_ignored_with_patterns(
+    entry: &DirEntry,
+    root: &Path,
+    ignored_paths: &[String],
+) -> bool {
     // Obtener la ruta relativa al root del proyecto
     let entry_path = entry.path();
     let relative_path = entry_path

@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 use thiserror::Error;
 
-use super::types::{ArchPattern, AIConfig, ForbiddenRule, Framework, LinterContext};
+use super::types::{AIConfig, ArchPattern, ForbiddenRule, Framework, LinterContext};
 
 /// Estructura para mapear el architect.json tal cual está en el disco
 #[derive(Debug, Serialize, Deserialize)]
@@ -149,7 +149,7 @@ fn validate_schema(json: &serde_json::Value) -> Result<()> {
     }
 
     // Validar que el patrón sea uno de los valores aceptados
-    let pattern_str = obj["architecture_pattern"].as_str().unwrap();
+    let pattern_str = obj["architecture_pattern"].as_str().unwrap_or("Ninguno");
     let valid_patterns = ["Hexagonal", "Clean", "MVC", "Ninguno"];
     if !valid_patterns.contains(&pattern_str) {
         return Err(ConfigError::new(
@@ -159,24 +159,17 @@ fn validate_schema(json: &serde_json::Value) -> Result<()> {
         .into());
     }
 
-    // Validar campo: forbidden_imports
-    if !obj.contains_key("forbidden_imports") {
-        return Err(ConfigError::new(
-            "Falta el campo requerido: forbidden_imports".to_string(),
-            "Agrega este campo como un array, ejemplo: \"forbidden_imports\": []".to_string(),
-        )
-        .into());
-    }
-
-    if !obj["forbidden_imports"].is_array() {
-        return Err(ConfigError::new(
-            "El campo 'forbidden_imports' debe ser un array".to_string(),
-            "Ejemplo: \"forbidden_imports\": [{\"from\": \"src/components/**\", \"to\": \"src/services/**\"}]".to_string()
-        ).into());
-    }
-
     // Validar cada regla en forbidden_imports
-    let rules = obj["forbidden_imports"].as_array().unwrap();
+    let rules = match obj["forbidden_imports"].as_array() {
+        Some(r) => r,
+        None => {
+            return Err(ConfigError::new(
+                "El campo 'forbidden_imports' debe ser un array".to_string(),
+                "Ejemplo: \"forbidden_imports\": []".to_string(),
+            )
+            .into())
+        }
+    };
     for (index, rule) in rules.iter().enumerate() {
         if !rule.is_object() {
             return Err(ConfigError::new(
@@ -190,7 +183,7 @@ fn validate_schema(json: &serde_json::Value) -> Result<()> {
             .into());
         }
 
-        let rule_obj = rule.as_object().unwrap();
+        let rule_obj = rule.as_object().unwrap_or_else(|| unreachable!());
 
         if !rule_obj.contains_key("from") {
             return Err(ConfigError::new(

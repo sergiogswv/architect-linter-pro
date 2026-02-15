@@ -131,17 +131,17 @@ pub fn get_loc_suggestion(framework: &Framework) -> usize {
         Framework::Angular => 50, // Componentes con lógica más extensa
         Framework::Express => 60, // Middlewares y handlers
         // Python frameworks
-        Framework::Django => 50,   // Views, models
-        Framework::Flask => 50,    // Route handlers
-        Framework::FastAPI => 40,  // Endpoint functions
+        Framework::Django => 50,  // Views, models
+        Framework::Flask => 50,   // Route handlers
+        Framework::FastAPI => 40, // Endpoint functions
         // Go frameworks
-        Framework::Gin => 40,      // Handler functions
-        Framework::Echo => 40,     // Handler functions
+        Framework::Gin => 40,  // Handler functions
+        Framework::Echo => 40, // Handler functions
         // Java frameworks
-        Framework::Spring => 50,   // Service methods, controllers
+        Framework::Spring => 50, // Service methods, controllers
         // PHP frameworks
-        Framework::Laravel => 50,  // Controller methods
-        Framework::Symfony => 50,  // Controller methods
-        Framework::Unknown => 50,  // Estándar general
+        Framework::Laravel => 50, // Controller methods
+        Framework::Symfony => 50, // Controller methods
+        Framework::Unknown => 50, // Estándar general
     }
 }

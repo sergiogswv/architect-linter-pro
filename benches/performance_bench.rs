@@ -6,31 +6,35 @@
 //!
 //! Run with: cargo bench
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use std::path::{Path, PathBuf};
-use tempfile::TempDir;
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Instant;
+use tempfile::TempDir;
 
 // Import our modules for benchmarking
 use architect_linter_pro::analyzer::collector::analyze_all_files;
 use architect_linter_pro::cache::{AnalysisCache, FileCacheEntry};
-use architect_linter_pro::config::{ArchPattern, LinterContext, ForbiddenRule, Framework, AIConfig};
-use architect_linter_pro::memory_cache::MemoryCache;
+use architect_linter_pro::config::{
+    AIConfig, ArchPattern, ForbiddenRule, Framework, LinterContext,
+};
 use architect_linter_pro::discovery;
+use architect_linter_pro::memory_cache::MemoryCache;
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 
 /// Create a temporary directory with test TypeScript/JavaScript files
 fn create_test_files(count: usize, avg_lines: usize) -> TempDir {
     let temp_dir = TempDir::new().unwrap();
-    let _files = (0..count).map(|i| {
-        let file_path = temp_dir.path().join(format!("file_{}.ts", i));
-        let content = generate_ts_file(avg_lines, i);
-        fs::write(&file_path, content).unwrap();
-        file_path
-    }).collect::<Vec<PathBuf>>();
+    let _files = (0..count)
+        .map(|i| {
+            let file_path = temp_dir.path().join(format!("file_{}.ts", i));
+            let content = generate_ts_file(avg_lines, i);
+            fs::write(&file_path, content).unwrap();
+            file_path
+        })
+        .collect::<Vec<PathBuf>>();
 
     temp_dir
 }
@@ -70,12 +74,10 @@ fn setup_linter_context() -> LinterContext {
         max_lines: 50,
         framework: Framework::Unknown,
         pattern: ArchPattern::Clean,
-        forbidden_imports: vec![
-            ForbiddenRule {
-                from: "*".to_string(),
-                to: "app/components".to_string(),
-            }
-        ],
+        forbidden_imports: vec![ForbiddenRule {
+            from: "*".to_string(),
+            to: "app/components".to_string(),
+        }],
         ignored_paths: vec![],
         ai_configs: vec![],
     }
@@ -108,7 +110,8 @@ fn bench_sequential_vs_parallel(c: &mut Criterion) {
                         ctx,
                         &cm,
                         Some(&mut AnalysisCache::new("test_config_hash".to_string())),
-                    )).unwrap();
+                    ))
+                    .unwrap();
                 });
             },
         );
@@ -159,7 +162,10 @@ fn bench_cache_performance(c: &mut Criterion) {
             // Hit the cache for existing files
             for i in 0..25 {
                 let file_path = project_root.join(format!("file_{}.ts", i));
-                let normalized_key = architect_linter_pro::cache::AnalysisCache::normalize_path(&file_path, project_root);
+                let normalized_key = architect_linter_pro::cache::AnalysisCache::normalize_path(
+                    &file_path,
+                    project_root,
+                );
                 let content_hash = format!("{:016x}", i as u64); // Simulated content hash
 
                 black_box(cache.get(&normalized_key, &content_hash));
@@ -176,7 +182,10 @@ fn bench_cache_performance(c: &mut Criterion) {
             // Try to get non-existent files
             for i in 25..50 {
                 let file_path = project_root.join(format!("file_{}.ts", i));
-                let normalized_key = architect_linter_pro::cache::AnalysisCache::normalize_path(&file_path, project_root);
+                let normalized_key = architect_linter_pro::cache::AnalysisCache::normalize_path(
+                    &file_path,
+                    project_root,
+                );
                 let content_hash = format!("{:016x}", i as u64);
 
                 black_box(cache.get(&normalized_key, &content_hash));
@@ -238,7 +247,8 @@ fn bench_memory_usage(c: &mut Criterion) {
                         &ctx,
                         &Lrc::new(SourceMap::default()),
                         Some(&mut AnalysisCache::new("test_config_hash".to_string())),
-                    ).unwrap();
+                    )
+                    .unwrap();
                     let duration = start.elapsed();
 
                     // Include result size in benchmark to prevent optimization

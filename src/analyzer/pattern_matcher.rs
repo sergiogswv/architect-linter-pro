@@ -75,7 +75,10 @@ mod tests {
 
     #[test]
     fn test_matches_pattern_basic() {
-        assert!(matches_pattern("src/components/button.tsx", "src/components/"));
+        assert!(matches_pattern(
+            "src/components/button.tsx",
+            "src/components/"
+        ));
         assert!(!matches_pattern("src/services/api.ts", "src/components/"));
     }
 

@@ -47,7 +47,8 @@ mod tests {
         assert!(json.contains("\"disk_cache_hits\":8"));
 
         // Test JSON deserialization
-        let deserialized: PerformanceMetrics = serde_json::from_str(&json).expect("Failed to deserialize metrics");
+        let deserialized: PerformanceMetrics =
+            serde_json::from_str(&json).expect("Failed to deserialize metrics");
         assert_eq!(deserialized.total_time_ms, 1500);
         assert_eq!(deserialized.files_analyzed, 42);
         // Cache hit rate: (15+8)/42 * 100 = 54.76...

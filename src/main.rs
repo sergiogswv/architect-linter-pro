@@ -36,7 +36,10 @@ pub fn analyze_changed_files(
     let changed_files = match git_changes::get_changed_files(project_root) {
         Ok(files) => files,
         Err(e) => {
-            return Err(miette::miette!("Failed to get changed files from git: {}", e));
+            return Err(miette::miette!(
+                "Failed to get changed files from git: {}",
+                e
+            ));
         }
     };
 
@@ -182,7 +185,11 @@ fn run_normal_mode(
         ctx.pattern.clone(),
         &ctx,
         &cm,
-        if use_cache { Some(&mut analysis_cache) } else { None },
+        if use_cache {
+            Some(&mut analysis_cache)
+        } else {
+            None
+        },
     )?;
 
     // Save cache to disk
@@ -353,9 +360,7 @@ fn run_fix_flow(project_root: &PathBuf, ctx: &config::LinterContext) -> Result<(
         )) {
             Ok(s) => s,
             Err(_e) => {
-                eprintln!(
-                    "❌ No se pudo obtener ninguna sugerencia de los modelos configurados."
-                );
+                eprintln!("❌ No se pudo obtener ninguna sugerencia de los modelos configurados.");
                 println!("⏭️  Saltando esta violación...\n");
                 skipped_count += 1;
                 continue;
@@ -432,16 +437,18 @@ fn run_fix_flow(project_root: &PathBuf, ctx: &config::LinterContext) -> Result<(
 
     if fixed_count > 0 {
         println!("🎉 ¡Se aplicaron {} fix(es) exitosamente!", fixed_count);
-        println!(
-            "💡 Tip: Ejecuta el linter nuevamente para verificar que todo esté correcto."
-        );
+        println!("💡 Tip: Ejecuta el linter nuevamente para verificar que todo esté correcto.");
     }
 
     Ok(())
 }
 
 /// Ejecuta el análisis en modo watch (observación continua e interactiva)
-fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_cache: bool) -> Result<()> {
+fn run_watch_mode(
+    project_root: &PathBuf,
+    ctx: Arc<config::LinterContext>,
+    no_cache: bool,
+) -> Result<()> {
     println!("🚀 Iniciando modo watch...\n");
 
     // Análisis inicial completo
@@ -531,7 +538,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
 
             // Invalidate changed files in cache
             {
-                let mut cache_guard = change_cache.lock().unwrap();
+                let mut cache_guard = change_cache.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
                 if let Some(ref mut c) = *cache_guard {
                     for file_path in changed_files {
                         let key = cache::AnalysisCache::normalize_path(file_path, &project_root);
@@ -545,13 +552,12 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
                 if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
                     error_count += 1;
                     let mut out = String::new();
-                    let _ =
-                        GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
+                    let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
                     println!("\n📌 Violación en: {}", file_path.display());
                     println!("{}", out);
                 }
 
-                let mut dep_analyzer = dep_analyzer.lock().unwrap();
+                let mut dep_analyzer = dep_analyzer.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
                 if let Err(e) = dep_analyzer.update_file(file_path, &cm) {
                     eprintln!("⚠️  Error actualizando grafo: {}", e);
                     continue;
@@ -559,10 +565,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
 
                 let normalized_path =
                     if let Ok(relative) = file_path.strip_prefix(project_root.as_ref()) {
-                        relative
-                            .to_string_lossy()
-                            .replace('\\', "/")
-                            .to_lowercase()
+                        relative.to_string_lossy().replace('\\', "/").to_lowercase()
                     } else {
                         file_path
                             .to_string_lossy()
@@ -603,7 +606,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
 
             // Helper: run full analysis with cache, then save
             let run_cached_analysis = |cache_arc: &Arc<Mutex<Option<cache::AnalysisCache>>>| -> Result<analysis_result::AnalysisResult> {
-                let mut guard = cache_arc.lock().unwrap();
+                let mut guard = cache_arc.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
                 let result = run_full_analysis(
                     project_root,
                     &ctx,
@@ -626,8 +629,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
                 watch::WatchCommand::ReportJson => {
                     println!("\n📄 Generando reporte JSON...\n");
                     let result = run_cached_analysis(&cmd_cache)?;
-                    let content =
-                        report::generate_report(&result, cli::ReportFormat::Json);
+                    let content = report::generate_report(&result, cli::ReportFormat::Json);
                     let path = project_root.join("report.json");
                     report::write_report(&content, &path)?;
                     println!("📄 Reporte guardado en: {}", path.display());
@@ -635,8 +637,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
                 watch::WatchCommand::ReportMarkdown => {
                     println!("\n📄 Generando reporte Markdown...\n");
                     let result = run_cached_analysis(&cmd_cache)?;
-                    let content =
-                        report::generate_report(&result, cli::ReportFormat::Markdown);
+                    let content = report::generate_report(&result, cli::ReportFormat::Markdown);
                     let path = project_root.join("report.md");
                     report::write_report(&content, &path)?;
                     println!("📄 Reporte guardado en: {}", path.display());
@@ -648,42 +649,28 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
                     output::dashboard::print_summary(&result);
                     if !result.circular_dependencies.is_empty() {
                         println!();
-                        circular::print_circular_dependency_report(
-                            &result.circular_dependencies,
-                        );
+                        circular::print_circular_dependency_report(&result.circular_dependencies);
                     }
                 }
                 watch::WatchCommand::Violations => {
                     println!("\n🔍 Escaneando todas las violaciones...\n");
                     let result = run_cached_analysis(&cmd_cache)?;
 
-                    if result.violations.is_empty()
-                        && result.circular_dependencies.is_empty()
-                    {
-                        println!(
-                            "✨ ¡No se encontraron violaciones! La arquitectura se respeta."
-                        );
+                    if result.violations.is_empty() && result.circular_dependencies.is_empty() {
+                        println!("✨ ¡No se encontraron violaciones! La arquitectura se respeta.");
                     } else {
                         // Violations
                         if !result.violations.is_empty() {
-                            println!(
-                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                            );
+                            println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                             println!(
                                 "  🚫 {} violación(es) arquitectónicas",
                                 result.violations.len()
                             );
-                            println!(
-                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                            );
+                            println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                             for (i, cv) in result.violations.iter().enumerate() {
                                 let icon = match cv.category {
-                                    analysis_result::ViolationCategory::Blocked => {
-                                        "❌"
-                                    }
-                                    analysis_result::ViolationCategory::Warning => {
-                                        "⚠️"
-                                    }
+                                    analysis_result::ViolationCategory::Blocked => "❌",
+                                    analysis_result::ViolationCategory::Warning => "⚠️",
                                     analysis_result::ViolationCategory::Info => "ℹ️",
                                 };
                                 println!(
@@ -701,10 +688,7 @@ fn run_watch_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>, no_ca
                                     "     🚫 '{}' no puede importar de '{}'",
                                     cv.violation.rule.from, cv.violation.rule.to
                                 );
-                                println!(
-                                    "     💥 {}",
-                                    cv.violation.offensive_import
-                                );
+                                println!("     💥 {}", cv.violation.offensive_import);
                             }
                             println!();
                         }
@@ -788,7 +772,10 @@ fn run_incremental_mode(
         std::process::exit(0);
     }
 
-    println!("🔍 Analizando {} archivos modificados incrementalmente", changed_files.len());
+    println!(
+        "🔍 Analizando {} archivos modificados incrementalmente",
+        changed_files.len()
+    );
 
     // Load config
     let config = config::load_config(&project_root.join("architect.json"))?;

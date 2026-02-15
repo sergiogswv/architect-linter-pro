@@ -198,7 +198,11 @@ pub fn validate_method_length(cm: &SourceMap, path: &PathBuf, ctx: &LinterContex
 }
 
 /// Helper function to count methods in a module and extract analysis data
-fn count_methods_in_module(fm: &swc_common::SourceFile, module: &swc_ecma_ast::Module, ctx: &LinterContext) -> usize {
+fn count_methods_in_module(
+    fm: &swc_common::SourceFile,
+    module: &swc_ecma_ast::Module,
+    ctx: &LinterContext,
+) -> usize {
     let mut method_count = 0;
 
     for item in &module.body {
@@ -226,7 +230,11 @@ fn count_methods_in_module(fm: &swc_common::SourceFile, module: &swc_ecma_ast::M
 }
 
 /// Create a miette error from SWC span
-pub fn create_error(fm: &swc_common::SourceFile, span: swc_common::Span, msg: &str) -> miette::Report {
+pub fn create_error(
+    fm: &swc_common::SourceFile,
+    span: swc_common::Span,
+    msg: &str,
+) -> miette::Report {
     let start = (span.lo.0 - fm.start_pos.0) as usize;
     let end = (span.hi.0 - fm.start_pos.0) as usize;
 

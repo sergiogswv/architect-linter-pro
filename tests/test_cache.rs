@@ -1,4 +1,4 @@
-use architect_linter_pro::cache::{HybridCache, FileCacheEntry};
+use architect_linter_pro::cache::{FileCacheEntry, HybridCache};
 use std::path::PathBuf;
 use tempfile::TempDir;
 

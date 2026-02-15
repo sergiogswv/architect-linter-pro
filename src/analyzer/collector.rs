@@ -1,8 +1,6 @@
 //! File analysis collector with caching support
 
-use crate::analysis_result::{
-    AnalysisResult, CategorizedViolation, ViolationCategory,
-};
+use crate::analysis_result::{AnalysisResult, CategorizedViolation, ViolationCategory};
 use crate::cache::{self, AnalysisCache, FileCacheEntry};
 use crate::config::{ArchPattern, LinterContext};
 use crate::metrics::ComplexityStats;
@@ -95,7 +93,8 @@ pub fn analyze_all_files(
             let mut file_violations = Vec::new();
             if let Ok(violations) = collect_violations_from_file(&cm, file_path, ctx) {
                 for violation in violations {
-                    let categorized = CategorizedViolation::new(violation, ViolationCategory::Blocked);
+                    let categorized =
+                        CategorizedViolation::new(violation, ViolationCategory::Blocked);
                     file_violations.push(categorized);
                 }
             }
@@ -161,4 +160,3 @@ pub fn analyze_all_files(
 
     Ok(result)
 }
-

@@ -13,9 +13,9 @@ impl MemoryCache {
     /// Create a new memory cache with specified capacity
     pub fn new(capacity: usize) -> Self {
         Self {
-            cache: Arc::new(Mutex::new(
-                LruCache::new(NonZeroUsize::new(capacity).expect("Capacity must be > 0"))
-            )),
+            cache: Arc::new(Mutex::new(LruCache::new(
+                NonZeroUsize::new(capacity).expect("Capacity must be > 0"),
+            ))),
         }
     }
 

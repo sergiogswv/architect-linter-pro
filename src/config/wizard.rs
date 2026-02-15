@@ -4,10 +4,10 @@ use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
-use super::loader::{AIConfigFile, ConfigFile};
-use super::types::{ArchPattern, AIConfig, ForbiddenRule, LinterContext};
 use super::husky::setup_husky_pre_commit;
 use super::ignored_paths::get_framework_ignored_paths;
+use super::loader::{AIConfigFile, ConfigFile};
+use super::types::{AIConfig, ArchPattern, ForbiddenRule, LinterContext};
 
 /// Orquestador de configuración: Carga silenciosa o Wizard con IA
 pub fn setup_or_load_config(root: &Path) -> Result<Arc<LinterContext>> {

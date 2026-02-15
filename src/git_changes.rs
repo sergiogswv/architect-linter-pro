@@ -1,4 +1,4 @@
-use git2::{Repository, Error};
+use git2::{Error, Repository};
 use std::path::{Path, PathBuf};
 
 /// Get list of files changed since last commit
@@ -6,7 +6,9 @@ pub fn get_changed_files(repo_path: &Path) -> Result<Vec<PathBuf>, Error> {
     let repo = Repository::discover(repo_path)?;
 
     // Get HEAD commit
-    let head = repo.head()?.target()
+    let head = repo
+        .head()?
+        .target()
         .ok_or_else(|| Error::from_str("No HEAD commit"))?;
 
     let head_commit = repo.find_commit(head)?;
@@ -44,7 +46,8 @@ fn collect_diff_files(diff: &git2::Diff, repo: &Repository) -> Vec<PathBuf> {
         None,
         None,
         None,
-    ).unwrap();
+    )
+    .unwrap();
 
     files
 }
@@ -60,7 +63,8 @@ fn collect_all_files(tree: &git2::Tree, repo: &Repository) -> Vec<PathBuf> {
             }
         }
         git2::TreeWalkResult::Ok
-    }).unwrap();
+    })
+    .unwrap();
 
     files
 }

@@ -220,4 +220,3 @@ impl std::fmt::Display for PerformanceMetrics {
         )
     }
 }
-

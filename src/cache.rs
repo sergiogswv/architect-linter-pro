@@ -76,8 +76,8 @@ impl AnalysisCache {
         let cache_dir = project_root.join(CACHE_DIR);
         fs::create_dir_all(&cache_dir)?;
         let cache_path = cache_dir.join(CACHE_FILE);
-        let json = serde_json::to_string(self)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        let json =
+            serde_json::to_string(self).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         fs::write(&cache_path, json)
     }
 
@@ -91,7 +91,9 @@ impl AnalysisCache {
 
     /// Look up a cached entry. Returns Some only if the content hash matches.
     pub fn get(&self, key: &str, content_hash: &str) -> Option<&FileCacheEntry> {
-        self.files.get(key).filter(|e| e.content_hash == content_hash)
+        self.files
+            .get(key)
+            .filter(|e| e.content_hash == content_hash)
     }
 
     /// Insert or update a cache entry
@@ -112,7 +114,11 @@ pub struct HybridCache {
 }
 
 impl HybridCache {
-    pub fn new(memory_capacity: usize, project_root: &Path, config_hash: String) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        memory_capacity: usize,
+        project_root: &Path,
+        config_hash: String,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         // Load disk cache from disk if it exists, otherwise create new
         let disk = AnalysisCache::load(project_root, &config_hash)
             .unwrap_or_else(|| AnalysisCache::new(config_hash));

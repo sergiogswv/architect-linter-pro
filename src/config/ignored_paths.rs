@@ -12,19 +12,19 @@ pub fn default_ignored_paths() -> Vec<String> {
         "out/".to_string(),
         ".nuxt/".to_string(),
         ".output/".to_string(),
-        ".vite/".to_string(),         // Vite cache
-        ".turbo/".to_string(),        // Turborepo cache
-        ".parcel-cache/".to_string(), // Parcel cache
+        ".vite/".to_string(),            // Vite cache
+        ".turbo/".to_string(),           // Turborepo cache
+        ".parcel-cache/".to_string(),    // Parcel cache
         ".cache/".to_string(),           // Generic cache
         ".architect-cache/".to_string(), // Architect Linter cache
         "target/".to_string(),           // Rust
-        "__pycache__/".to_string(),   // Python
-        ".vscode/".to_string(),       // VSCode
-        ".idea/".to_string(),         // IntelliJ
-        "venv/".to_string(),          // Python venv
-        ".venv/".to_string(),         // Python venv
-        "vendor/".to_string(),        // PHP/Go vendor
-        ".gradle/".to_string(),       // Gradle
+        "__pycache__/".to_string(),      // Python
+        ".vscode/".to_string(),          // VSCode
+        ".idea/".to_string(),            // IntelliJ
+        "venv/".to_string(),             // Python venv
+        ".venv/".to_string(),            // Python venv
+        "vendor/".to_string(),           // PHP/Go vendor
+        ".gradle/".to_string(),          // Gradle
     ]
 }
 
