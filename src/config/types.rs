@@ -125,8 +125,11 @@ pub struct LinterContext {
 #[diagnostic(code(arch::violation), severity(error))]
 pub struct ArchError {
     #[source_code]
+    #[allow(dead_code)]
     pub src: String,
     #[label("{message}")]
+    #[allow(dead_code)]
     pub span: SourceSpan,
+    #[allow(dead_code)]
     pub message: String,
 }

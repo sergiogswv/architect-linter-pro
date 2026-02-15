@@ -102,10 +102,12 @@ export class UserController {
 
 #[test]
 fn test_ast_dropped_after_analysis() {
-    // Create a temporary TypeScript file
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = PathBuf::from(temp_file.path());
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir().unwrap();
+    let temp_path = temp_dir.path();
 
+    // Create a temporary TypeScript file
+    let file_path = temp_path.join("test.ts");
     let ts_content = r#"
 export class TestClass {
     public testMethod(): void {
@@ -113,7 +115,6 @@ export class TestClass {
     }
 }
 "#;
-
     std::fs::write(&file_path, ts_content).unwrap();
 
     let cm = Lrc::new(SourceMap::default());
@@ -126,9 +127,6 @@ export class TestClass {
   "forbidden_imports": []
 }
 "#;
-
-    let temp_dir = NamedTempFile::new().unwrap();
-    let temp_path = temp_dir.path();
 
     // Create the architect.json file in the correct location
     let architect_config = temp_path.join("architect.json");
@@ -160,21 +158,20 @@ export class TestClass {
             println!("Completed iteration {} successfully", i);
         }
     }
-
-    // Clean up
-    let _ = std::fs::remove_dir_all(project_root);
 }
 
 #[test]
 fn test_parallel_analysis_memory_safety() {
-    // Create multiple temporary files
-    let temp_files: Vec<(NamedTempFile, PathBuf)> = (0..5)
-        .map(|i| {
-            let temp_file = NamedTempFile::new().unwrap();
-            let file_path = PathBuf::from(temp_file.path());
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir().unwrap();
+    let temp_path = temp_dir.path();
 
-            let ts_content = format!(
-                r#"
+    // Create multiple temporary files
+    let mut file_paths = Vec::new();
+    for i in 0..5 {
+        let file_path = temp_path.join(format!("test{}.ts", i));
+        let ts_content = format!(
+            r#"
 import {{ Service }} from './service';
 
 export class TestClass{{
@@ -183,15 +180,14 @@ export class TestClass{{
     }}
 }}
 "#,
-                i
-            );
+            i
+        );
 
-            std::fs::write(&file_path, ts_content).unwrap();
-            (temp_file, file_path)
-        })
-        .collect();
+        std::fs::write(&file_path, ts_content).unwrap();
+        file_paths.push(file_path);
+    }
 
-    let cm = Lrc::new(SourceMap::default());
+    let _cm = Lrc::new(SourceMap::default());
 
     // Create minimal config
     let config_content = r#"
@@ -201,9 +197,6 @@ export class TestClass{{
   "forbidden_imports": []
 }
 "#;
-
-    let temp_dir = NamedTempFile::new().unwrap();
-    let temp_path = temp_dir.path();
 
     // Create the architect.json file in the correct location
     let architect_config = temp_path.join("architect.json");
@@ -216,7 +209,7 @@ export class TestClass{{
 
     // Test parallel analysis by processing files in sequence
     // (simulating parallel execution)
-    for (i, (temp_file, file_path)) in temp_files.iter().enumerate() {
+    for (i, file_path) in file_paths.iter().enumerate() {
         // Create a new SourceMap for each file to simulate parallel execution
         let local_cm = Lrc::new(SourceMap::default());
         let result = swc_parser::validate_method_length(&local_cm, file_path, &linter_context);
@@ -226,10 +219,4 @@ export class TestClass{{
         // Ensure each file is processed independently
         println!("Successfully analyzed file {}", i);
     }
-
-    // Clean up
-    for (_, file_path) in temp_files {
-        let _ = std::fs::remove_file(&file_path);
-    }
-    drop(temp_dir);
 }

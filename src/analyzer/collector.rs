@@ -4,6 +4,7 @@ use crate::analysis_result::{AnalysisResult, CategorizedViolation, ViolationCate
 use crate::cache::{self, AnalysisCache, FileCacheEntry};
 use crate::config::{ArchPattern, LinterContext};
 use crate::metrics::ComplexityStats;
+use indicatif::{ProgressBar, ProgressStyle};
 use miette::Result;
 use rayon::prelude::*;
 use std::fs;
@@ -50,6 +51,20 @@ pub fn analyze_all_files(
         max_lines_threshold: ctx.max_lines,
     };
 
+    // Initialize progress bar
+    let pb = if files.len() > 10 {
+        let pb = ProgressBar::new(files.len() as u64);
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} files ({eta})")
+                .unwrap()
+                .progress_chars("#>-"),
+        );
+        Some(pb)
+    } else {
+        None
+    };
+
     // Prepare cache for thread-safe access
     // We clone the cache if it exists to use in parallel, then update it back
     let cache_mutex: Option<Mutex<AnalysisCache>> = analysis_cache
@@ -60,6 +75,11 @@ pub fn analyze_all_files(
     let file_results: Vec<(PathBuf, Option<String>, FileAnalysis)> = files
         .par_iter()
         .filter_map(|file_path| {
+            // Update progress bar
+            if let Some(ref p) = pb {
+                p.inc(1);
+            }
+
             // Read file content for hashing
             let file_bytes = match fs::read(file_path) {
                 Ok(b) => b,
@@ -133,6 +153,11 @@ pub fn analyze_all_files(
             Some((file_path.clone(), None, analysis))
         })
         .collect();
+
+    // Finish progress bar
+    if let Some(ref p) = pb {
+        p.finish_with_message("Analysis complete");
+    }
 
     // Update the original cache from the mutex
     if let Some(mutex) = cache_mutex {

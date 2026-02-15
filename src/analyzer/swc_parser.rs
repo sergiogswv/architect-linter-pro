@@ -80,7 +80,7 @@ pub fn analyze_file(cm: &SourceMap, path: &PathBuf, ctx: &LinterContext) -> Resu
 
 /// Helper function to process module items and extract analysis data
 fn process_module_items(
-    cm: &SourceMap,
+    _cm: &SourceMap,
     fm: &swc_common::SourceFile,
     module: &swc_ecma_ast::Module,
     file_path_str: &str,

@@ -76,8 +76,9 @@ mod tests {
     #[test]
     fn test_is_git_repo() {
         // This test depends on running from within a git repo
-        let current_dir = std::env::current_dir().unwrap();
-        // Just verify the function doesn't panic
-        let _ = is_git_repo(&current_dir);
+        if let Ok(current_dir) = std::env::current_dir() {
+            // Just verify the function doesn't panic
+            let _ = is_git_repo(&current_dir);
+        }
     }
 }

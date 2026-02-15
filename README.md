@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.1.0--beta-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Rust Edition">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform">
@@ -34,6 +34,8 @@ A multi-language software architecture linter written in Rust that validates arc
 ### Reports & Monitoring
 - **📄 Report Generation**: Export analysis results in JSON or Markdown format
 - **👁️ Watch Mode**: Real-time monitoring with incremental analysis and intelligent debouncing (300ms)
+- **🔔 Native OS Notifications**: Get desktop alerts on Windows, macOS, and Linux when violations are detected in Watch Mode
+- **👻 Daemon Mode**: Run the linter in the background with the `--daemon` flag to keep your architecture safe without an open terminal
 - **🔄 Git Integration**: Analyze only staged files with `--staged` flag
 - **📂 Smart Path Exclusion**: Automatically ignores node_modules, build folders, and framework-specific directories
 
@@ -577,6 +579,7 @@ architect-linter-pro [OPTIONS] [PATH]
 - `-v, --version`: Shows the linter version
 - `-h, --help`: Shows complete help
 - `-w, --watch`: Watch mode - monitors file changes and re-analyzes automatically
+- `-d, --daemon`: Daemon mode - runs the linter in the background (best used with --watch)
 - `-f, --fix`: Fix mode - AI-powered automatic fixing of architectural violations
 - `-s, --staged`: Analyze only staged files (git integration)
 - `-r, --report <FORMAT>`: Generate report in specified format (json or markdown)
@@ -594,6 +597,7 @@ architect-linter-pro .                  # Analyzes current directory
 
 # Advanced features (v4.0.0)
 architect-linter-pro --watch .                          # Watch mode
+architect-linter-pro --watch --daemon .                 # Watch mode in background (Daemon)
 architect-linter-pro --fix .                            # Auto-fix with AI
 architect-linter-pro --staged                           # Analyze only staged files
 architect-linter-pro --report json -o report.json       # Generate JSON report

@@ -39,6 +39,8 @@ pub struct CliArgs {
     pub output_path: Option<String>,
     /// Disable analysis cache
     pub no_cache: bool,
+    /// Ejecutar en segundo plano (modo daemon)
+    pub daemon_mode: bool,
 }
 
 /// Muestra la ayuda del CLI
@@ -117,6 +119,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut staged_mode = false;
     let mut incremental_mode = false;
     let mut no_cache = false;
+    let mut daemon_mode = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
     let mut project_path: Option<String> = None;
@@ -147,6 +150,9 @@ pub fn process_args() -> Option<CliArgs> {
             }
             "--no-cache" => {
                 no_cache = true;
+            }
+            "--daemon" | "-d" => {
+                daemon_mode = true;
             }
             "--report" | "-r" => {
                 // Next argument should be the format
@@ -193,6 +199,7 @@ pub fn process_args() -> Option<CliArgs> {
         staged_mode,
         incremental_mode,
         no_cache,
+        daemon_mode,
         report_format,
         output_path,
     })

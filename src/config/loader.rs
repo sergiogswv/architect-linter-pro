@@ -28,7 +28,9 @@ pub struct AIConfigFile {
 #[diagnostic(code(config::invalid), severity(error))]
 pub struct ConfigError {
     #[help]
+    #[allow(dead_code)]
     pub help: String,
+    #[allow(dead_code)]
     pub details: String,
 }
 

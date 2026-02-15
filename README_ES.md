@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-4.0.0-blue.svg" alt="Versión">
+  <img src="https://img.shields.io/badge/versión-4.1.0--beta-blue.svg" alt="Versión">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Edición Rust">
   <img src="https://img.shields.io/badge/licencia-MIT-green.svg" alt="Licencia">
   <img src="https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Plataforma">
@@ -34,6 +34,8 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 ### Reportes y Monitoreo
 - **📄 Generación de Reportes**: Exporta resultados de análisis en formato JSON o Markdown
 - **👁️ Modo Watch**: Monitoreo en tiempo real con análisis incremental y debouncing inteligente (300ms)
+- **🔔 Notificaciones Nativas del S.O.**: Recibe alertas de escritorio en Windows, macOS y Linux cuando se detectan violaciones en Modo Watch
+- **ghost Modo Daemon**: Ejecuta el linter en segundo plano con el flag `--daemon` para mantener tu arquitectura segura sin tener una terminal abierta
 - **🔄 Integración Git**: Analiza solo archivos staged con flag `--staged`
 - **📂 Exclusión Inteligente de Rutas**: Ignora automáticamente node_modules, carpetas build y directorios específicos del framework
 
@@ -482,18 +484,25 @@ architect-linter-pro [OPCIONES] [RUTA]
 - `-v, --version`: Muestra la versión del linter
 - `-h, --help`: Muestra la ayuda completa
 - `-w, --watch`: Modo watch - monitorea cambios y re-analiza automáticamente
+- `-d, --daemon`: Modo daemon - ejecuta el linter en segundo plano (ideal con --watch)
+- `-f, --fix`: Modo fix - auto-reparación de violaciones con IA
 - **Sin argumentos**: Modo interactivo, muestra menú de proyectos disponibles
 - **Con ruta**: `architect-linter-pro /ruta/proyecto` - Analiza el proyecto especificado
 
 **Ejemplos**:
 ```bash
-architect-linter-pro --version          # Muestra: architect-linter-pro 2.0.0
+# Uso básico
+architect-linter-pro --version          # Muestra: architect-linter-pro 4.0.0
 architect-linter-pro --help             # Muestra ayuda completa
-architect-linter-pro                    # Modo interactivo
 architect-linter-pro .                  # Analiza directorio actual
-architect-linter-pro /ruta/proyecto     # Analiza proyecto específico
-architect-linter-pro --watch .          # Modo watch: monitorea cambios y re-analiza
-architect-linter-pro -w /ruta/proyecto  # Modo watch con ruta específica
+
+# Características avanzadas (v4.0.0)
+architect-linter-pro --watch .                          # Modo watch
+architect-linter-pro --watch --daemon .                 # Modo watch en segundo plano (Daemon)
+architect-linter-pro --fix .                            # Auto-corrección con IA
+architect-linter-pro --staged                           # Solo archivos staged
+architect-linter-pro --report json -o report.json       # Generar reporte JSON
+architect-linter-pro --report markdown -o report.md     # Generar reporte Markdown
 ```
 
 ## El Flujo de Trabajo Completo

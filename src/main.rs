@@ -18,12 +18,35 @@ mod git;
 mod git_changes;
 mod memory_cache;
 mod metrics;
+mod notification;
 mod output;
 mod parsers;
 mod report;
 mod scoring;
 mod ui;
 mod watch;
+
+#[cfg(unix)]
+fn run_as_daemon(project_root: &std::path::Path) -> Result<()> {
+    use daemonize::Daemonize;
+    use std::fs::File;
+
+    let stdout = File::create("/tmp/architect-linter.out").into_diagnostic()?;
+    let stderr = File::create("/tmp/architect-linter.err").into_diagnostic()?;
+
+    let daemonize = Daemonize::new()
+        .pid_file("/tmp/architect-linter.pid")
+        .umask(0o027)
+        .working_directory(project_root)
+        .stdout(stdout)
+        .stderr(stderr)
+        .privileged_action(|| {
+            println!("Architect Linter Pro running in background...");
+        });
+
+    daemonize.start().map_err(|e| miette::miette!("Failed to daemonize: {}", e))?;
+    Ok(())
+}
 
 /// Analyzes only changed files since last commit (incremental analysis)
 /// This function is defined in main.rs to avoid circular import issues
@@ -108,6 +131,19 @@ fn main() -> Result<()> {
     let ctx = Arc::new(config::setup_or_load_config(&project_root)?);
 
     let no_cache = cli_args.no_cache;
+
+    // 3.5 Check for daemon mode
+    if cli_args.daemon_mode {
+        #[cfg(unix)]
+        {
+            println!("🚀 Entrando en modo daemon. Revisa /tmp/architect-linter.err para errores.");
+            run_as_daemon(&project_root)?;
+        }
+        #[cfg(windows)]
+        {
+            println!("⚠️  Modo daemon nativo no soportado aún en Windows. Corriendo en modo normal.");
+        }
+    }
 
     // 4. Decidir entre modo normal, watch o fix
     if cli_args.fix_mode {
@@ -449,6 +485,11 @@ fn run_watch_mode(
     ctx: Arc<config::LinterContext>,
     no_cache: bool,
 ) -> Result<()> {
+    let project_name_notification = Arc::new(project_root
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "project".to_string()));
+
     println!("🚀 Iniciando modo watch...\n");
 
     // Análisis inicial completo
@@ -535,10 +576,11 @@ fn run_watch_mode(
             let cm = Arc::clone(&cm);
             let project_root = Arc::clone(&project_root_arc);
             let change_cache = Arc::clone(&change_cache);
+            let project_name_notification = Arc::clone(&project_name_notification);
 
             // Invalidate changed files in cache
             {
-                let mut cache_guard = change_cache.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
+                let mut cache_guard = change_cache.lock().expect("Failed to lock mutex");
                 if let Some(ref mut c) = *cache_guard {
                     for file_path in changed_files {
                         let key = cache::AnalysisCache::normalize_path(file_path, &project_root);
@@ -557,7 +599,7 @@ fn run_watch_mode(
                     println!("{}", out);
                 }
 
-                let mut dep_analyzer = dep_analyzer.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
+                let mut dep_analyzer = dep_analyzer.lock().expect("Failed to lock mutex");
                 if let Err(e) = dep_analyzer.update_file(file_path, &cm) {
                     eprintln!("⚠️  Error actualizando grafo: {}", e);
                     continue;
@@ -583,6 +625,7 @@ fn run_watch_mode(
                             "\n⚠️  Se encontraron {} dependencias cíclicas.",
                             cycles.len()
                         );
+                        notification::send_cycle_alert(&project_name_notification, cycles.len());
                     }
                 }
             }
@@ -592,8 +635,10 @@ fn run_watch_mode(
                     "\n❌ Se encontraron {} violaciones arquitectónicas.",
                     error_count
                 );
+                notification::send_violation_alert(&project_name_notification, error_count);
             } else {
                 println!("\n✨ Todo correcto!");
+                notification::send_success_notification(&project_name_notification);
             }
 
             Ok(())
@@ -606,7 +651,7 @@ fn run_watch_mode(
 
             // Helper: run full analysis with cache, then save
             let run_cached_analysis = |cache_arc: &Arc<Mutex<Option<cache::AnalysisCache>>>| -> Result<analysis_result::AnalysisResult> {
-                let mut guard = cache_arc.lock().map_err(|e| miette::miette!("Lock error: {:?}", e)).unwrap();
+                let mut guard = cache_arc.lock().expect("Failed to lock mutex");
                 let result = run_full_analysis(
                     project_root,
                     &ctx,
@@ -751,7 +796,7 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
 /// Ejecuta el análisis en modo incremental (solo archivos modificados)
 fn run_incremental_mode(
     project_root: &PathBuf,
-    ctx: Arc<config::LinterContext>,
+    __ctx: Arc<config::LinterContext>,
     cli_args: &cli::CliArgs,
 ) -> Result<()> {
     println!("🚀 Modo Incremental: Analizando solo archivos modificados\n");

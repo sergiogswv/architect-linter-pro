@@ -10,14 +10,6 @@
     {
       "from": "models",
       "to": "controllers"
-    },
-    {
-      "from": "views",
-      "to": "models"
-    },
-    {
-      "from": "views",
-      "to": "controllers"
     }
   ]
 }

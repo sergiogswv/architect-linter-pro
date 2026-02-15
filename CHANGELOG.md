@@ -40,23 +40,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Comprehensive test suite for scoring engine (+29 tests)
-  - Edge case tests for grade boundaries and division by zero (10 tests)
-  - Component isolation tests for all scoring components (12 tests)
-  - Integration tests with 4 realistic project fixtures (4 tests)
-  - Consistency tests for idempotency and determinism (3 tests)
-- Test fixtures for integration testing
-  - Perfect MVC project (A-grade architecture)
-  - Failing Hexagonal project (layer violations)
-  - Mixed Clean Architecture project (partial score)
-  - Circular dependencies project (cycle detection)
+## [4.1.0-beta] - 2026-02-15
 
-### Test Coverage
-- Overall: 85%+ on critical modules
-- scoring.rs: 95%+
-- metrics.rs: 90%+
-- Unit tests: 59 passing
+### 🔔 Native OS Notifications
+- **Desktop Alerts**: Integrated `notify-rust` to send native notifications on Windows, macOS, and Linux.
+- **Real-time Feedback**: Get instant alerts for architectural violations and circular dependencies while in Watch Mode.
+- **Categorized Icons**: Different icons for violations (error), cycles (warning), and success (info).
+
+### 👻 Daemon Mode
+- **Background Execution**: Added `--daemon` (or `-d`) flag to run the linter as a background process (Unix).
+- **Persistence**: Keep your architecture guarded without an open terminal window.
+- **Log Redirection**: Automatic routing of background output to `/tmp/architect-linter.out` and errors to `/tmp/architect-linter.err`.
+
+### 🛡️ Core Stability & Safety
+- **Zero-Panic Policy**: Systematic removal of `unwrap()` and `expect()` calls across the codebase.
+- **Robust Error Handling**: Enhanced use of `miette` for elegant, safe error reporting instead of program crashes.
+- **Safe Mutex Locking**: Thread-safe access to cache and analyzers with proper error propagation.
+
+### ✨ User Experience
+- **Progress Bar**: Added `indicatif` progress bars for file analysis, providing visual feedback on large codebases.
+- **CLI Polish**: Added `-d` shorthand for daemon mode and improved help descriptions.
+- **Test Hardening**: Fixed technical debt in fixture testing and directory handling.
 
 ## [4.0.0] - 2026-02-12
 

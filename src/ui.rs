@@ -252,7 +252,11 @@ pub fn get_interactive_path() -> Result<PathBuf> {
 
     let mut options: Vec<String> = projects
         .iter()
-        .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
+        .map(|p| {
+            p.file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_else(|| "Unknown".to_string())
+        })
         .collect();
 
     options.push(">> Ingresar ruta manualmente...".into());

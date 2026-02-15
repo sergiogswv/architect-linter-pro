@@ -19,6 +19,7 @@ pub mod git;
 pub mod git_changes;
 pub mod memory_cache;
 pub mod metrics;
+pub mod notification;
 pub mod output;
 pub mod parsers;
 pub mod report;

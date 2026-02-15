@@ -33,12 +33,13 @@ pub fn get_changed_files(repo_path: &Path) -> Result<Vec<PathBuf>, Error> {
 
 fn collect_diff_files(diff: &git2::Diff, repo: &Repository) -> Vec<PathBuf> {
     let mut files = Vec::new();
+    let workdir = repo.workdir().unwrap_or(Path::new("."));
 
-    diff.foreach(
+    let _ = diff.foreach(
         &mut |delta, _| {
             if let Some(path) = delta.new_file().path() {
                 if is_typescript_file(path) {
-                    files.push(repo.workdir().unwrap().join(path));
+                    files.push(workdir.join(path));
                 }
             }
             true
@@ -46,25 +47,24 @@ fn collect_diff_files(diff: &git2::Diff, repo: &Repository) -> Vec<PathBuf> {
         None,
         None,
         None,
-    )
-    .unwrap();
+    );
 
     files
 }
 
 fn collect_all_files(tree: &git2::Tree, repo: &Repository) -> Vec<PathBuf> {
     let mut files = Vec::new();
+    let workdir = repo.workdir().unwrap_or(Path::new("."));
 
-    tree.walk(git2::TreeWalkMode::PreOrder, |root, entry| {
+    let _ = tree.walk(git2::TreeWalkMode::PreOrder, |root, entry| {
         if let Some(name) = entry.name() {
             let path = Path::new(name);
             if is_typescript_file(path) {
-                files.push(repo.workdir().unwrap().join(root).join(name));
+                files.push(workdir.join(root).join(name));
             }
         }
         git2::TreeWalkResult::Ok
-    })
-    .unwrap();
+    });
 
     files
 }
