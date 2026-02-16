@@ -3,7 +3,7 @@
 use crate::analysis_result::LongFunction;
 use miette::{IntoDiagnostic, Result};
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 use swc_common::SourceMap;
 use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser, StringInput, Syntax, TsConfig};
 
@@ -16,7 +16,7 @@ pub struct FunctionCall {
 
 /// Extract function calls from a file
 /// This function parses the AST and extracts all function/method calls
-pub fn extract_function_calls(cm: &SourceMap, path: &PathBuf) -> Result<Vec<FunctionCall>> {
+pub fn extract_function_calls(cm: &SourceMap, path: &Path) -> Result<Vec<FunctionCall>> {
     let mut calls = Vec::new();
 
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -301,7 +301,7 @@ fn extract_call_name(callee: &swc_ecma_ast::Callee) -> String {
 }
 
 /// Count imports in a file
-pub fn count_imports(path: &PathBuf) -> Result<usize> {
+pub fn count_imports(path: &Path) -> Result<usize> {
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
     // Only count for supported file types
@@ -346,7 +346,7 @@ pub fn count_imports(path: &PathBuf) -> Result<usize> {
 }
 
 /// Count functions in a file
-pub fn count_functions(cm: &SourceMap, path: &PathBuf) -> Result<usize> {
+pub fn count_functions(cm: &SourceMap, path: &Path) -> Result<usize> {
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
     // Only analyze TypeScript/JavaScript for now
@@ -406,7 +406,7 @@ pub fn count_functions(cm: &SourceMap, path: &PathBuf) -> Result<usize> {
 /// Find functions that exceed the max lines threshold
 pub fn find_long_functions(
     cm: &SourceMap,
-    path: &PathBuf,
+    path: &Path,
     max_lines: usize,
 ) -> Result<Vec<LongFunction>> {
     let mut long_functions = Vec::new();
@@ -465,7 +465,7 @@ pub fn find_long_functions(
                         };
 
                         long_functions.push(LongFunction {
-                            file_path: path.clone(),
+                            file_path: path.to_path_buf(),
                             name,
                             line_start: lo,
                             lines,
@@ -488,7 +488,7 @@ pub fn find_long_functions(
                 let name = f.ident.sym.to_string();
 
                 long_functions.push(LongFunction {
-                    file_path: path.clone(),
+                    file_path: path.to_path_buf(),
                     name,
                     line_start: lo,
                     lines,
@@ -510,7 +510,7 @@ pub fn find_long_functions(
                     let name = f.ident.sym.to_string();
 
                     long_functions.push(LongFunction {
-                        file_path: path.clone(),
+                        file_path: path.to_path_buf(),
                         name,
                         line_start: lo,
                         lines,
@@ -536,7 +536,7 @@ pub fn find_long_functions(
                             };
 
                             long_functions.push(LongFunction {
-                                file_path: path.clone(),
+                                file_path: path.to_path_buf(),
                                 name,
                                 line_start: lo,
                                 lines,

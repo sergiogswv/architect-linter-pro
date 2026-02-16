@@ -64,21 +64,21 @@ export class User {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
 
     // Extract functions from the parsed AST
-    // Note: temp_file is kept alive by being in scope until the end of the test
     let function_count = count_functions(&cm, &file_path);
 
     // Snapshot the function count result
     insta::assert_debug_snapshot!(function_count);
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }
 
 #[test]
@@ -97,21 +97,19 @@ class Service {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
 
-    // Add .ts extension to ensure it's parsed as TypeScript
-    let ts_file_path = file_path.with_extension("ts");
-    std::fs::write(&ts_file_path, code).unwrap();
+    // Write directly to the .ts path
+    std::fs::write(&file_path, code).unwrap();
 
     // Extract function calls from the parsed AST
-    let function_calls = extract_function_calls(&cm, &ts_file_path);
+    let function_calls = extract_function_calls(&cm, &file_path);
 
     // Snapshot the function calls result
     insta::assert_debug_snapshot!(function_calls);
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }
 
 #[test]
@@ -167,8 +165,10 @@ class Service {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
@@ -179,8 +179,7 @@ class Service {
     // Snapshot the long functions result
     insta::assert_debug_snapshot!(long_functions);
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }
 
 #[test]
@@ -191,8 +190,10 @@ import { Logger } from 'logger';
 import * as fs from 'fs';
 "#;
 
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
 
     // Count imports from the parsed file
@@ -201,8 +202,7 @@ import * as fs from 'fs';
     // Snapshot the import count result
     insta::assert_debug_snapshot!(import_count);
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }
 
 #[test]
@@ -223,8 +223,10 @@ export class Broken {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
@@ -235,8 +237,7 @@ export class Broken {
     // Snapshot the result (should handle errors gracefully)
     insta::assert_debug_snapshot!(result);
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }
 
 #[test]
@@ -277,8 +278,10 @@ export class UserService {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = temp_file.path().to_path_buf();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
@@ -292,6 +295,5 @@ export class UserService {
     // Snapshot both results
     insta::assert_debug_snapshot!(("function_count", function_count, "import_count", import_count));
 
-    // Explicitly keep temp_file alive
-    let _ = temp_file;
+    // temp_dir will be cleaned up when it goes out of scope
 }

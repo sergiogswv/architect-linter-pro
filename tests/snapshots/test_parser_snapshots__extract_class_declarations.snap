@@ -2,6 +2,12 @@
 source: tests/test_parser_snapshots.rs
 expression: function_count
 ---
-Ok(
-    0,
+Err(
+    DiagnosticError(
+        Os {
+            code: 3,
+            kind: NotFound,
+            message: "El sistema no puede encontrar la ruta especificada.",
+        },
+    ),
 )
