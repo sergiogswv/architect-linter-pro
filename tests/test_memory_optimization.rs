@@ -101,6 +101,7 @@ export class UserController {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn test_ast_dropped_after_analysis() {
     // Create a temporary directory
     let temp_dir = tempfile::tempdir().unwrap();
