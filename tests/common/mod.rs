@@ -71,6 +71,28 @@ pub fn join_rules(rules: &[String]) -> String {
     rules.join(",\n    ")
 }
 
+/// Create a temporary TypeScript project with a single file
+pub fn create_temp_ts_project(content: &str) -> TempDir {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+    std::fs::write(&file_path, content).unwrap();
+    temp_dir
+}
+
+/// Create a temporary Python project with a single file
+pub fn create_temp_py_project(content: &str) -> TempDir {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.py");
+    std::fs::write(&file_path, content).unwrap();
+    temp_dir
+}
+
+/// Create architect.json config in temp directory
+pub fn create_architect_config(temp_dir: &Path, config: &str) {
+    let config_path = temp_dir.join("architect.json");
+    std::fs::write(&config_path, config).unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

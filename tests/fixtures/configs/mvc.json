@@ -1,0 +1,11 @@
+{
+  "max_lines_per_function": 30,
+  "architecture_pattern": "MVC",
+  "forbidden_imports": [
+    {
+      "from": "src/**",
+      "to": "src/**/controllers",
+      "message": "Controllers should not import from each other"
+    }
+  ]
+}
