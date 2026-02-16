@@ -149,10 +149,7 @@ export class TestClass {
 
         // Show error details if analysis fails
         if let Err(ref e) = result {
-            panic!(
-                "AST analysis failed on iteration {}: {:?}",
-                i, e
-            );
+            panic!("AST analysis failed on iteration {}: {:?}", i, e);
         }
 
         // Verify the analysis completes without issues
