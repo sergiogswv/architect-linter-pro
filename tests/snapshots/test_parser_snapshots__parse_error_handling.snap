@@ -2,12 +2,6 @@
 source: tests/test_parser_snapshots.rs
 expression: result
 ---
-Err(
-    DiagnosticError(
-        Os {
-            code: 3,
-            kind: NotFound,
-            message: "El sistema no puede encontrar la ruta especificada.",
-        },
-    ),
+Ok(
+    0,
 )

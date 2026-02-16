@@ -147,7 +147,11 @@ pub fn reset_color() -> &'static str {
 ///
 /// # Returns
 /// Adjusted health score with multipliers applied
-pub fn apply_severity_multiplier(violations: &[Violation], base_score: f64, total_files: usize) -> f64 {
+pub fn apply_severity_multiplier(
+    violations: &[Violation],
+    base_score: f64,
+    total_files: usize,
+) -> f64 {
     let mut score = base_score;
 
     // Empty project bonus: 10% bonus for projects with no files and no violations
@@ -280,17 +284,26 @@ mod tests {
         }
 
         let score = calculate_health_score(&violations, 100.0);
-        assert!(score < 50.0, "Score should be <50 with 10 critical violations");
+        assert!(
+            score < 50.0,
+            "Score should be <50 with 10 critical violations"
+        );
     }
 
     #[test]
     fn test_calculate_health_score_boundary_values() {
         let violations = vec![];
         let score_min = calculate_health_score(&violations, 1.0);
-        assert_eq!(score_min, 100.0, "1 file project should score 100 with no violations");
+        assert_eq!(
+            score_min, 100.0,
+            "1 file project should score 100 with no violations"
+        );
 
         let score_max = calculate_health_score(&violations, 1000.0);
-        assert_eq!(score_max, 100.0, "Large project should score 100 with no violations");
+        assert_eq!(
+            score_max, 100.0,
+            "Large project should score 100 with no violations"
+        );
     }
 
     #[test]

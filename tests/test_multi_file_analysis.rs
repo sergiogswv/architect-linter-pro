@@ -276,7 +276,10 @@ export class NormalService {
 
     // Score should be reduced but not terrible
     assert!(score < 100.0, "Score should be reduced with violations");
-    assert!(score > 50.0, "Score should not be too low with minor violations");
+    assert!(
+        score > 50.0,
+        "Score should not be too low with minor violations"
+    );
 
     // Run real analysis
     let cm = Lrc::new(SourceMap::default());
@@ -377,7 +380,10 @@ export class Controller {
     let score = calculate_health_score(&violations, file_count);
 
     // Score should be significantly reduced
-    assert!(score < 85.0, "Critical violations should reduce score significantly");
+    assert!(
+        score < 85.0,
+        "Critical violations should reduce score significantly"
+    );
     assert!(score >= 0.0, "Score should not be negative");
 
     println!(

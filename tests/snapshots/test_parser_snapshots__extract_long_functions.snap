@@ -2,12 +2,14 @@
 source: tests/test_parser_snapshots.rs
 expression: long_functions
 ---
-Err(
-    DiagnosticError(
-        Os {
-            code: 3,
-            kind: NotFound,
-            message: "El sistema no puede encontrar la ruta especificada.",
+Ok(
+    [
+        LongFunction {
+            file_path: "tests/test_data\\long_function_test.ts",
+            name: "veryLongMethod",
+            line_start: 12,
+            lines: 35,
+            threshold: 30,
         },
-    ),
+    ],
 )

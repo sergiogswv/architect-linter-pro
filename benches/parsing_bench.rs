@@ -5,9 +5,9 @@
 //!
 //! Run with: cargo bench --bench parsing_bench
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use architect_linter_pro::config::{ArchPattern, Framework, LinterContext};
 use architect_linter_pro::analyzer::swc_parser;
+use architect_linter_pro::config::{ArchPattern, Framework, LinterContext};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::path::{Path, PathBuf};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
@@ -88,7 +88,7 @@ fn bench_parse_10_files(c: &mut Criterion) {
             for file in &files {
                 black_box(
                     swc_parser::analyze_file(&cm, file, &parser_context)
-                        .unwrap_or_else(|e| panic!("Parse failed: {}", e))
+                        .unwrap_or_else(|e| panic!("Parse failed: {}", e)),
                 );
             }
         });
@@ -110,7 +110,7 @@ fn bench_parse_100_files(c: &mut Criterion) {
             for file in &files {
                 black_box(
                     swc_parser::analyze_file(&cm, file, &parser_context)
-                        .unwrap_or_else(|e| panic!("Parse failed: {}", e))
+                        .unwrap_or_else(|e| panic!("Parse failed: {}", e)),
                 );
             }
         });
@@ -139,7 +139,7 @@ fn bench_parse_scaling(c: &mut Criterion) {
                     for file in &files {
                         black_box(
                             swc_parser::analyze_file(&cm, file, &parser_context)
-                                .unwrap_or_else(|e| panic!("Parse failed: {}", e))
+                                .unwrap_or_else(|e| panic!("Parse failed: {}", e)),
                         );
                     }
                 });
@@ -152,5 +152,10 @@ fn bench_parse_scaling(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_parse_10_files, bench_parse_100_files, bench_parse_scaling);
+criterion_group!(
+    benches,
+    bench_parse_10_files,
+    bench_parse_100_files,
+    bench_parse_scaling
+);
 criterion_main!(benches);

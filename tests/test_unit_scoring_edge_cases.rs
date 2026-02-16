@@ -1,4 +1,4 @@
-use architect_linter_pro::scoring::{calculate_health_score, ViolationType, Violation};
+use architect_linter_pro::scoring::{calculate_health_score, Violation, ViolationType};
 
 #[test]
 fn test_score_with_zero_violations() {
@@ -9,14 +9,12 @@ fn test_score_with_zero_violations() {
 
 #[test]
 fn test_score_with_critical_violations() {
-    let mut violations = vec![
-        Violation {
-            severity: ViolationType::Critical,
-            file_path: "src/bad.rs".to_string(),
-            line: 1,
-            message: "Critical violation".to_string(),
-        }
-    ];
+    let mut violations = vec![Violation {
+        severity: ViolationType::Critical,
+        file_path: "src/bad.rs".to_string(),
+        line: 1,
+        message: "Critical violation".to_string(),
+    }];
 
     // Add 10 critical violations
     for i in 1..=10 {
@@ -29,7 +27,10 @@ fn test_score_with_critical_violations() {
     }
 
     let score = calculate_health_score(&violations, 100.0);
-    assert!(score < 50.0, "Score should be <50 with 10 critical violations");
+    assert!(
+        score < 50.0,
+        "Score should be <50 with 10 critical violations"
+    );
 }
 
 #[test]
@@ -37,11 +38,17 @@ fn test_score_boundary_values() {
     // Test with minimum project size
     let violations = vec![];
     let score_min = calculate_health_score(&violations, 1.0);
-    assert_eq!(score_min, 100.0, "1 file project should score 100 with no violations");
+    assert_eq!(
+        score_min, 100.0,
+        "1 file project should score 100 with no violations"
+    );
 
     // Test with maximum project size
     let score_max = calculate_health_score(&violations, 1000.0);
-    assert_eq!(score_max, 100.0, "Large project should score 100 with no violations");
+    assert_eq!(
+        score_max, 100.0,
+        "Large project should score 100 with no violations"
+    );
 }
 
 #[test]

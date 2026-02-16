@@ -6,37 +6,23 @@
 //!
 //! Using insta for snapshot testing to avoid constant updates when AST structures change.
 
-use architect_linter_pro::analyzer::{count_functions, count_imports, extract_function_calls, find_long_functions};
+use architect_linter_pro::analyzer::{
+    count_functions, count_imports, extract_function_calls, find_long_functions,
+};
+use architect_linter_pro::config::{ArchPattern, Framework};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
-use tempfile::NamedTempFile;
 
 /// Helper function to create a LinterContext for testing
 fn create_test_context() -> architect_linter_pro::config::LinterContext {
-    let config_content = r#"
-{
-  "max_lines_per_function": 30,
-  "architecture_pattern": "MVC",
-  "forbidden_imports": []
-}
-"#;
-
-    let temp_config = NamedTempFile::new().unwrap();
-    std::fs::write(temp_config.path(), config_content).unwrap();
-
-    // Create the architect.json file in the correct location
-    let architect_config = temp_config.path().parent().unwrap().join("architect.json");
-    std::fs::write(&architect_config, config_content).unwrap();
-
-    let project_root = architect_config.parent().unwrap().to_path_buf();
-    let config =
-        architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
-    let linter_context: architect_linter_pro::config::LinterContext = config.into();
-
-    // Clean up the temp config directory
-    let _ = std::fs::remove_dir_all(project_root);
-
-    linter_context
+    architect_linter_pro::config::LinterContext {
+        max_lines: 30,
+        framework: Framework::Express,
+        pattern: ArchPattern::MVC,
+        forbidden_imports: vec![],
+        ignored_paths: vec![],
+        ai_configs: vec![],
+    }
 }
 
 #[test]
@@ -165,10 +151,13 @@ class Service {
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_dir = tempfile::tempdir().unwrap();
-    let file_path = temp_dir.path().join("test.ts");
 
-    // Write directly to the .ts path
+    // Use a fixed test directory instead of tempdir for stable snapshots
+    let test_dir = std::path::PathBuf::from("tests/test_data");
+    std::fs::create_dir_all(&test_dir).unwrap();
+    let file_path = test_dir.join("long_function_test.ts");
+
+    // Write the test file
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
@@ -179,7 +168,8 @@ class Service {
     // Snapshot the long functions result
     insta::assert_debug_snapshot!(long_functions);
 
-    // temp_dir will be cleaned up when it goes out of scope
+    // Clean up
+    let _ = std::fs::remove_file(&file_path);
 }
 
 #[test]
@@ -293,7 +283,12 @@ export class UserService {
     let import_count = count_imports(&file_path);
 
     // Snapshot both results
-    insta::assert_debug_snapshot!(("function_count", function_count, "import_count", import_count));
+    insta::assert_debug_snapshot!((
+        "function_count",
+        function_count,
+        "import_count",
+        import_count
+    ));
 
     // temp_dir will be cleaned up when it goes out of scope
 }

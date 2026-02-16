@@ -273,22 +273,18 @@ fn extract_call_name(callee: &swc_ecma_ast::Callee) -> String {
                 swc_ecma_ast::Expr::Member(member_expr) => {
                     // Handle methods like this.helper() or console.log()
                     match &*member_expr.obj {
-                        swc_ecma_ast::Expr::Ident(obj_ident) => {
-                            match &member_expr.prop {
-                                swc_ecma_ast::MemberProp::Ident(prop_ident) => {
-                                    format!("{}.{}", obj_ident.sym, prop_ident.sym)
-                                }
-                                _ => "member_call".to_string(),
+                        swc_ecma_ast::Expr::Ident(obj_ident) => match &member_expr.prop {
+                            swc_ecma_ast::MemberProp::Ident(prop_ident) => {
+                                format!("{}.{}", obj_ident.sym, prop_ident.sym)
                             }
-                        }
-                        swc_ecma_ast::Expr::This(_) => {
-                            match &member_expr.prop {
-                                swc_ecma_ast::MemberProp::Ident(prop_ident) => {
-                                    format!("this.{}", prop_ident.sym)
-                                }
-                                _ => "this.method".to_string(),
+                            _ => "member_call".to_string(),
+                        },
+                        swc_ecma_ast::Expr::This(_) => match &member_expr.prop {
+                            swc_ecma_ast::MemberProp::Ident(prop_ident) => {
+                                format!("this.{}", prop_ident.sym)
                             }
-                        }
+                            _ => "this.method".to_string(),
+                        },
                         _ => "unknown_call".to_string(),
                     }
                 }

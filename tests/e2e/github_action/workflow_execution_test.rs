@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 /// E2E tests for GitHub Action workflow execution
 ///
 /// These tests validate the complete workflow execution as it would run in CI/CD:
@@ -5,9 +6,7 @@
 /// - Running analysis on test projects
 /// - Verifying exit codes and output format
 /// - Testing violation detection in realistic scenarios
-
 use std::process::Command;
-use std::path::PathBuf;
 use std::sync::Once;
 use tempfile::TempDir;
 
@@ -81,13 +80,17 @@ export class ApiController {
 
     // Create minimal valid config
     let config_path = temp_dir.path().join("architect.json");
-    std::fs::write(&config_path, r#"
+    std::fs::write(
+        &config_path,
+        r#"
 {
   "architecture_pattern": "MVC",
   "max_lines_per_function": 30,
   "forbidden_imports": []
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run architect-linter-pro using the binary
     let binary_path = get_binary_path();
@@ -110,7 +113,9 @@ export class ApiController {
 
     // Verify output contains expected elements
     assert!(
-        stdout.contains("ARCHITECTURE HEALTH") || stdout.contains("100/100") || stdout.contains("A"),
+        stdout.contains("ARCHITECTURE HEALTH")
+            || stdout.contains("100/100")
+            || stdout.contains("A"),
         "Should show health score or grade. Output: {}",
         stdout
     );
@@ -147,13 +152,17 @@ export class UserService {
 
     // Create config
     let config_path = temp_dir.path().join("architect.json");
-    std::fs::write(&config_path, r#"
+    std::fs::write(
+        &config_path,
+        r#"
 {
   "architecture_pattern": "Clean",
   "max_lines_per_function": 50,
   "forbidden_imports": []
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run with JSON report generation
     let binary_path = get_binary_path();
@@ -187,8 +196,8 @@ export class UserService {
 
     // Verify report is valid JSON
     let report_content = std::fs::read_to_string(&report_path).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&report_content)
-        .expect("Report should be valid JSON");
+    let json: serde_json::Value =
+        serde_json::from_str(&report_content).expect("Report should be valid JSON");
 
     // Verify required fields
     assert!(
@@ -248,13 +257,17 @@ export class DataProcessor {
 
     // Create config with low max_lines_per_function
     let config_path = temp_dir.path().join("architect.json");
-    std::fs::write(&config_path, r#"
+    std::fs::write(
+        &config_path,
+        r#"
 {
   "architecture_pattern": "MVC",
   "max_lines_per_function": 10,
   "forbidden_imports": []
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run linter
     let binary_path = get_binary_path();
@@ -268,10 +281,7 @@ export class DataProcessor {
 
     // Should detect violations or show lower score
     // The exact behavior depends on implementation, so we just verify it runs
-    assert!(
-        output.status.code().is_some(),
-        "Should have exit code"
-    );
+    assert!(output.status.code().is_some(), "Should have exit code");
 
     // Verify output contains health information
     assert!(
@@ -315,7 +325,9 @@ export class UserRepository {
 
     // Create config with forbidden import
     let config_path = temp_dir.path().join("architect.json");
-    std::fs::write(&config_path, r#"
+    std::fs::write(
+        &config_path,
+        r#"
 {
   "architecture_pattern": "MVC",
   "max_lines_per_function": 50,
@@ -323,7 +335,9 @@ export class UserRepository {
     {"from": "*/controller/*", "to": "*/repository/*"}
   ]
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run linter
     let binary_path = get_binary_path();
@@ -336,14 +350,14 @@ export class UserRepository {
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     // Should complete successfully (exit code 0 or non-0 depending on violations)
-    assert!(
-        output.status.code().is_some(),
-        "Should have exit code"
-    );
+    assert!(output.status.code().is_some(), "Should have exit code");
 
     // Output should mention violations or score
     assert!(
-        stdout.contains("HEALTH") || stdout.contains("violations") || stdout.contains("health") || stdout.contains("/"),
+        stdout.contains("HEALTH")
+            || stdout.contains("violations")
+            || stdout.contains("health")
+            || stdout.contains("/"),
         "Output should contain health or violation information. Output: {}",
         stdout
     );
@@ -400,10 +414,7 @@ fn test_github_action_workflow_invalid_path() {
         .expect("Failed to execute architect-linter-pro");
 
     // Should fail
-    assert!(
-        !output.status.success(),
-        "Should fail for invalid path"
-    );
+    assert!(!output.status.success(), "Should fail for invalid path");
 }
 
 // ============================================================================
@@ -428,13 +439,17 @@ fn test_github_action_workflow_multi_file_project() {
 
     // Create config
     let config_path = temp_dir.path().join("architect.json");
-    std::fs::write(&config_path, r#"
+    std::fs::write(
+        &config_path,
+        r#"
 {
   "architecture_pattern": "MVC",
   "max_lines_per_function": 50,
   "forbidden_imports": []
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run linter
     let binary_path = get_binary_path();
@@ -478,8 +493,9 @@ fn test_github_action_workflow_exit_code_success() {
     // Create config
     std::fs::write(
         temp_dir.path().join("architect.json"),
-        r#"{"architecture_pattern": "MVC", "max_lines_per_function": 50, "forbidden_imports": []}"#
-    ).unwrap();
+        r#"{"architecture_pattern": "MVC", "max_lines_per_function": 50, "forbidden_imports": []}"#,
+    )
+    .unwrap();
 
     // Run linter
     let binary_path = get_binary_path();
@@ -516,8 +532,9 @@ fn test_github_action_workflow_performance_small_project() {
     // Create config
     std::fs::write(
         temp_dir.path().join("architect.json"),
-        r#"{"architecture_pattern": "MVC", "max_lines_per_function": 50, "forbidden_imports": []}"#
-    ).unwrap();
+        r#"{"architecture_pattern": "MVC", "max_lines_per_function": 50, "forbidden_imports": []}"#,
+    )
+    .unwrap();
 
     // Run linter and measure time
     let binary_path = get_binary_path();
@@ -532,10 +549,7 @@ fn test_github_action_workflow_performance_small_project() {
     let duration = start.elapsed();
 
     // Should succeed
-    assert!(
-        output.status.success(),
-        "Command should succeed"
-    );
+    assert!(output.status.success(), "Command should succeed");
 
     // Should complete quickly (less than 30 seconds for small project)
     assert!(

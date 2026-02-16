@@ -4,23 +4,11 @@ expression: "(\"function_count\", function_count, \"import_count\", import_count
 ---
 (
     "function_count",
-    Err(
-        DiagnosticError(
-            Os {
-                code: 3,
-                kind: NotFound,
-                message: "El sistema no puede encontrar la ruta especificada.",
-            },
-        ),
+    Ok(
+        0,
     ),
     "import_count",
-    Err(
-        DiagnosticError(
-            Os {
-                code: 3,
-                kind: NotFound,
-                message: "El sistema no puede encontrar la ruta especificada.",
-            },
-        ),
+    Ok(
+        2,
     ),
 )
