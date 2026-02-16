@@ -5,63 +5,18 @@ on:
     tags:
       - 'v*.*.*'  # Triggers on version tags like v4.0.0, v4.1.0, etc.
 
+permissions:
+  contents: write
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   # ============================================================================
-  # Create Release
-  # ============================================================================
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.version }}
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Get version from tag
-      id: get_version
-      run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-        body: |
-          ## Architect Linter Pro ${{ steps.get_version.outputs.version }}
-
-          ### Installation
-
-          Download the binary for your platform below and add it to your PATH.
-
-          ### Changes
-
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for details.
-
-          ### Test Coverage
-
-          This release includes:
-          - ✅ 134+ comprehensive tests
-          - ✅ Multi-language support (TypeScript, JavaScript, Python, Go, PHP, Java)
-          - ✅ Architecture Health Score
-          - ✅ CI/CD with GitHub Actions
-
-  # ============================================================================
   # Build and Upload Binaries
   # ============================================================================
   build-release:
     name: Build Release Binary
-    needs: create-release
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -131,34 +86,39 @@ jobs:
         7z a ${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }}
         move ${{ matrix.asset_name }}.zip ../../..
 
-    - name: Upload Release Asset (Unix)
-      if: matrix.os != 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.asset_name }}.tar.gz
-        asset_name: ${{ matrix.asset_name }}.tar.gz
-        asset_content_type: application/gzip
+        files: |
+          ${{ matrix.asset_name }}.tar.gz
+          ${{ matrix.asset_name }}.zip
+        body: |
+          ## Architect Linter Pro ${{ github.ref_name }}
 
-    - name: Upload Release Asset (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-release-asset@v1
+          ### Installation
+
+          Download the binary for your platform below and add it to your PATH.
+
+          ### Changes
+
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for details.
+
+          ### Test Coverage
+
+          This release includes:
+          - ✅ 134+ comprehensive tests
+          - ✅ Multi-language support (TypeScript, JavaScript, Python, Go, PHP, Java)
+          - ✅ Architecture Health Score
+          - ✅ CI/CD with GitHub Actions
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.asset_name }}.zip
-        asset_name: ${{ matrix.asset_name }}.zip
-        asset_content_type: application/zip
 
   # ============================================================================
   # Publish to crates.io (optional)
   # ============================================================================
   publish-crate:
     name: Publish to crates.io
-    needs: create-release
+    needs: build-release
     runs-on: ubuntu-latest
     # Uncomment when ready to publish to crates.io
     if: false
