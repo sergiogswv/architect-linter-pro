@@ -5,7 +5,7 @@ expression: long_functions
 Ok(
     [
         LongFunction {
-            file_path: "tests/test_data\\long_function_test.ts",
+            file_path: "tests/test_data/long_function_test.ts",
             name: "veryLongMethod",
             line_start: 12,
             lines: 35,

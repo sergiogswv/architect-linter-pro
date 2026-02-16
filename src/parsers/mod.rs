@@ -13,6 +13,25 @@ pub mod java;
 pub mod php;
 pub mod python;
 pub mod typescript;
+pub mod typescript_pure;
+
+// Re-export pure functions for easier access in tests
+pub use typescript_pure::{
+    count_imports_matching,
+    create_violation,
+    extract_folder_from_pattern,
+    extract_imports_from_tree,
+    filter_imports_by_pattern,
+    find_violations_in_imports,
+    generate_import_patterns,
+    has_import_matching,
+    is_controller_to_repository_violation,
+    matches_forbidden_rule,
+    matches_pattern,
+    normalize_path,
+    normalize_pattern,
+    Import as PureImport,
+};
 
 /// Represents an import statement extracted from source code
 #[derive(Debug, Clone)]

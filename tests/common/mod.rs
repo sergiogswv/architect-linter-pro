@@ -59,6 +59,42 @@ impl TestProject {
     pub fn create_minimal_config(&self) -> PathBuf {
         self.create_config("MVC", 100, "")
     }
+
+    /// Collect all TypeScript/JavaScript files in the project
+    pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+        self.collect_files_with_extensions(&["ts", "tsx", "js", "jsx"])
+    }
+
+    /// Collect all files with specific extensions
+    pub fn collect_files_with_extensions(&self, extensions: &[&str]) -> Vec<PathBuf> {
+        let mut files = Vec::new();
+
+        fn visit_dir(dir: &Path, extensions: &[&str], files: &mut Vec<PathBuf>) {
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        // Skip node_modules and hidden dirs
+                        if let Some(name) = path.file_name() {
+                            if name.to_str().map_or(false, |n| n.starts_with('.') || n == "node_modules") {
+                                continue;
+                            }
+                        }
+                        visit_dir(&path, extensions, files);
+                    } else if let Some(ext) = path.extension() {
+                        if let Some(ext_str) = ext.to_str() {
+                            if extensions.contains(&ext_str) {
+                                files.push(path);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        visit_dir(self.root.path(), extensions, &mut files);
+        files
+    }
 }
 
 /// Helper to create a forbidden import rule string

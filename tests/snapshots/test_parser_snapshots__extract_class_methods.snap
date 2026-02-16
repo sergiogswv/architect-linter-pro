@@ -1,0 +1,15 @@
+---
+source: tests/test_parser_snapshots.rs
+assertion_line: 359
+expression: "(\"function_count\", function_count, \"function_calls\", function_calls)"
+---
+(
+    "function_count",
+    Ok(
+        0,
+    ),
+    "function_calls",
+    Ok(
+        [],
+    ),
+)

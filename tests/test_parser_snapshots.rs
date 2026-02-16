@@ -292,3 +292,276 @@ export class UserService {
 
     // temp_dir will be cleaned up when it goes out of scope
 }
+
+#[test]
+fn test_extract_class_methods() {
+    let code = r#"
+export class UserController {
+    private repository: UserRepository;
+    protected config: Config;
+
+    constructor(repo: UserRepository) {
+        this.repository = repo;
+    }
+
+    // Public method
+    public async getUser(id: number): Promise<User> {
+        return await this.repository.findById(id);
+    }
+
+    // Private method
+    private validateUser(user: User): boolean {
+        return user.id > 0;
+    }
+
+    // Protected method
+    protected logAccess(userId: number): void {
+        console.log(`User ${userId} accessed`);
+    }
+
+    // Static method
+    static create(repo: UserRepository): UserController {
+        return new UserController(repo);
+    }
+
+    // Getter
+    get userCount(): number {
+        return 100;
+    }
+
+    // Setter
+    set maxUsers(value: number) {
+        console.log(`Max users set to ${value}`);
+    }
+
+    // Async method
+    async fetchData(): Promise<void> {
+        await this.repository.connect();
+    }
+}
+"#;
+
+    let cm = Lrc::new(SourceMap::default());
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    std::fs::write(&file_path, code).unwrap();
+
+    let _ctx = create_test_context();
+
+    // Extract function count (should count all methods including constructor, getters, setters)
+    let function_count = count_functions(&cm, &file_path);
+
+    // Extract function calls within the class
+    let function_calls = extract_function_calls(&cm, &file_path);
+
+    // Snapshot both results
+    insta::assert_debug_snapshot!((
+        "function_count",
+        function_count,
+        "function_calls",
+        function_calls
+    ));
+
+    // temp_dir will be cleaned up when it goes out of scope
+}
+
+#[test]
+fn test_extract_decorators() {
+    let code = r#"
+import { Injectable, Inject } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
+
+@Injectable()
+export class UserService {
+    constructor(
+        @Inject('USER_REPOSITORY')
+        private userRepo: any
+    ) {}
+
+    async findAll() {
+        return [];
+    }
+}
+
+@Controller('users')
+export class UserController {
+    constructor(private service: UserService) {}
+
+    @Get()
+    async getAll() {
+        return this.service.findAll();
+    }
+
+    @Post()
+    async create(@Body() dto: any) {
+        return { created: true };
+    }
+
+    @Get(':id')
+    @UseGuards(AuthGuard)
+    async getOne(@Param('id') id: string) {
+        return { id };
+    }
+}
+
+@Component({
+    selector: 'app-user',
+    template: '<div>User</div>'
+})
+export class UserComponent {
+    @Input()
+    userId: number;
+
+    @Output()
+    userChange = new EventEmitter();
+
+    @ViewChild('container')
+    container: ElementRef;
+}
+"#;
+
+    let cm = Lrc::new(SourceMap::default());
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    std::fs::write(&file_path, code).unwrap();
+
+    let _ctx = create_test_context();
+
+    // Extract function count from decorated classes
+    let function_count = count_functions(&cm, &file_path);
+
+    // Extract function calls (should include decorator calls)
+    let function_calls = extract_function_calls(&cm, &file_path);
+
+    // Extract imports (decorators are imported)
+    let import_count = count_imports(&file_path);
+
+    // Snapshot all results
+    insta::assert_debug_snapshot!((
+        "function_count",
+        function_count,
+        "function_calls",
+        function_calls,
+        "import_count",
+        import_count
+    ));
+
+    // temp_dir will be cleaned up when it goes out of scope
+}
+
+#[test]
+fn test_generic_types() {
+    let code = r#"
+// Generic class
+export class Box<T> {
+    private value: T;
+
+    constructor(value: T) {
+        this.value = value;
+    }
+
+    getValue(): T {
+        return this.value;
+    }
+
+    setValue(value: T): void {
+        this.value = value;
+    }
+}
+
+// Generic class with constraints
+export class Repository<T extends Entity> {
+    private items: T[] = [];
+
+    add(item: T): void {
+        this.items.push(item);
+    }
+
+    findById(id: number): T | undefined {
+        return this.items.find(item => item.id === id);
+    }
+}
+
+// Generic function
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+// Generic function with constraints
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+    return obj[key];
+}
+
+// Generic type alias
+type Result<T, E> =
+    | { ok: true; value: T }
+    | { ok: false; error: E };
+
+// Multiple type parameters
+export class Pair<K, V> {
+    constructor(public key: K, public value: V) {}
+
+    getKey(): K {
+        return this.key;
+    }
+
+    getValue(): V {
+        return this.value;
+    }
+}
+
+// Generic with default type
+export class Container<T = string> {
+    private data: T[] = [];
+
+    add(item: T): void {
+        this.data.push(item);
+    }
+
+    getAll(): T[] {
+        return this.data;
+    }
+}
+
+// Complex generic type
+type ApiResponse<T> = Promise<{
+    data: T;
+    status: number;
+    message: string;
+}>;
+
+async function fetchUser(): ApiResponse<User> {
+    return {
+        data: { id: 1, name: 'John' },
+        status: 200,
+        message: 'Success'
+    };
+}
+"#;
+
+    let cm = Lrc::new(SourceMap::default());
+    let temp_dir = tempfile::tempdir().unwrap();
+    let file_path = temp_dir.path().join("test.ts");
+
+    std::fs::write(&file_path, code).unwrap();
+
+    let _ctx = create_test_context();
+
+    // Extract function count (should count all methods including generic ones)
+    let function_count = count_functions(&cm, &file_path);
+
+    // Extract function calls
+    let function_calls = extract_function_calls(&cm, &file_path);
+
+    // Snapshot both results
+    insta::assert_debug_snapshot!((
+        "function_count",
+        function_count,
+        "function_calls",
+        function_calls
+    ));
+
+    // temp_dir will be cleaned up when it goes out of scope
+}

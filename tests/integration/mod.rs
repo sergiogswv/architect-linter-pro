@@ -5,3 +5,9 @@
 // Re-export common utilities
 #[path = "../common/mod.rs"]
 mod common;
+
+// Import variation tests
+mod import_variations;
+
+// Decorated classes and multiple violations tests
+mod classes_and_violations;
