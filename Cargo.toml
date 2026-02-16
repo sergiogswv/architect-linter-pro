@@ -10,14 +10,18 @@ keywords = ["linter", "architecture", "multi-language", "code-quality", "tree-si
 categories = ["development-tools"]
 
 [dependencies]
-# Updated serde to work with newer SWC versions
-serde = { version = "1.0", features = ["derive"] }
+# serde 1.0.219 is the last version with serde::__private (needed by swc_common 0.33.x)
+# NOTE: When upgrading SWC ecosystem to v18+, we can use latest serde
+serde = { version = "=1.0.219", features = ["derive"] }
 serde_json = "1.0.101"
 
-# Force time >=0.3.47 to fix RUSTSEC-2026-0009 (DoS vulnerability)
-time = "0.3.47"
+# time 0.3.44 has RUSTSEC-2026-0009 (DoS vulnerability)
+# This is ignored in CI via --ignore flag until we can upgrade SWC ecosystem
+# time 0.3.45+ requires serde >=1.0.220, but swc_common 0.33.x requires <1.0.220
+time = "0.3.44"
 
-# Updated SWC ecosystem to be compatible with serde 1.0+
+# SWC ecosystem - locked to 0.33.x/0.110.x/0.141.x for compatibility with serde 1.0.219
+# When upgrading to SWC v18+, we can use latest serde and fix time vulnerability
 swc_common = { version = "0.33", features = ["concurrent"] }
 swc_ecma_ast = "0.110"
 swc_ecma_parser = "0.141"
