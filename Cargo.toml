@@ -85,3 +85,7 @@ cargo-tarpaulin = "0.31.0"
 [[bench]]
 name = "performance_bench"
 harness = false
+
+[[bench]]
+name = "parsing_bench"
+harness = false
