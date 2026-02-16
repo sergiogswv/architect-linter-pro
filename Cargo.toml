@@ -79,6 +79,9 @@ serial_test = "3.0"        # Run tests serially when needed
 # Benchmarking
 criterion = "0.5"
 
+# Coverage reporting
+cargo-tarpaulin = "0.31.0"
+
 [[bench]]
 name = "performance_bench"
 harness = false
