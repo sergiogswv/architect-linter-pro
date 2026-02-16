@@ -59,6 +59,8 @@ lru = "0.13"
 
 # OS integration (v4.1.0-beta)
 notify-rust = "4.12"
+
+[target.'cfg(unix)'.dependencies]
 # daemonize is unmaintained but needed for Unix daemon functionality
 # Consider replacing with a maintained alternative in future releases
 daemonize = "0.5"
