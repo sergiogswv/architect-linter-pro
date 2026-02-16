@@ -6,7 +6,7 @@
 //!
 //! Using insta for snapshot testing to avoid constant updates when AST structures change.
 
-use architect_linter_pro::analyzer::{count_functions, count_imports, find_long_functions};
+use architect_linter_pro::analyzer::{count_functions, count_imports, extract_function_calls, find_long_functions};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 use tempfile::NamedTempFile;
@@ -76,6 +76,39 @@ export class User {
 
     // Snapshot the function count result
     insta::assert_debug_snapshot!(function_count);
+
+    // Explicitly keep temp_file alive
+    let _ = temp_file;
+}
+
+#[test]
+fn test_extract_function_calls() {
+    let code = r#"
+class Service {
+    method() {
+        this.helper();
+        console.log('test');
+    }
+
+    helper() {
+        return true;
+    }
+}
+"#;
+
+    let cm = Lrc::new(SourceMap::default());
+    let temp_file = NamedTempFile::new().unwrap();
+    let file_path = temp_file.path().to_path_buf();
+
+    // Add .ts extension to ensure it's parsed as TypeScript
+    let ts_file_path = file_path.with_extension("ts");
+    std::fs::write(&ts_file_path, code).unwrap();
+
+    // Extract function calls from the parsed AST
+    let function_calls = extract_function_calls(&cm, &ts_file_path);
+
+    // Snapshot the function calls result
+    insta::assert_debug_snapshot!(function_calls);
 
     // Explicitly keep temp_file alive
     let _ = temp_file;
