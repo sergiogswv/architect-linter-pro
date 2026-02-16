@@ -187,6 +187,13 @@ jobs:
         files: ./cobertura.xml
         fail_ci_if_error: false
 
+    - name: Generate coverage summary
+      run: |
+        echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "To see detailed coverage:" >> $GITHUB_STEP_SUMMARY
+        echo "- Run: cargo tarpaulin --exclude-files -- --test" >> $GITHUB_STEP_SUMMARY
+
   # ============================================================================
   # Security Audit
   # ============================================================================
