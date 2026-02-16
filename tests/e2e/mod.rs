@@ -5,3 +5,6 @@
 // Re-export common utilities
 #[path = "../common/mod.rs"]
 mod common;
+
+// GitHub Action workflow execution tests
+pub mod github_action;
