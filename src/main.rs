@@ -1,6 +1,6 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use miette::{GraphicalReportHandler, IntoDiagnostic, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use swc_common::SourceMap;
 
