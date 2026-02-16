@@ -178,7 +178,29 @@ pub fn sugerir_arquitectura_inicial(
         .ok_or_else(|| anyhow::anyhow!("No se encontró JSON en la respuesta"))?;
     let clean_json = &response_text[json_start..=json_end];
 
-    let suggestion: AISuggestionResponse = serde_json::from_str(clean_json)?;
+    // Debug: Mostrar el JSON recibido
+    eprintln!("\n🔍 DEBUG - JSON recibido de la IA:");
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    eprintln!("{}", clean_json);
+    eprintln!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    // Validar que el JSON esté completo
+    if !clean_json.ends_with('}') {
+        return Err(anyhow::anyhow!(
+            "JSON incompleto recibido de la IA.\n\nJSON parcial:\n{}\n\nPosible causa: La respuesta fue truncada. Intenta con un proyecto más pequeño o simplifica la estructura.",
+            clean_json
+        ));
+    }
+
+    // Intentar parsear con mejor manejo de errores
+    let suggestion: AISuggestionResponse = serde_json::from_str(clean_json)
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "Error parseando JSON de la IA: {}\n\nJSON recibido:\n{}\n\nSugerencia: Revisa el JSON arriba. Si está incompleto, puede ser que el límite de tokens sea insuficiente.",
+                e,
+                clean_json
+            )
+        })?;
     Ok(suggestion)
 }
 
@@ -191,7 +213,7 @@ fn consultar_claude(prompt: String, ai_config: AIConfig) -> anyhow::Result<Strin
         let client = reqwest::Client::new();
         let body = serde_json::json!({
             "model": ai_config.model,
-            "max_tokens": 1024,
+            "max_tokens": 4096,
             "messages": [{
                 "role": "user",
                 "content": prompt
