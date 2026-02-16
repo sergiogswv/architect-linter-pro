@@ -34,3 +34,4 @@ pub use config::ArchPattern;
 pub use metrics::{
     ComplexityStats, HealthGrade, HealthScore, LayerStats, PerformanceMetrics, ScoreComponents,
 };
+pub use scoring::{calculate_health_score, Violation, ViolationType};

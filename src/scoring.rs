@@ -6,6 +6,30 @@
 use crate::analysis_result::AnalysisResult;
 use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
 
+/// Severity level of a violation
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ViolationType {
+    /// Critical violation that severely impacts architecture
+    Critical,
+    /// Warning that should be reviewed
+    Warning,
+    /// Informational notice
+    Info,
+}
+
+/// A simple violation for unit testing
+#[derive(Debug, Clone)]
+pub struct Violation {
+    /// Severity of the violation
+    pub severity: ViolationType,
+    /// File path where the violation occurred
+    pub file_path: String,
+    /// Line number where the violation occurred
+    pub line: usize,
+    /// Violation message
+    pub message: String,
+}
+
 /// Calculate the health score from an analysis result
 pub fn calculate(result: &AnalysisResult) -> HealthScore {
     let components = ScoreComponents {
@@ -109,6 +133,44 @@ pub fn reset_color() -> &'static str {
     "\x1b[0m"
 }
 
+/// Calculate health score from a list of violations
+///
+/// This is a simplified scoring function for unit testing that takes
+/// a list of violations and returns a 0-100 score.
+///
+/// # Arguments
+/// * `violations` - List of violations found in the project
+/// * `total_files` - Total number of files in the project
+///
+/// # Returns
+/// Health score from 0.0 to 100.0
+///
+/// # Scoring Formula
+/// - Critical violations: -10 points each
+/// - Warning violations: -2 points each
+/// - Info violations: -0.5 points each
+/// - Base score: 100.0
+/// - Final score is clamped to 0.0-100.0
+pub fn calculate_health_score(violations: &[Violation], total_files: f64) -> f64 {
+    let mut score = 100.0;
+
+    for violation in violations {
+        match violation.severity {
+            ViolationType::Critical => score -= 10.0,
+            ViolationType::Warning => score -= 2.0,
+            ViolationType::Info => score -= 0.5,
+        }
+    }
+
+    // Normalize by project size (more violations in larger projects have less impact)
+    // This prevents very large projects from being overly penalized
+    let size_factor = (total_files / 100.0).min(5.0); // Cap the reduction
+    let normalized_score = score + (size_factor * 2.0);
+
+    // Clamp to 0-100
+    normalized_score.max(0.0).min(100.0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,5 +215,55 @@ mod tests {
 
         let bar = get_progress_bar(0, 10);
         assert_eq!(bar, "[          ]");
+    }
+
+    // Unit tests for calculate_health_score
+    #[test]
+    fn test_calculate_health_score_with_zero_violations() {
+        let violations = vec![];
+        let score = calculate_health_score(&violations, 100.0);
+        assert_eq!(score, 100.0, "Perfect project should score 100");
+    }
+
+    #[test]
+    fn test_calculate_health_score_with_critical_violations() {
+        let mut violations = Vec::new();
+        for i in 0..10 {
+            violations.push(Violation {
+                severity: ViolationType::Critical,
+                file_path: format!("src/bad{}.rs", i),
+                line: i,
+                message: "Critical violation".to_string(),
+            });
+        }
+
+        let score = calculate_health_score(&violations, 100.0);
+        assert!(score < 50.0, "Score should be <50 with 10 critical violations");
+    }
+
+    #[test]
+    fn test_calculate_health_score_boundary_values() {
+        let violations = vec![];
+        let score_min = calculate_health_score(&violations, 1.0);
+        assert_eq!(score_min, 100.0, "1 file project should score 100 with no violations");
+
+        let score_max = calculate_health_score(&violations, 1000.0);
+        assert_eq!(score_max, 100.0, "Large project should score 100 with no violations");
+    }
+
+    #[test]
+    fn test_calculate_health_score_with_many_files() {
+        let mut violations = Vec::new();
+        for i in 0..1000 {
+            violations.push(Violation {
+                severity: ViolationType::Warning,
+                file_path: format!("src/file{}.rs", i),
+                line: 1,
+                message: "Warning violation".to_string(),
+            });
+        }
+
+        let score = calculate_health_score(&violations, 1000.0);
+        assert!(score < 80.0, "1000 files with warnings should score <80");
     }
 }

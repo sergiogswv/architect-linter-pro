@@ -5,3 +5,6 @@
 // Re-export common utilities
 #[path = "../common/mod.rs"]
 mod common;
+
+// Scoring unit tests
+pub mod scoring;
