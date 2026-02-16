@@ -156,17 +156,23 @@ pub fn apply_severity_multiplier(violations: &[Violation], base_score: f64, tota
     }
 
     // Architecture pattern bonus: 5% bonus for detected patterns
-    // In a real implementation, this would detect patterns like MVC, Layered, etc.
-    // For now, we apply it as a simple heuristic based on project size
+    // TODO: This is a placeholder for future implementation. In the full version, this should:
+    // - Detect actual architectural patterns (MVC, Layered, Hexagonal, etc.)
+    // - Use static analysis to identify pattern-specific structures
+    // - Apply bonus based on pattern adherence quality
+    // For now, we apply a simple heuristic based on project size as a temporary approximation
     if total_files >= 100 && violations.is_empty() {
         score = score * 1.05; // 5% bonus for well-structured large projects
     }
 
     // Historical trend factor would be applied here
-    // In a real implementation, this would compare with previous run results
+    // TODO: This is a placeholder for future functionality. In the full version, this should:
+    // - Accept historical trend data as a parameter
+    // - Compare current results with previous runs
+    // - Apply multiplier based on improvement/degradation trends
     // For now, we just return the score with applied bonuses
 
-    score
+    score.min(100.0) // Cap scores at 100.0 to prevent overflow from multipliers
 }
 
 /// Calculate health score from a list of violations
