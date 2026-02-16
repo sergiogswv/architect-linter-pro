@@ -32,7 +32,7 @@ fn test_version_flag() {
         .arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("4.0.0"));
+        .stdout(predicate::str::contains("4.1.0-beta"));
 }
 
 #[test]
@@ -41,7 +41,7 @@ fn test_version_short_flag() {
         .arg("-v")
         .assert()
         .success()
-        .stdout(predicate::str::contains("4.0.0"));
+        .stdout(predicate::str::contains("4.1.0-beta"));
 }
 
 #[test]
