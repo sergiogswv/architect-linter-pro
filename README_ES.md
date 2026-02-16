@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-4.1.0--beta-blue.svg" alt="Versión">
+  <img src="https://img.shields.io/badge/versión-4.2.0-blue.svg" alt="Versión">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Edición Rust">
   <img src="https://img.shields.io/badge/licencia-MIT-green.svg" alt="Licencia">
   <img src="https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Plataforma">
