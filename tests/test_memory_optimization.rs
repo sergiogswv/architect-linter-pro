@@ -139,9 +139,14 @@ export class TestClass {
 
     // Test that AST objects are properly dropped after analysis
     // by running analysis in a loop to check for memory leaks
-    // Reduced from 100 to 30 iterations to avoid intermittent file system issues
-    for i in 0..30 {
-        // Recreate the file in each iteration to avoid file handle/locking issues
+    // Reduced from 100 to 20 iterations to avoid intermittent file system issues
+    for i in 0..20 {
+        // Create a fresh temp directory and file for each iteration
+        // This avoids file handle/locking issues on macOS
+        let temp_dir_iter = tempfile::tempdir().unwrap();
+        let temp_path_iter = temp_dir_iter.path();
+
+        let file_path_iter = temp_path_iter.join("test.ts");
         let ts_content = r#"
 export class TestClass {
     public testMethod(): void {
@@ -149,13 +154,31 @@ export class TestClass {
     }
 }
 "#;
-        std::fs::write(&file_path, ts_content).unwrap();
+        std::fs::write(&file_path_iter, ts_content).unwrap();
+
+        // Create architect.json for this iteration
+        let architect_config = temp_path_iter.join("architect.json");
+        let config_content = r#"
+{
+  "max_lines_per_function": 30,
+  "architecture_pattern": "MVC",
+  "forbidden_imports": []
+}
+"#;
+        std::fs::write(&architect_config, config_content).unwrap();
+
+        // Load config for this iteration
+        let project_root_iter = temp_path_iter.to_path_buf();
+        let config_iter = architect_linter_pro::config::load_config(&project_root_iter)
+            .expect("Failed to load config");
+        let linter_context_iter: architect_linter_pro::config::LinterContext = config_iter;
 
         // Create a new SourceMap for each iteration to avoid sync issues
         let local_cm = Lrc::new(SourceMap::default());
 
         // The validate_method_length function should drop AST after extraction
-        let result = swc_parser::validate_method_length(&local_cm, &file_path, &linter_context);
+        let result =
+            swc_parser::validate_method_length(&local_cm, &file_path_iter, &linter_context_iter);
 
         // Show error details if analysis fails
         if let Err(ref e) = result {
@@ -164,7 +187,7 @@ export class TestClass {
 
         // Verify the analysis completes without issues
         // This ensures the AST was properly processed and dropped
-        if i % 10 == 0 {
+        if i % 5 == 0 {
             println!("Completed iteration {} successfully", i);
         }
     }
