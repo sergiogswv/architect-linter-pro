@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo bench --bench parsing_bench
 
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use architect_linter_pro::config::{ArchPattern, Framework, LinterContext};
 use architect_linter_pro::analyzer::swc_parser;
 use std::path::{Path, PathBuf};
@@ -77,20 +77,18 @@ fn create_test_context() -> LinterContext {
 fn bench_parse_10_files(c: &mut Criterion) {
     let temp_dir = TempDir::new().unwrap();
     create_ts_files(10, temp_dir.path());
-
     let parser_context = create_test_context();
+    let cm = Lrc::new(SourceMap::default());
+    let files: Vec<PathBuf> = (0..10)
+        .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
+        .collect();
 
     c.bench_function("parse_10_files", |b| {
         b.iter(|| {
-            let files: Vec<PathBuf> = (0..10)
-                .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
-                .collect();
-
             for file in &files {
-                let _ = swc_parser::analyze_file(
-                    &Lrc::new(SourceMap::default()),
-                    file,
-                    &parser_context
+                black_box(
+                    swc_parser::analyze_file(&cm, file, &parser_context)
+                        .unwrap_or_else(|e| panic!("Parse failed: {}", e))
                 );
             }
         });
@@ -101,20 +99,18 @@ fn bench_parse_10_files(c: &mut Criterion) {
 fn bench_parse_100_files(c: &mut Criterion) {
     let temp_dir = TempDir::new().unwrap();
     create_ts_files(100, temp_dir.path());
-
     let parser_context = create_test_context();
+    let cm = Lrc::new(SourceMap::default());
+    let files: Vec<PathBuf> = (0..100)
+        .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
+        .collect();
 
     c.bench_function("parse_100_files", |b| {
         b.iter(|| {
-            let files: Vec<PathBuf> = (0..100)
-                .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
-                .collect();
-
             for file in &files {
-                let _ = swc_parser::analyze_file(
-                    &Lrc::new(SourceMap::default()),
-                    file,
-                    &parser_context
+                black_box(
+                    swc_parser::analyze_file(&cm, file, &parser_context)
+                        .unwrap_or_else(|e| panic!("Parse failed: {}", e))
                 );
             }
         });
@@ -130,21 +126,20 @@ fn bench_parse_scaling(c: &mut Criterion) {
         let temp_dir = TempDir::new().unwrap();
         create_ts_files(file_count, temp_dir.path());
         let parser_context = create_test_context();
+        let cm = Lrc::new(SourceMap::default());
+        let files: Vec<PathBuf> = (0..file_count)
+            .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
+            .collect();
 
         group.bench_with_input(
             BenchmarkId::from_parameter(file_count),
             &file_count,
-            |b, &file_count| {
+            |b, &_file_count| {
                 b.iter(|| {
-                    let files: Vec<PathBuf> = (0..file_count)
-                        .map(|i| temp_dir.path().join(format!("test{}.ts", i)))
-                        .collect();
-
                     for file in &files {
-                        let _ = swc_parser::analyze_file(
-                            &Lrc::new(SourceMap::default()),
-                            file,
-                            &parser_context
+                        black_box(
+                            swc_parser::analyze_file(&cm, file, &parser_context)
+                                .unwrap_or_else(|e| panic!("Parse failed: {}", e))
                         );
                     }
                 });
