@@ -1,0 +1,7 @@
+---
+source: tests/test_parser_snapshots.rs
+expression: long_functions
+---
+Ok(
+    [],
+)

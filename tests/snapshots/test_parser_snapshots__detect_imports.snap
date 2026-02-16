@@ -1,0 +1,7 @@
+---
+source: tests/test_parser_snapshots.rs
+expression: import_count
+---
+Ok(
+    0,
+)

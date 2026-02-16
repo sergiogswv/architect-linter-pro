@@ -1,0 +1,14 @@
+---
+source: tests/test_parser_snapshots.rs
+expression: "(\"function_count\", function_count, \"import_count\", import_count)"
+---
+(
+    "function_count",
+    Ok(
+        0,
+    ),
+    "import_count",
+    Ok(
+        0,
+    ),
+)
