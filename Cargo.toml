@@ -10,18 +10,17 @@ keywords = ["linter", "architecture", "multi-language", "code-quality", "tree-si
 categories = ["development-tools"]
 
 [dependencies]
-# serde - updated to fix security vulnerabilities in dependencies
-serde = { version = "1.0.200", features = ["derive"] }
+# Updated serde to work with newer SWC versions
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.101"
 
 # Force time >=0.3.47 to fix RUSTSEC-2026-0009 (DoS vulnerability)
-# This overrides the vulnerable 0.3.44 version from mac-notification-sys
 time = "0.3.47"
 
-# Usamos las versiones que no dan guerra con esa versión de serde
-swc_common = { version = "0.33.0", features = ["concurrent"] }
-swc_ecma_ast = "0.110.0"
-swc_ecma_parser = "0.141.0"
+# Updated SWC ecosystem to be compatible with serde 1.0+
+swc_common = { version = "0.33", features = ["concurrent"] }
+swc_ecma_ast = "0.110"
+swc_ecma_parser = "0.141"
 
 walkdir = "2.5.0"
 miette = { version = "7.2.0", features = ["fancy"] }
