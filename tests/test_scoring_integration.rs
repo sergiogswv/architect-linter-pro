@@ -106,7 +106,10 @@ fn test_scoring_with_circular_dependencies() {
         !result.circular_dependencies.is_empty(),
         "Should detect circular dependencies"
     );
-    assert!(score.total <= 75, "Score should be low due to circular deps");
+    assert!(
+        score.total <= 75,
+        "Score should be low due to circular deps"
+    );
 
     // Circular component should be 0
     assert_eq!(score.components.circular_deps, 0);

@@ -44,14 +44,16 @@ fn run_as_daemon(project_root: &std::path::Path) -> Result<()> {
             println!("Architect Linter Pro running in background...");
         });
 
-    daemonize.start().map_err(|e| miette::miette!("Failed to daemonize: {}", e))?;
+    daemonize
+        .start()
+        .map_err(|e| miette::miette!("Failed to daemonize: {}", e))?;
     Ok(())
 }
 
 /// Analyzes only changed files since last commit (incremental analysis)
 /// This function is defined in main.rs to avoid circular import issues
 pub fn analyze_changed_files(
-    project_root: &PathBuf,
+    project_root: &Path,
     analysis_cache: Option<&mut cache::AnalysisCache>,
 ) -> Result<analysis_result::AnalysisResult> {
     // Use the collector function but we need to handle the circular dependency
@@ -97,7 +99,7 @@ pub fn analyze_changed_files(
     let config = config::load_config(project_root)
         .map_err(|e| miette::miette!("Failed to load config: {}", e))?;
 
-    let linter_context: config::LinterContext = config.into();
+    let linter_context: config::LinterContext = config;
     let cm = Arc::new(SourceMap::default());
 
     // Analyze only changed files
@@ -141,7 +143,9 @@ fn main() -> Result<()> {
         }
         #[cfg(windows)]
         {
-            println!("⚠️  Modo daemon nativo no soportado aún en Windows. Corriendo en modo normal.");
+            println!(
+                "⚠️  Modo daemon nativo no soportado aún en Windows. Corriendo en modo normal."
+            );
         }
     }
 
@@ -161,7 +165,7 @@ fn main() -> Result<()> {
 
 /// Ejecuta el análisis en modo normal (una sola vez)
 fn run_normal_mode(
-    project_root: &PathBuf,
+    project_root: &Path,
     ctx: Arc<config::LinterContext>,
     cli_args: &cli::CliArgs,
 ) -> Result<()> {
@@ -297,7 +301,7 @@ fn run_normal_mode(
 
 /// Run a full analysis and return the AnalysisResult (reused by watch commands)
 fn run_full_analysis(
-    project_root: &PathBuf,
+    project_root: &Path,
     ctx: &config::LinterContext,
     analysis_cache: Option<&mut cache::AnalysisCache>,
 ) -> Result<analysis_result::AnalysisResult> {
@@ -333,7 +337,7 @@ fn run_full_analysis(
 }
 
 /// Run the AI auto-fix flow (reused by watch commands)
-fn run_fix_flow(project_root: &PathBuf, ctx: &config::LinterContext) -> Result<()> {
+fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> {
     use dialoguer::Confirm;
 
     if ctx.ai_configs.is_empty() {
@@ -481,14 +485,16 @@ fn run_fix_flow(project_root: &PathBuf, ctx: &config::LinterContext) -> Result<(
 
 /// Ejecuta el análisis en modo watch (observación continua e interactiva)
 fn run_watch_mode(
-    project_root: &PathBuf,
+    project_root: &Path,
     ctx: Arc<config::LinterContext>,
     no_cache: bool,
 ) -> Result<()> {
-    let project_name_notification = Arc::new(project_root
-        .file_name()
-        .map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_else(|| "project".to_string()));
+    let project_name_notification = Arc::new(
+        project_root
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "project".to_string()),
+    );
 
     println!("🚀 Iniciando modo watch...\n");
 
@@ -556,7 +562,7 @@ fn run_watch_mode(
 
     // Shared state for the watch loop
     let dep_analyzer = Arc::new(Mutex::new(dep_analyzer));
-    let project_root_arc = Arc::new(project_root.clone());
+    let project_root_arc = Arc::new(project_root.to_path_buf());
     let ignored_paths = ctx.ignored_paths.clone();
 
     // Clone Arcs for the on_command closure
@@ -780,7 +786,7 @@ fn run_watch_mode(
 }
 
 /// Ejecuta el análisis en modo fix (auto-reparación con IA)
-fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Result<()> {
+fn run_fix_mode(project_root: &Path, ctx: Arc<config::LinterContext>) -> Result<()> {
     println!("🔧 Modo Fix: Auto-reparación con IA\n");
 
     if ctx.ai_configs.is_empty() {
@@ -795,7 +801,7 @@ fn run_fix_mode(project_root: &PathBuf, ctx: Arc<config::LinterContext>) -> Resu
 
 /// Ejecuta el análisis en modo incremental (solo archivos modificados)
 fn run_incremental_mode(
-    project_root: &PathBuf,
+    project_root: &Path,
     __ctx: Arc<config::LinterContext>,
     cli_args: &cli::CliArgs,
 ) -> Result<()> {
@@ -824,7 +830,7 @@ fn run_incremental_mode(
 
     // Load config
     let config = config::load_config(&project_root.join("architect.json"))?;
-    let linter_context: config::LinterContext = config.into();
+    let linter_context: config::LinterContext = config;
 
     // Analyze only changed files
     let cm = Arc::new(SourceMap::default());

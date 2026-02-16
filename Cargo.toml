@@ -10,9 +10,13 @@ keywords = ["linter", "architecture", "multi-language", "code-quality", "tree-si
 categories = ["development-tools"]
 
 [dependencies]
-# Forzamos una versión de serde que sabemos que tiene lo que swc busca
-serde = { version = "=1.0.197", features = ["derive"] }
+# serde - updated to fix security vulnerabilities in dependencies
+serde = { version = "1.0.200", features = ["derive"] }
 serde_json = "1.0.101"
+
+# Force time >=0.3.47 to fix RUSTSEC-2026-0009 (DoS vulnerability)
+# This overrides the vulnerable 0.3.44 version from mac-notification-sys
+time = "0.3.47"
 
 # Usamos las versiones que no dan guerra con esa versión de serde
 swc_common = { version = "0.33.0", features = ["concurrent"] }
@@ -43,16 +47,18 @@ tree-sitter-java = "0.21"
 tree-sitter-php = "0.22"
 
 # v4.0 additions
-git2 = "0.19"
+git2 = "0.20"
 chrono = { version = "0.4", features = ["serde"] }
 
 # Analysis caching
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
-lru = "0.12"
+lru = "0.13"
 
 # OS integration (v4.1.0-beta)
-notify-rust = "4.11"
-daemonize = "0.5.0"
+notify-rust = "4.12"
+# daemonize is unmaintained but needed for Unix daemon functionality
+# Consider replacing with a maintained alternative in future releases
+daemonize = "0.5"
 
 [dev-dependencies]
 # Testing framework

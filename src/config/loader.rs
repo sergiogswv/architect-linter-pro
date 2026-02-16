@@ -29,8 +29,10 @@ pub struct AIConfigFile {
 pub struct ConfigError {
     #[help]
     #[allow(dead_code)]
+    #[allow(unused_assignments)]
     pub help: String,
     #[allow(dead_code)]
+    #[allow(unused_assignments)]
     pub details: String,
 }
 

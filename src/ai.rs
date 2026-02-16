@@ -31,7 +31,7 @@ pub fn obtener_modelos_disponibles(
         match provider {
             AIProvider::Claude => {
                 let response = client
-                    .get(&format!("{}/v1/models", url))
+                    .get(format!("{}/v1/models", url))
                     .header("x-api-key", api_key)
                     .header("anthropic-version", "2023-06-01")
                     .send()
@@ -48,7 +48,7 @@ pub fn obtener_modelos_disponibles(
             }
             AIProvider::Gemini => {
                 let response = client
-                    .get(&format!("{}/v1beta/models?key={}", url, api_key))
+                    .get(format!("{}/v1beta/models?key={}", url, api_key))
                     .send()
                     .await?;
 
@@ -70,7 +70,7 @@ pub fn obtener_modelos_disponibles(
             | AIProvider::Ollama
             | AIProvider::Kimi
             | AIProvider::DeepSeek => {
-                let mut request = client.get(&format!("{}/models", url));
+                let mut request = client.get(format!("{}/models", url));
                 if !api_key.is_empty() {
                     request = request.header("authorization", format!("Bearer {}", api_key));
                 }

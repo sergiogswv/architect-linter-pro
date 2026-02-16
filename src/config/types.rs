@@ -126,10 +126,13 @@ pub struct LinterContext {
 pub struct ArchError {
     #[source_code]
     #[allow(dead_code)]
+    #[allow(unused_assignments)]
     pub src: String,
     #[label("{message}")]
     #[allow(dead_code)]
+    #[allow(unused_assignments)]
     pub span: SourceSpan,
     #[allow(dead_code)]
+    #[allow(unused_assignments)]
     pub message: String,
 }
