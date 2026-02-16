@@ -135,7 +135,7 @@ export class TestClass {
     let project_root = temp_path.to_path_buf();
     let config =
         architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
-    let linter_context: architect_linter_pro::config::LinterContext = config.into();
+    let linter_context: architect_linter_pro::config::LinterContext = config;
 
     // Test that AST objects are properly dropped after analysis
     // by running analysis in a loop to check for memory leaks
@@ -205,7 +205,7 @@ export class TestClass{{
     let project_root = temp_path.to_path_buf();
     let config =
         architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
-    let linter_context: architect_linter_pro::config::LinterContext = config.into();
+    let linter_context: architect_linter_pro::config::LinterContext = config;
 
     // Test parallel analysis by processing files in sequence
     // (simulating parallel execution)

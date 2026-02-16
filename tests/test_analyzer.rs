@@ -61,6 +61,7 @@ fn test_incremental_analysis_mode() {
         no_cache: false,
         report_format: None,
         output_path: None,
+        daemon_mode: false,
     };
 
     // Verify the field exists and can be set

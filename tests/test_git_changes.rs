@@ -14,5 +14,5 @@ fn test_get_changed_files_in_repo() {
     println!("Changed files: {:?}", changed);
 
     // Result depends on repo state, just verify it's a vec
-    assert!(changed.len() >= 0);
+    // (Type system already guarantees it's valid)
 }
