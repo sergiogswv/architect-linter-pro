@@ -8,10 +8,13 @@
 
 use std::process::Command;
 use std::path::PathBuf;
+use std::sync::Once;
 use tempfile::TempDir;
 
 #[path = "../../common/mod.rs"]
 mod common;
+
+static BUILD_ONCE: Once = Once::new();
 
 /// Build the binary in release mode
 fn build_binary() -> Result<(), String> {
@@ -25,6 +28,13 @@ fn build_binary() -> Result<(), String> {
     } else {
         Err("Build failed".to_string())
     }
+}
+
+/// Ensure the binary is built only once across all tests
+fn ensure_binary_built() {
+    BUILD_ONCE.call_once(|| {
+        build_binary().expect("Binary must build successfully");
+    });
 }
 
 /// Get the path to the release binary
@@ -47,7 +57,7 @@ fn get_binary_path() -> PathBuf {
 #[test]
 fn test_github_action_workflow_happy_path() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     // Create a test project with valid architecture
     let temp_dir = TempDir::new().unwrap();
@@ -116,7 +126,7 @@ export class ApiController {
 #[test]
 fn test_github_action_workflow_with_report_generation() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -202,7 +212,7 @@ export class UserService {
 #[test]
 fn test_violation_detection_long_function() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -274,7 +284,7 @@ export class DataProcessor {
 #[test]
 fn test_violation_detection_forbidden_imports() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -346,7 +356,7 @@ export class UserRepository {
 #[test]
 fn test_github_action_workflow_missing_config() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -380,7 +390,7 @@ export class Test {
 #[test]
 fn test_github_action_workflow_invalid_path() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     // Try to analyze non-existent path
     let binary_path = get_binary_path();
@@ -403,7 +413,7 @@ fn test_github_action_workflow_invalid_path() {
 #[test]
 fn test_github_action_workflow_multi_file_project() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -458,7 +468,7 @@ fn test_github_action_workflow_multi_file_project() {
 #[test]
 fn test_github_action_workflow_exit_code_success() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
@@ -490,7 +500,7 @@ fn test_github_action_workflow_exit_code_success() {
 #[test]
 fn test_github_action_workflow_performance_small_project() {
     // Build the binary first
-    build_binary().expect("Binary should build successfully");
+    ensure_binary_built();
 
     let temp_dir = TempDir::new().unwrap();
 
