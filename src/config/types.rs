@@ -1,3 +1,4 @@
+#![allow(unused_assignments)]
 use miette::{Diagnostic, SourceSpan};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -125,14 +126,8 @@ pub struct LinterContext {
 #[diagnostic(code(arch::violation), severity(error))]
 pub struct ArchError {
     #[source_code]
-    #[allow(dead_code)]
-    #[allow(unused_assignments)]
     pub src: String,
     #[label("{message}")]
-    #[allow(dead_code)]
-    #[allow(unused_assignments)]
     pub span: SourceSpan,
-    #[allow(dead_code)]
-    #[allow(unused_assignments)]
     pub message: String,
 }

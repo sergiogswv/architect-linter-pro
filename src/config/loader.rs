@@ -1,3 +1,4 @@
+#![allow(unused_assignments)]
 use jsonschema::JSONSchema;
 use miette::{Diagnostic, IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
@@ -31,13 +32,11 @@ pub struct AIConfigFile {
 #[diagnostic(code(config::invalid), severity(error))]
 pub struct ConfigError {
     #[help]
-    #[allow(dead_code)]
-    #[allow(unused_assignments)]
     pub help: String,
-    #[allow(dead_code)]
-    #[allow(unused_assignments)]
     pub details: String,
 }
+
+
 
 impl ConfigError {
     pub fn new(details: String, help: String) -> Self {

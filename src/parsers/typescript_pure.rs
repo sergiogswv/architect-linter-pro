@@ -344,21 +344,7 @@ pub fn is_controller_to_repository_violation(file_path: &str, import_source: &st
 ///
 /// # Returns
 /// A vector of matching rule indices
-pub fn check_import_against_rules(
-    file_path: &str,
-    import: &Import,
-    forbidden_rules: &[ForbiddenRule],
-) -> Vec<usize> {
-    let mut matching_rules = Vec::new();
 
-    for (idx, rule) in forbidden_rules.iter().enumerate() {
-        if matches_forbidden_rule(file_path, &import.source, rule) {
-            matching_rules.push(idx);
-        }
-    }
-
-    matching_rules
-}
 
 /// Create violations for a matching rule
 ///
@@ -442,12 +428,7 @@ pub fn find_violations_in_imports(
 ///
 /// # Returns
 /// Imports whose source matches the pattern
-pub fn filter_imports_by_pattern<'a>(imports: &'a [Import], pattern: &str) -> Vec<&'a Import> {
-    imports
-        .iter()
-        .filter(|import| matches_pattern(&import.source, pattern))
-        .collect()
-}
+
 
 /// Check if any import matches a pattern
 ///
@@ -457,11 +438,7 @@ pub fn filter_imports_by_pattern<'a>(imports: &'a [Import], pattern: &str) -> Ve
 ///
 /// # Returns
 /// true if any import matches the pattern
-pub fn has_import_matching(imports: &[Import], pattern: &str) -> bool {
-    imports
-        .iter()
-        .any(|import| matches_pattern(&import.source, pattern))
-}
+
 
 /// Count imports matching a pattern
 ///
@@ -471,12 +448,7 @@ pub fn has_import_matching(imports: &[Import], pattern: &str) -> bool {
 ///
 /// # Returns
 /// Number of imports matching the pattern
-pub fn count_imports_matching(imports: &[Import], pattern: &str) -> usize {
-    imports
-        .iter()
-        .filter(|import| matches_pattern(&import.source, pattern))
-        .count()
-}
+
 
 #[cfg(test)]
 mod tests {
@@ -698,175 +670,8 @@ mod tests {
         ));
     }
 
-    // =========================================================================
-    // filter_imports_by_pattern tests
-    // =========================================================================
 
-    #[test]
-    fn test_filter_imports_by_pattern() {
-        let imports = vec![
-            Import {
-                source: "../repository/user".to_string(),
-                line_number: 1,
-                raw_statement: "import { User } from '../repository/user';".to_string(),
-            },
-            Import {
-                source: "../service/user".to_string(),
-                line_number: 2,
-                raw_statement: "import { UserService } from '../service/user';".to_string(),
-            },
-        ];
 
-        let filtered = filter_imports_by_pattern(&imports, "src/repository/");
-        assert_eq!(filtered.len(), 1);
-        assert_eq!(filtered[0].source, "../repository/user");
-    }
-
-    #[test]
-    fn test_filter_imports_by_pattern_empty() {
-        let imports = vec![
-            Import {
-                source: "../service/user".to_string(),
-                line_number: 1,
-                raw_statement: "import { UserService } from '../service/user';".to_string(),
-            },
-        ];
-
-        let filtered = filter_imports_by_pattern(&imports, "src/repository/");
-        assert_eq!(filtered.len(), 0);
-    }
-
-    // =========================================================================
-    // has_import_matching tests
-    // =========================================================================
-
-    #[test]
-    fn test_has_import_matching_true() {
-        let imports = vec![
-            Import {
-                source: "../repository/user".to_string(),
-                line_number: 1,
-                raw_statement: "import { User } from '../repository/user';".to_string(),
-            },
-            Import {
-                source: "../service/user".to_string(),
-                line_number: 2,
-                raw_statement: "import { UserService } from '../service/user';".to_string(),
-            },
-        ];
-
-        assert!(has_import_matching(&imports, "src/repository/"));
-    }
-
-    #[test]
-    fn test_has_import_matching_false() {
-        let imports = vec![
-            Import {
-                source: "../service/user".to_string(),
-                line_number: 1,
-                raw_statement: "import { UserService } from '../service/user';".to_string(),
-            },
-        ];
-
-        assert!(!has_import_matching(&imports, "src/repository/"));
-    }
-
-    // =========================================================================
-    // count_imports_matching tests
-    // =========================================================================
-
-    #[test]
-    fn test_count_imports_matching() {
-        let imports = vec![
-            Import {
-                source: "../repository/user".to_string(),
-                line_number: 1,
-                raw_statement: "import { User } from '../repository/user';".to_string(),
-            },
-            Import {
-                source: "../repository/product".to_string(),
-                line_number: 2,
-                raw_statement: "import { Product } from '../repository/product';".to_string(),
-            },
-            Import {
-                source: "../service/user".to_string(),
-                line_number: 3,
-                raw_statement: "import { UserService } from '../service/user';".to_string(),
-            },
-        ];
-
-        assert_eq!(count_imports_matching(&imports, "src/repository/"), 2);
-        assert_eq!(count_imports_matching(&imports, "src/service/"), 1);
-        assert_eq!(count_imports_matching(&imports, "src/controller/"), 0);
-    }
-
-    // =========================================================================
-    // check_import_against_rules tests
-    // =========================================================================
-
-    #[test]
-    fn test_check_import_against_rules_single_match() {
-        let rules = vec![
-            ForbiddenRule {
-                from: "src/controller/".to_string(),
-                to: "src/repository/".to_string(),
-            },
-            ForbiddenRule {
-                from: "src/controller/".to_string(),
-                to: "src/service/".to_string(),
-            },
-        ];
-
-        let import = Import {
-            source: "../repository/user".to_string(),
-            line_number: 1,
-            raw_statement: "import { User } from '../repository/user';".to_string(),
-        };
-
-        let matching = check_import_against_rules("src/controller/user.controller.ts", &import, &rules);
-        assert_eq!(matching, vec![0]);
-    }
-
-    #[test]
-    fn test_check_import_against_rules_multiple_matches() {
-        let rules = vec![
-            ForbiddenRule {
-                from: "src/controller/".to_string(),
-                to: "src/repository/".to_string(),
-            },
-            ForbiddenRule {
-                from: "src/*/".to_string(),
-                to: "src/**/repository/".to_string(),
-            },
-        ];
-
-        let import = Import {
-            source: "../repository/user".to_string(),
-            line_number: 1,
-            raw_statement: "import { User } from '../repository/user';".to_string(),
-        };
-
-        let matching = check_import_against_rules("src/controller/user.controller.ts", &import, &rules);
-        // Should match both rules (if pattern matching allows it)
-        assert!(!matching.is_empty());
-    }
-
-    #[test]
-    fn test_check_import_against_rules_no_match() {
-        let rules = vec![ForbiddenRule {
-            from: "src/controller/".to_string(),
-            to: "src/repository/".to_string(),
-        }];
-
-        let import = Import {
-            source: "../service/user".to_string(),
-            line_number: 1,
-            raw_statement: "import { UserService } from '../service/user';".to_string(),
-        };
-
-        let matching = check_import_against_rules("src/service/user.service.ts", &import, &rules);
-        assert!(matching.is_empty());
-    }
 
     // =========================================================================
     // Integration-style tests

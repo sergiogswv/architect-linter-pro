@@ -17,7 +17,7 @@ pub mod detector;
 pub mod discovery;
 pub mod git;
 pub mod git_changes;
-pub mod memory_cache;
+
 pub mod metrics;
 pub mod notification;
 pub mod output;
@@ -31,7 +31,5 @@ pub mod watch;
 pub use analysis_result::AnalysisResult;
 pub use circular::CircularDependency;
 pub use config::ArchPattern;
-pub use metrics::{
-    ComplexityStats, HealthGrade, HealthScore, LayerStats, PerformanceMetrics, ScoreComponents,
-};
-pub use scoring::{apply_severity_multiplier, calculate_health_score, Violation, ViolationType};
+pub use metrics::{ComplexityStats, HealthGrade, HealthScore, LayerStats, ScoreComponents};
+

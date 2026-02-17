@@ -3,10 +3,10 @@
 use super::{ArchitectParser, Import};
 use crate::autofix::Violation;
 use crate::config::LinterContext;
-use miette::{IntoDiagnostic, Result};
+use miette::Result;
 use std::path::Path;
 use std::sync::Mutex;
-use tree_sitter::{Parser, Query, QueryCursor};
+use tree_sitter::Parser;
 
 // Import pure functions for unit testing
 use super::typescript_pure;

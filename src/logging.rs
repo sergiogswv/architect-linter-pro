@@ -47,37 +47,7 @@ pub fn init(debug_mode: bool) {
     }
 }
 
-/// Initialize logging with JSON output (useful for production/CI)
-///
-/// # Arguments
-/// * `debug_mode` - If true, enables DEBUG level logging
-pub fn init_json(debug_mode: bool) {
-    let log_level = if debug_mode {
-        Level::DEBUG
-    } else {
-        Level::INFO
-    };
 
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));
-
-    let subscriber = tracing_subscriber::registry()
-        .with(env_filter)
-        .with(fmt::layer().json());
-
-    if let Err(e) = subscriber.try_init() {
-        eprintln!("⚠️  Failed to initialize JSON logging: {}", e);
-    }
-}
-
-/// Log levels for different operations
-pub mod levels {
-    pub const TRACE: &str = "trace";
-    pub const DEBUG: &str = "debug";
-    pub const INFO: &str = "info";
-    pub const WARN: &str = "warn";
-    pub const ERROR: &str = "error";
-}
 
 #[cfg(test)]
 mod tests {
