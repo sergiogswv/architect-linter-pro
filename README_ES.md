@@ -51,6 +51,7 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 - **🎨 Modo Interactivo**: Configuración guiada en primera ejecución con banner visual mejorado
 - **🪝 Integración con Git Hooks**: Configuración automática de Husky y pre-commit hooks
 - **🐙 GitHub Action**: Action oficial para integración en pipelines CI/CD
+- **🔍 Modo Debug**: Logging estructurado con flag `--debug` para troubleshooting y observabilidad
 
 ## Lenguajes Soportados
 
@@ -485,6 +486,7 @@ architect-linter-pro [OPCIONES] [RUTA]
 - `-h, --help`: Muestra la ayuda completa
 - `-w, --watch`: Modo watch - monitorea cambios y re-analiza automáticamente
 - `-d, --daemon`: Modo daemon - ejecuta el linter en segundo plano (ideal con --watch)
+- `--debug`: Modo debug - habilita logging verbose con timestamps, thread IDs y flujo de ejecución detallado
 - `-f, --fix`: Modo fix - auto-reparación de violaciones con IA
 - **Sin argumentos**: Modo interactivo, muestra menú de proyectos disponibles
 - **Con ruta**: `architect-linter-pro /ruta/proyecto` - Analiza el proyecto especificado
@@ -502,6 +504,8 @@ architect-linter-pro --watch --daemon .                 # Modo watch en segundo 
 architect-linter-pro --fix .                            # Auto-corrección con IA
 architect-linter-pro --staged                           # Solo archivos staged
 architect-linter-pro --report json -o report.json       # Generar reporte JSON
+n# Modo debug (v4.3.0)
+architect-linter-pro --debug .                         # Logging verbose para troubleshooting
 architect-linter-pro --report markdown -o report.md     # Generar reporte Markdown
 ```
 

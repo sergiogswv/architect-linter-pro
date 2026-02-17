@@ -16,6 +16,7 @@ mod detector;
 mod discovery;
 mod git;
 mod git_changes;
+mod logging;
 mod memory_cache;
 mod metrics;
 mod notification;
@@ -120,25 +121,65 @@ fn main() -> Result<()> {
         None => return Ok(()), // Se procesó --help o --version
     };
 
+    // 2. Initialize structured logging
+    logging::init(cli_args.debug_mode);
+    
+    // 3. Set up panic handler for better error messages
+    std::panic::set_hook(Box::new(|panic_info| {
+        tracing::error!("💥 PANIC: {}", panic_info);
+        eprintln!("\n╔═══════════════════════════════════════════════════════════╗");
+        eprintln!("║  ⚠️  CRITICAL ERROR - Application Panic                   ║");
+        eprintln!("╚═══════════════════════════════════════════════════════════╝");
+        eprintln!();
+        eprintln!("The application encountered an unexpected error and must exit.");
+        eprintln!();
+        if let Some(location) = panic_info.location() {
+            eprintln!("📍 Location: {}:{}", location.file(), location.line());
+        }
+        if let Some(msg) = panic_info.payload().downcast_ref::<&str>() {
+            eprintln!("💬 Message: {}", msg);
+        } else if let Some(msg) = panic_info.payload().downcast_ref::<String>() {
+            eprintln!("💬 Message: {}", msg);
+        }
+        eprintln!();
+        eprintln!("💡 This is likely a bug. Please report it at:");
+        eprintln!("   https://github.com/sergiogswv/architect-linter-pro/issues");
+        eprintln!();
+        eprintln!("🔍 To get more details, run with --debug flag:");
+        eprintln!("   architect-linter-pro --debug [your-project-path]");
+        eprintln!();
+    }));
+
+    tracing::info!("🏗️  Architect Linter Pro starting...");
+    if cli_args.debug_mode {
+        tracing::debug!("Debug mode enabled");
+        tracing::debug!("CLI arguments: {:?}", cli_args);
+    }
+
     ui::print_banner();
 
-    // 2. Obtener la ruta del proyecto
+    // 4. Obtener la ruta del proyecto
+    tracing::debug!("Resolving project path...");
     let project_root = if let Some(ref path) = cli_args.project_path {
         PathBuf::from(path).canonicalize().into_diagnostic()?
     } else {
         ui::get_interactive_path()?
     };
+    tracing::info!("📂 Project root: {}", project_root.display());
 
-    // 3. Cargar o crear configuración asistida por IA
+    // 5. Cargar o crear configuración asistida por IA
+    tracing::debug!("Loading configuration...");
     let ctx = Arc::new(config::setup_or_load_config(&project_root)?);
+    tracing::info!("✅ Configuration loaded: {:?} pattern", ctx.pattern);
 
     let no_cache = cli_args.no_cache;
 
-    // 3.5 Check for daemon mode
+    // 6. Check for daemon mode
     if cli_args.daemon_mode {
         #[cfg(unix)]
         {
             println!("🚀 Entrando en modo daemon. Revisa /tmp/architect-linter.err para errores.");
+            tracing::info!("Starting daemon mode");
             run_as_daemon(&project_root)?;
         }
         #[cfg(windows)]
@@ -146,20 +187,26 @@ fn main() -> Result<()> {
             println!(
                 "⚠️  Modo daemon nativo no soportado aún en Windows. Corriendo en modo normal."
             );
+            tracing::warn!("Daemon mode not supported on Windows");
         }
     }
 
-    // 4. Decidir entre modo normal, watch o fix
+    // 7. Decidir entre modo normal, watch o fix
     if cli_args.fix_mode {
+        tracing::info!("🔧 Running in FIX mode");
         run_fix_mode(&project_root, Arc::clone(&ctx))?;
     } else if cli_args.watch_mode {
+        tracing::info!("👁️  Running in WATCH mode");
         run_watch_mode(&project_root, Arc::clone(&ctx), no_cache)?;
     } else if cli_args.incremental_mode {
+        tracing::info!("⚡ Running in INCREMENTAL mode");
         run_incremental_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     } else {
+        tracing::info!("📊 Running in NORMAL mode");
         run_normal_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
     }
 
+    tracing::info!("✅ Architect Linter Pro finished successfully");
     Ok(())
 }
 

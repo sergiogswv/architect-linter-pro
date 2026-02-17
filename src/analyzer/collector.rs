@@ -34,6 +34,9 @@ pub fn analyze_all_files(
     _cm: &SourceMap,
     mut analysis_cache: Option<&mut AnalysisCache>,
 ) -> Result<AnalysisResult> {
+    tracing::info!("Starting file analysis for {} files", files.len());
+    tracing::debug!("Project root: {}", project_root.display());
+    
     // Get project name from directory
     let project_name = project_root
         .file_name()
@@ -67,6 +70,11 @@ pub fn analyze_all_files(
 
     // Prepare cache for thread-safe access
     // We clone the cache if it exists to use in parallel, then update it back
+    let cache_enabled = analysis_cache.is_some();
+    if cache_enabled {
+        tracing::debug!("Analysis cache enabled");
+    }
+    
     let cache_mutex: Option<Mutex<AnalysisCache>> = analysis_cache
         .as_mut()
         .map(|cache| Mutex::new((**cache).clone()));
@@ -158,6 +166,8 @@ pub fn analyze_all_files(
     if let Some(ref p) = pb {
         p.finish_with_message("Analysis complete");
     }
+    
+    tracing::info!("File analysis complete. Processed {} files", file_results.len());
 
     // Update the original cache from the mutex
     if let Some(mutex) = cache_mutex {

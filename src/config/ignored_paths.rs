@@ -21,6 +21,7 @@ pub fn default_ignored_paths() -> Vec<String> {
         "__pycache__/".to_string(),      // Python
         ".vscode/".to_string(),          // VSCode
         ".idea/".to_string(),            // IntelliJ
+        ".claude/".to_string(),          // Claude AI assistant
         "venv/".to_string(),             // Python venv
         ".venv/".to_string(),            // Python venv
         "vendor/".to_string(),           // PHP/Go vendor

@@ -41,6 +41,8 @@ pub struct CliArgs {
     pub no_cache: bool,
     /// Ejecutar en segundo plano (modo daemon)
     pub daemon_mode: bool,
+    /// Enable debug logging
+    pub debug_mode: bool,
 }
 
 /// Muestra la ayuda del CLI
@@ -66,6 +68,7 @@ pub fn print_help() {
     println!("  -r, --report <FMT>   Exportar reporte: json, markdown");
     println!("  -o, --output <PATH>  Archivo de salida para el reporte");
     println!("  --no-cache           Disable analysis cache");
+    println!("  --debug              Enable debug logging (verbose output)");
     println!();
     println!("EJEMPLOS:");
     println!("  architect-linter-pro                         # Modo interactivo");
@@ -120,6 +123,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut incremental_mode = false;
     let mut no_cache = false;
     let mut daemon_mode = false;
+    let mut debug_mode = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
     let mut project_path: Option<String> = None;
@@ -153,6 +157,9 @@ pub fn process_args() -> Option<CliArgs> {
             }
             "--daemon" | "-d" => {
                 daemon_mode = true;
+            }
+            "--debug" => {
+                debug_mode = true;
             }
             "--report" | "-r" => {
                 // Next argument should be the format
@@ -200,6 +207,7 @@ pub fn process_args() -> Option<CliArgs> {
         incremental_mode,
         no_cache,
         daemon_mode,
+        debug_mode,
         report_format,
         output_path,
     })

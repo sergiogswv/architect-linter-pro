@@ -44,10 +44,11 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
 - [x] **Incremental Analysis** (Git-based change detection)
 - [x] **Benchmark Suite** (4 benchmarks with Criterion)
 - [x] **Coverage Reporting** (74% TypeScript, 40% overall)
+- [x] **Error Handling & Logging** (structured logging with tracing, --debug flag) ✅ NEW!
 
 ### 🚧 In Progress (for v4.3.0)
 
-- [ ] Error Handling & Logging (structured logging with tracing)
+
 - [ ] Configuration Schema Validation (JSON Schema for architect.json)
 - [ ] LSP Integration (tower-lsp server implementation)
 
@@ -80,15 +81,25 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
   - **Completed:** 2026-02-13
   - **Impact:** 3-5x faster on large codebases
 
-### High Priority - IN PROGRESS 🔄
+### High Priority - COMPLETED ✅
 
-- [ ] **Error Handling & Logging**
+- [x] **Error Handling & Logging** ✅ (Completed 2026-02-17)
   - Structured logging with `tracing` crate
   - Better error messages with suggestions
   - Crash recovery and graceful degradation
   - Debug mode with verbose output (`--debug` flag)
-  - **Effort:** 1 week
-  - **Status:** Partially done (miette integration, zero-panic policy)
+  - **Effort:** 1 week (actual: ~2 hours)
+  - **Status:** COMPLETED
+  - **Implementation:**
+    - Added `tracing`, `tracing-subscriber`, `tracing-appender` dependencies
+    - Created `src/logging.rs` module with `init()` and `init_json()` functions
+    - Added `--debug` flag to CLI
+    - Implemented custom panic handler with detailed error messages
+    - Added logging at key points: startup, configuration, file analysis
+    - Logs show timestamp, thread ID, module, file, and line number in debug mode
+  - **Documentation:** `docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md`
+
+### High Priority - IN PROGRESS 🔄
 
 - [ ] **Configuration Schema Validation**
   - JSON Schema for `architect.json`

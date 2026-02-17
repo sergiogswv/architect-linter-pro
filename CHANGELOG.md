@@ -6,6 +6,96 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.2.0] - 2026-02-13
+## [4.3.0] - 2026-02-17
+
+### 🔍 Error Handling & Logging
+
+This release introduces comprehensive structured logging and improved error handling for better observability and debugging.
+
+### Added
+- **Structured Logging** (`src/logging.rs`):
+  - Integration with `tracing` crate for structured, leveled logging
+  - Configurable log levels: TRACE, DEBUG, INFO, WARN, ERROR
+  - Timestamp, thread ID, module, file, and line number in debug mode
+  - Support for both console and JSON output formats
+  - Environment variable override support (`RUST_LOG`)
+
+- **Debug Mode**:
+  - New `--debug` CLI flag for verbose logging
+  - Detailed execution flow tracking
+  - Performance monitoring capabilities
+  - Thread-safe logging across parallel operations
+
+- **Enhanced Error Handling**:
+  - Custom panic handler with detailed error messages
+  - Location tracking (file:line) for panics
+  - User-friendly error messages with recovery suggestions
+  - Automatic bug report instructions
+  - Graceful degradation on errors
+
+- **Logging Integration**:
+  - Application lifecycle logging (startup, shutdown)
+  - Configuration loading tracking
+  - File analysis progress logging
+  - Mode selection logging (NORMAL, WATCH, FIX, INCREMENTAL)
+  - Cache hit/miss tracking
+
+### Changed
+- **CLI**:
+  - Added `--debug` flag to enable verbose logging
+  - Updated help text with debug mode documentation
+  - Enhanced error messages with contextual information
+
+- **Main Entry Point**:
+  - Logging initialization at startup
+  - Panic handler setup for better crash reports
+  - Detailed logging at key execution points
+
+- **Analyzer**:
+  - Added logging to file analysis collector
+  - Cache status logging
+  - Performance metrics logging
+
+### Technical Details
+- **New Dependencies**:
+  - `tracing = "0.1"` - Structured logging framework
+  - `tracing-subscriber = "0.3"` - Subscriber implementations with env-filter, fmt, and json features
+  - `tracing-appender = "0.2"` - File appender support
+
+- **New Modules**:
+  - `src/logging.rs` (99 lines) - Logging configuration and initialization
+
+- **Modified Files**:
+  - `src/main.rs` - Logging initialization and panic handler
+  - `src/cli.rs` - Debug flag support
+  - `src/analyzer/collector.rs` - Analysis logging
+  - `Cargo.toml` - Logging dependencies
+
+### Usage Examples
+
+```bash
+# Normal mode (warnings and errors only)
+architect-linter-pro /path/to/project
+
+# Debug mode (verbose logging with timestamps)
+architect-linter-pro --debug /path/to/project
+
+# Environment variable override
+RUST_LOG=trace architect-linter-pro /path/to/project
+```
+
+### Documentation
+- Complete implementation guide: `docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md`
+- Updated ROADMAP.md with completion status
+- Updated README.md with debug mode documentation
+
+### Bug Fixes
+- Fixed `.claude/` directory parsing errors (Python files)
+- Added `.claude/` to default ignored paths
+- Modified `circular.rs` to skip non-JS/TS files
+
+---
+
 
 ### 🚀 Performance & Optimization
 - **Parallel Processing**: Multi-threaded file parsing with Rayon for 3-5x speed improvement

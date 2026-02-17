@@ -51,6 +51,7 @@ A multi-language software architecture linter written in Rust that validates arc
 - **🎨 Interactive Mode**: Guided configuration on first run with enhanced visual banner
 - **🪝 Git Hooks Integration**: Automatic Husky and pre-commit hook configuration
 - **🐙 GitHub Action**: Official action for CI/CD pipeline integration
+- **🔍 Debug Mode**: Structured logging with `--debug` flag for troubleshooting and observability
 
 ## Supported Languages
 
@@ -584,6 +585,7 @@ architect-linter-pro [OPTIONS] [PATH]
 - `-s, --staged`: Analyze only staged files (git integration)
 - `-r, --report <FORMAT>`: Generate report in specified format (json or markdown)
 - `-o, --output <FILE>`: Output file path for the report
+- `--debug`: Debug mode - enables verbose logging with timestamps, thread IDs, and detailed execution flow
 - **No arguments**: Interactive mode, shows menu of available projects
 - **With path**: `architect-linter-pro /project/path` - Analyzes the specified project
 
@@ -603,6 +605,8 @@ architect-linter-pro --staged                           # Analyze only staged fi
 architect-linter-pro --report json -o report.json       # Generate JSON report
 architect-linter-pro --report markdown -o report.md     # Generate Markdown report
 architect-linter-pro -r json -o report.json .           # Analyze and generate report
+n# Debug mode (v4.3.0)
+architect-linter-pro --debug .                         # Verbose logging for troubleshooting
 ```
 
 ## The Complete Workflow

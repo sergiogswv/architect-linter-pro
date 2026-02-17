@@ -132,6 +132,7 @@ impl CircularDependencyAnalyzer {
         // Parsear según la extensión
         let extension = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
+        // Solo procesar archivos TypeScript/JavaScript
         let syntax = match extension {
             "ts" | "tsx" => Syntax::Typescript(TsConfig {
                 decorators: true,
@@ -143,7 +144,8 @@ impl CircularDependencyAnalyzer {
                 jsx: extension == "jsx",
                 ..Default::default()
             }),
-            _ => Syntax::Typescript(TsConfig::default()),
+            // Para otros tipos de archivos, retornar vacío en lugar de intentar parsear
+            _ => return Ok(Vec::new()),
         };
 
         let fm = cm.load_file(file_path).into_diagnostic()?;

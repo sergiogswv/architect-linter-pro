@@ -40,6 +40,11 @@ anyhow = "1.0"
 console = "0.15"
 notify = "6.1" # File system watcher for watch mode
 
+# Structured logging (v4.3.0)
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+tracing-appender = "0.2"
+
 # Tree-sitter for multi-language support
 tree-sitter = "0.22"
 tree-sitter-typescript = "0.21"

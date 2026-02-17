@@ -47,7 +47,7 @@ v4.0.0 (Base) ───┬─> v4.1.0 (Estabilización) ✅ LISTO
 
 ### En Progreso (para v4.3.0)
 
-- [ ] Manejo de Errores & Logging (logging estructurado con tracing)
+- [x] Manejo de Errores & Logging ✅ (Completado 2026-02-17)
 - [ ] Validación de Schema de Configuración (JSON Schema para architect.json)
 - [ ] Integración LSP (servidor LSP con tower-lsp)
 
@@ -80,15 +80,24 @@ v4.0.0 (Base) ───┬─> v4.1.0 (Estabilización) ✅ LISTO
 - **Completado:** 2026-02-13
 - **Impacto:** 3-5x más rápido en codebases grandes
 
-### Prioridad Alta - EN PROGRESO 🔄
+### Prioridad Alta - COMPLETADO ✅
 
-#### 📝 Manejo de Errores & Logging
-- Logging estructurado con `tracing`
+#### 📝 Manejo de Errores & Logging ✅ (Completado 2026-02-17)
+- Logging estructurado con \`tracing\`
 - Mensajes de error con sugerencias
 - Crash recovery y graceful degradation
-- Modo debug (`--debug` flag)
-- **Estado:** Parcialmente hecho (integración miette, política zero-panic)
+- Modo debug (\`--debug\` flag)
+- **Esfuerzo:** 1 semana (real: ~2 horas)
+- **Estado:** COMPLETADO
+- **Implementación:**
+  - Agregadas dependencias: \`tracing\`, \`tracing-subscriber\`, \`tracing-appender\`
+  - Creado módulo \`src/logging.rs\` con funciones \`init()\` e \`init_json()\`
+  - Agregado flag \`--debug\` al CLI
+  - Implementado panic handler personalizado
+  - Logging en puntos clave: startup, configuración, análisis de archivos
+- **Documentación:** \`docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md\`
 
+### Prioridad Alta - EN PROGRESO 🔄
 #### ✅ Validación de Schema de Configuración
 - JSON Schema para `architect.json`
 - Auto-completado en IDEs (VSCode, IntelliJ)
