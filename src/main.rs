@@ -429,6 +429,8 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
     let mut fixed_count = 0;
     let mut skipped_count = 0;
 
+    let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
+
     for (index, violation) in all_violations.iter().enumerate() {
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!("Violación #{}/{}", index + 1, all_violations.len());
@@ -444,15 +446,14 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
         println!("🤖 Consultando sugerencia de fix (usando sistema de fallback multimodelo)...");
 
-        let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
         let suggestion = match runtime.block_on(autofix::suggest_fix(
             violation,
             project_root,
             &ctx.ai_configs,
         )) {
             Ok(s) => s,
-            Err(_e) => {
-                eprintln!("❌ No se pudo obtener ninguna sugerencia de los modelos configurados.");
+            Err(e) => {
+                eprintln!("❌ No se pudo obtener ninguna sugerencia de los modelos configurados: {}", e);
                 println!("⏭️  Saltando esta violación...\n");
                 skipped_count += 1;
                 continue;

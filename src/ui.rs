@@ -138,8 +138,9 @@ pub fn ask_ai_configs() -> Result<Vec<AIConfig>> {
             "🔍 Conectando con {} para obtener modelos...",
             provider.as_str()
         );
+        let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
         let model: String =
-            match crate::ai::obtener_modelos_disponibles(&provider, &api_url, &api_key) {
+            match runtime.block_on(crate::ai::obtener_modelos_disponibles(&provider, &api_url, &api_key)) {
                 Ok(mut models) if !models.is_empty() => {
                     models.sort();
                     let selection = Select::with_theme(&ColorfulTheme::default())

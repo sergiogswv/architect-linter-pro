@@ -38,6 +38,7 @@ pub enum FixType {
 /// Respuesta estructurada de la IA
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FixSuggestion {
+    #[serde(flatten)]
     pub fix_type: FixType,
     pub explanation: String,
     pub confidence: String, // "high", "medium", "low"
@@ -112,23 +113,18 @@ Responde SOLO con el JSON, sin texto adicional."#,
     );
 
     // Hacer la petición a la IA usando el sistema de fallback
-    let content = crate::ai::consultar_ia_con_fallback(prompt, ai_configs)
+    let content = crate::ai::consultar_ia_con_fallback(prompt, ai_configs).await
         .map_err(|e| miette::miette!("No se pudo obtener sugerencia de ningún modelo: {}", e))?;
 
-    // Limpiar markdown code blocks si existen
-    let json_content = content
-        .trim()
-        .trim_start_matches("```json")
-        .trim_start_matches("```")
-        .trim_end_matches("```")
-        .trim();
+    // Debug logging
+    tracing::debug!("IA content response: {}", content);
 
-    // Buscar el primer '{' y el último '}' para casos donde la IA añade texto
-    let json_start = json_content.find('{').ok_or_else(|| {
+    // Buscar el primer '{' y el último '}' para extraer solo el JSON
+    let json_start = content.find('{').ok_or_else(|| {
         miette::miette!("No se encontró JSON en la respuesta de la IA: {}", content)
     })?;
-    let json_end = json_content.rfind('}').unwrap_or(json_content.len() - 1) + 1;
-    let clean_json = &json_content[json_start..json_end];
+    let json_end = content.rfind('}').unwrap_or(content.len() - 1) + 1;
+    let clean_json = &content[json_start..json_end];
 
     // Parsear la respuesta JSON
     let suggestion: FixSuggestion =
@@ -136,7 +132,7 @@ Responde SOLO con el JSON, sin texto adicional."#,
             .into_diagnostic()
             .map_err(|e| {
                 miette::miette!(
-                    "Error parseando respuesta de IA: {}. Contenido: {}",
+                    "Error parseando respuesta de IA: {}. \nContenido extraído: {}",
                     e,
                     clean_json
                 )

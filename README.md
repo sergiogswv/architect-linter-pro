@@ -609,7 +609,7 @@ architect-linter-pro --staged                           # Analyze only staged fi
 architect-linter-pro --report json -o report.json       # Generate JSON report
 architect-linter-pro --report markdown -o report.md     # Generate Markdown report
 architect-linter-pro -r json -o report.json .           # Analyze and generate report
-n# Debug mode (v4.3.0)
+# Debug mode (v4.3.0)
 architect-linter-pro --debug .                         # Verbose logging for troubleshooting
 ```
 

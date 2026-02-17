@@ -430,12 +430,13 @@ src/smells/
 ### Inmediato (Esta Semana)
 - [x] ~~Implementar logging estructurado con `tracing`~~ ✅ COMPLETADO
 - [x] ~~Agregar flag `--debug`~~ ✅ COMPLETADO
-- [ ] Crear JSON Schema para `architect.json`
+- [x] ~~Crear JSON Schema para `architect.json`~~ ✅ COMPLETADO
 - [ ] Documentar fix reciente de `.claude/` en CHANGELOG
+- [x] ~~Limpieza de código muerto (Dead code cleanup)~~ ✅ COMPLETADO
 
 ### Corto Plazo (2-4 Semanas)
 - [x] ~~Completar Error Handling & Logging~~ ✅ COMPLETADO
-- [ ] Implementar Configuration Schema Validation
+- [x] ~~Implementar Configuration Schema Validation~~ ✅ COMPLETADO
 - [ ] Iniciar LSP Server Implementation
 - [ ] Setup Docusaurus para documentación
 
@@ -488,10 +489,18 @@ src/smells/
 **Fecha:** 2026-02-17  
 **Autor:** AI Assistant  
 **Cambios Recientes:**
-- ✅ **COMPLETADO: Configuration Schema Validation (Parte 1)**
+- ✅ **COMPLETADO: Limpieza de Código Muerto (Dead Code Cleanup)**
+  - Eliminados más de 1000 líneas de código no utilizado marcado por `cargo check`.
+  - Removido módulo `memory_cache.rs` y struct `HybridCache`.
+  - Removidas utilidades de scoring obsoletas y métricas de performance no utilizadas.
+  - Limpieza de tests para funciones eliminadas.
+  - Supresión de warnings por asignaciones no usadas en macros de `miette`.
+- ✅ **COMPLETADO: Configuration Schema Validation**
   - Creado `architect.schema.json` para validación y autocompletado
   - Integrado `jsonschema` en el cargador de configuración (`loader.rs`)
+  - Agregado flag `--check` para validar configuración sin ejecutar el linter
   - Actualizado `architect.json` y `architect.json.example` con referencia al esquema
+  - Creada herramienta de migración `src/config/migration.rs`
 - ✅ **COMPLETADO: Error Handling & Logging** (v4.3.0)
   - Implementado logging estructurado con `tracing`
   - Agregado flag `--debug` para verbose logging

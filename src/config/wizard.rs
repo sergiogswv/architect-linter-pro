@@ -43,7 +43,8 @@ pub fn setup_or_load_config(root: &Path) -> Result<Arc<LinterContext>> {
     let project_info = crate::discovery::get_architecture_snapshot(root);
 
     // 2. IA (Procesamiento inteligente)
-    let suggestions = crate::ai::sugerir_arquitectura_inicial(project_info, ai_configs.clone())
+    let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
+    let suggestions = runtime.block_on(crate::ai::sugerir_arquitectura_inicial(project_info, ai_configs.clone()))
         .map_err(|e| miette::miette!("Error consultando la IA: {}", e))?;
 
     // 3. UI (Wizard de confirmación)

@@ -1,6 +1,6 @@
 # Architect Linter Pro - Product Roadmap
 
-**Last Updated:** 2026-02-16
+**Last Updated:** 2026-02-17
 **Current Version:** v4.2.0
 **Next Major Release:** v4.5.0 (Q2 2026)
 
@@ -47,6 +47,8 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
 - [x] **Error Handling & Logging** ✅ (Completed 2026-02-17)
 - [x] **Configuration Schema Validation** ✅ (Completed 2026-02-17)
     - JSON Schema, Autocompletion, Migration tool, `--check` flag.
+- [x] **Dead Code Cleanup** ✅ (Completed 2026-02-17)
+    - Removed 1000+ lines of unused code, orphaned modules and legacy scoring logic.
 
 - [ ] LSP Integration (tower-lsp server implementation)
 
