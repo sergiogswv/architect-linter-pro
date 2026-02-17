@@ -390,7 +390,7 @@ fn run_full_analysis(
 
 /// Run the AI auto-fix flow (reused by watch commands)
 fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> {
-    use dialoguer::Confirm;
+    use dialoguer::{theme::ColorfulTheme, Confirm};
 
     if ctx.ai_configs.is_empty() {
         println!("⚠️  No se encontró configuración de IA (.architect.ai.json).");
@@ -445,15 +445,25 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         println!();
 
         println!("🤖 Consultando sugerencia de fix (usando sistema de fallback multimodelo)...");
+        let pb = ProgressBar::new_spinner();
+        pb.set_style(ProgressStyle::default_spinner()
+            .template("{spinner:.green} {msg}")
+            .into_diagnostic()?);
+        pb.set_message("Analizando código y consultando modelos de IA...");
+        pb.enable_steady_tick(std::time::Duration::from_millis(120));
 
-        let suggestion = match runtime.block_on(autofix::suggest_fix(
+        let suggestion = match runtime.block_on(autofix::suggest_fix_with_retry(
             violation,
             project_root,
             &ctx.ai_configs,
         )) {
-            Ok(s) => s,
+            Ok(s) => {
+                pb.finish_and_clear();
+                s
+            },
             Err(e) => {
-                eprintln!("❌ No se pudo obtener ninguna sugerencia de los modelos configurados: {}", e);
+                pb.finish_with_message("❌ Error obteniendo sugerencia");
+                eprintln!("❌ Error: {}", e);
                 println!("⏭️  Saltando esta violación...\n");
                 skipped_count += 1;
                 continue;
@@ -493,22 +503,34 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
             }
         }
 
-        println!();
-
-        let should_apply = Confirm::new()
-            .with_prompt("¿Aplicar este fix?")
-            .default(false)
+        println!("──────────────────────────────────────────────────────────────");
+        println!("💡 Tip: Presiona [Enter] para aceptar (Sí) o [n] para rechazar.");
+        let should_apply = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("¿Deseas aplicar estos cambios en tu código?")
+            .default(true)
             .interact()
             .into_diagnostic()?;
 
         if should_apply {
+            let apply_pb = ProgressBar::new_spinner();
+            apply_pb.set_style(ProgressStyle::default_spinner()
+                .template("{spinner:.cyan} {msg}")
+                .into_diagnostic()?);
+            apply_pb.set_message("Aplicando cambios y validando integridad...");
+            apply_pb.enable_steady_tick(std::time::Duration::from_millis(80));
+
+            // Pausa estética para visibilidad
+            std::thread::sleep(std::time::Duration::from_millis(300));
+
             match autofix::apply_fix(&suggestion, violation, project_root) {
                 Ok(message) => {
-                    println!("{}", message);
+                    apply_pb.finish_with_message("✅ Cambios aplicados con éxito");
+                    println!("✨ {}", message);
                     fixed_count += 1;
                 }
                 Err(e) => {
-                    eprintln!("❌ Error aplicando fix: {}", e);
+                    apply_pb.finish_with_message("⚠️  El fix fue revertido");
+                    eprintln!("❌ Error: {}", e);
                     skipped_count += 1;
                 }
             }

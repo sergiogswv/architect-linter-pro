@@ -3,6 +3,9 @@ use miette::{IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use swc_common::SourceMap;
+use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser as SwcParser, StringInput, Syntax, TsConfig};
+use std::sync::Arc;
 
 /// Representa una violación arquitectónica detectada
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,73 +47,82 @@ pub struct FixSuggestion {
     pub confidence: String, // "high", "medium", "low"
 }
 
-/// Consulta a la IA para obtener una sugerencia de fix
+/// Consulta a la IA para obtener una sugerencia de fix, con soporte opcional para reintento por error
 pub async fn suggest_fix(
     violation: &Violation,
     project_root: &Path,
     ai_configs: &[AIConfig],
+    previous_error: Option<&str>,
 ) -> Result<FixSuggestion> {
     // Obtener estructura de carpetas del proyecto
     let folder_structure = get_project_structure(project_root);
 
     // Construir prompt estructurado
-    let prompt = format!(
-        r#"Eres un arquitecto de software experto. Analiza esta violación arquitectónica y sugiere una refactorización.
+    let mut prompt = format!(
+        r#"Eres un Arquitecto de Software Senior especializado en refactorización. Tu objetivo es resolver una violación arquitectónica.
 
-**CONTEXTO DEL PROYECTO:**
-Estructura de carpetas:
+** REGLAS DE ORO **:
+1. El JSON debe ser VÁLIDO y seguir la estructura exacta.
+2. `old_code` debe coincidir EXACTO con el código del archivo (incluyendo espacios y punto y coma).
+3. `new_code` debe ser sintácticamente válido para el lenguaje del archivo.
+4. Para TypeScript/JavaScript: SIEMPRE incluye el punto y coma `;` al final de los imports.
+
+** CONTEXTO DEL PROYECTO **:
 {}
 
-**VIOLACIÓN DETECTADA:**
+** VIOLACIÓN **:
 Archivo: {}
-Regla violada: Archivos en '{}' no pueden importar de '{}'
-Import ofensivo (línea {}): {}
+Regla: No se permite importar desde '{}' en archivos situados en '{}'
+Línea {}: {}
 
-**CÓDIGO DEL ARCHIVO:**
-```typescript
+** CÓDIGO FUENTE (Fragmento relevante) **:
+```
 {}
 ```
 
-**TAREA:**
-Sugiere la mejor refactorización para resolver esta violación. Responde ÚNICAMENTE con un objeto JSON válido usando uno de estos formatos:
-
-1. Para refactorizar código:
-{{
-  "fix_type": "refactor",
-  "old_code": "import {{ X }} from '../infrastructure/...'",
-  "new_code": "import {{ X }} from '../domain/interfaces/...'",
-  "explanation": "Crear una interfaz en la capa de dominio...",
-  "confidence": "high"
-}}
-
-2. Para mover archivo:
-{{
-  "fix_type": "move_file",
-  "from": "src/domain/user.entity.ts",
-  "to": "src/infrastructure/models/user.entity.ts",
-  "explanation": "Este archivo pertenece a la capa de infraestructura...",
-  "confidence": "medium"
-}}
-
-3. Para crear interfaz:
-{{
-  "fix_type": "create_interface",
-  "interface_path": "src/domain/interfaces/IUserRepository.ts",
-  "interface_code": "export interface IUserRepository {{ ... }}",
-  "updated_import": "import {{ IUserRepository }} from './interfaces/IUserRepository'",
-  "explanation": "Crear una abstracción para desacoplar...",
-  "confidence": "high"
-}}
-
-Responde SOLO con el JSON, sin texto adicional."#,
+** TAREA **:
+Elige la mejor estrategia (refactor, move_file o create_interface) y responde ÚNICAMENTE con el JSON."#,
         folder_structure,
         violation.file_path.display(),
-        violation.rule.from,
         violation.rule.to,
+        violation.rule.from,
         violation.line_number,
         violation.offensive_import,
         violation.file_content
     );
+
+    // Si hubo un error previo, añadirlo al prompt para que la IA lo corrija
+    if let Some(error) = previous_error {
+        prompt.push_str(&format!(
+            "\n\n⚠️ **ATENCIÓN: TU RESPUESTA ANTERIOR FALLÓ**\nError: {}\nPor favor, corrige tu respuesta asegurándote de que el JSON sea válido y el código sea correcto.",
+            error
+        ));
+    }
+
+    prompt.push_str(r#"
+
+Responde siguiendo ESTRICTAMENTE este esquema JSON:
+
+{
+  "fix_type": "refactor",
+  "old_code": "import { Objeto } from './incorrecto';",
+  "new_code": "import { Objeto } from './correcto';",
+  "explanation": "Breve explicación de la mejora.",
+  "confidence": "high"
+}
+
+O BIEN:
+
+{
+  "fix_type": "create_interface",
+  "interface_path": "src/domain/IExample.ts",
+  "interface_code": "export interface IExample { }",
+  "updated_import": "import { IExample } from './IExample';",
+  "explanation": "Desacoplamiento mediante interfaz.",
+  "confidence": "high"
+}
+
+No incluyas texto fuera del JSON."#);
 
     // Hacer la petición a la IA usando el sistema de fallback
     let content = crate::ai::consultar_ia_con_fallback(prompt, ai_configs).await
@@ -141,27 +153,180 @@ Responde SOLO con el JSON, sin texto adicional."#,
     Ok(suggestion)
 }
 
-/// Aplica un fix sugerido
+/// Orquestador de sugerencia con auto-corrección
+pub async fn suggest_fix_with_retry(
+    violation: &Violation,
+    project_root: &Path,
+    ai_configs: &[AIConfig],
+) -> Result<FixSuggestion> {
+    let mut attempts = 0;
+    const MAX_ATTEMPTS: usize = 3;
+    let mut last_error_msg = String::new();
+
+    while attempts < MAX_ATTEMPTS {
+        // Intentar obtener una sugerencia (puede fallar por red o por parseo JSON)
+        let suggestion_result = if attempts == 0 {
+            suggest_fix(violation, project_root, ai_configs, None).await
+        } else {
+            suggest_fix(violation, project_root, ai_configs, Some(&last_error_msg)).await
+        };
+
+        match suggestion_result {
+            Ok(suggestion) => {
+                // Si parseó bien, validar sintaxis del código propuesto
+                match dry_run_and_validate(&suggestion, violation, project_root) {
+                    Ok(_) => return Ok(suggestion),
+                    Err(e) => {
+                        attempts += 1;
+                        last_error_msg = format!("Error de sintaxis en el código propuesto: {}", e);
+                        if attempts < MAX_ATTEMPTS {
+                            println!("⚠️  La IA sugirió código con errores de sintaxis. Reintentando ({}/{})...", attempts, MAX_ATTEMPTS);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                // Si falló el parseo JSON o la comunicación
+                attempts += 1;
+                last_error_msg = format!("Error de formato JSON o comunicación: {}", e);
+                if attempts < MAX_ATTEMPTS {
+                    println!("⚠️  Error en el formato de respuesta de la IA. Reintentando ({}/{})...", attempts, MAX_ATTEMPTS);
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+
+    Err(miette::miette!("No se pudo obtener una sugerencia válida tras {} intentos.", MAX_ATTEMPTS))
+}
+
+/// Simula la aplicación del fix y valida la sintaxis en memoria
+fn dry_run_and_validate(
+    suggestion: &FixSuggestion,
+    violation: &Violation,
+    _project_root: &Path,
+) -> Result<()> {
+    match &suggestion.fix_type {
+        FixType::Refactor { old_code, new_code } => {
+            let old = old_code.trim();
+            let new = new_code.trim();
+            
+            // Intentar reemplazo exacto
+            let mut updated_content = violation.file_content.replace(old, new);
+            
+            // Si no funcionó, intentar ignorando punto y coma si la IA lo olvidó
+            if violation.file_content == updated_content && !old.ends_with(';') {
+                let old_with_semi = format!("{};", old);
+                updated_content = violation.file_content.replace(&old_with_semi, new);
+            }
+
+            if violation.file_content == updated_content {
+                return Err(miette::miette!(
+                    "El código antiguo ('{}') no se encontró exactamente en el archivo. \
+                    Asegúrate de incluir los espacios y el punto y coma exactamente como están.", 
+                    old
+                ));
+            }
+            validate_syntax_str(&updated_content, &violation.file_path)
+        }
+        FixType::MoveFile { .. } => Ok(()), 
+        FixType::CreateInterface { updated_import, .. } => {
+            let updated_content = violation.file_content.replace(&violation.offensive_import, updated_import);
+            if violation.file_content == updated_content {
+                return Err(miette::miette!("No se pudo reemplazar el import ofensivo. Asegúrate de que 'updated_import' sea correcto."));
+            }
+            validate_syntax_str(&updated_content, &violation.file_path)
+        }
+    }
+}
+
+/// Aplica un fix sugerido con validación de sintaxis
 pub fn apply_fix(
     suggestion: &FixSuggestion,
     violation: &Violation,
     project_root: &Path,
 ) -> Result<String> {
     match &suggestion.fix_type {
-        FixType::Refactor { old_code, new_code } => apply_refactor(violation, old_code, new_code),
+        FixType::Refactor { old_code, new_code } => {
+            let result = apply_refactor(violation, old_code, new_code)?;
+            
+            // Validar sintaxis después de aplicar leyendo el archivo
+            let content = fs::read_to_string(&violation.file_path).into_diagnostic()?;
+            if let Err(e) = validate_syntax_str(&content, &violation.file_path) {
+                // Si la sintaxis es inválida, revertir
+                fs::write(&violation.file_path, &violation.file_content).into_diagnostic()?;
+                return Err(miette::miette!(
+                    "El fix sugerido por la IA generó un error de sintaxis al aplicarse y ha sido revertido automáticamente.\nError: {}", 
+                    e
+                ));
+            }
+            Ok(result)
+        },
         FixType::MoveFile { from, to } => apply_move_file(project_root, from, to),
         FixType::CreateInterface {
             interface_path,
             interface_code,
             updated_import,
-        } => apply_create_interface(
-            project_root,
-            violation,
-            interface_path,
-            interface_code,
-            updated_import,
-        ),
+        } => {
+            let result = apply_create_interface(
+                project_root,
+                violation,
+                interface_path,
+                interface_code,
+                updated_import,
+            )?;
+
+            // Validar sintaxis del archivo original (donde se cambió el import)
+            let content = fs::read_to_string(&violation.file_path).into_diagnostic()?;
+            if let Err(e) = validate_syntax_str(&content, &violation.file_path) {
+                // Revertir el import (pero dejamos la interfaz creada, es inofensiva)
+                fs::write(&violation.file_path, &violation.file_content).into_diagnostic()?;
+                return Err(miette::miette!(
+                    "El nuevo import para la interfaz generó un error de sintaxis y ha sido revertido.\nError: {}", 
+                    e
+                ));
+            }
+            Ok(result)
+        },
     }
+}
+
+/// Valida que una cadena de código sea sintácticamente válida
+pub fn validate_syntax_str(content: &str, file_path_hint: &Path) -> Result<()> {
+    let extension = file_path_hint.extension().and_then(|e| e.to_str()).unwrap_or("");
+    
+    if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {
+        return Ok(());
+    }
+
+    let cm = Arc::new(SourceMap::default());
+    let syntax = match extension {
+        "ts" | "tsx" => Syntax::Typescript(TsConfig {
+            decorators: true,
+            tsx: extension == "tsx",
+            ..Default::default()
+        }),
+        "js" | "jsx" => Syntax::Es(EsConfig {
+            decorators: true,
+            jsx: extension == "jsx",
+            ..Default::default()
+        }),
+        _ => return Ok(()),
+    };
+
+    let fm = cm.new_source_file(
+        swc_common::FileName::Custom(file_path_hint.to_string_lossy().to_string()),
+        content.to_string(),
+    );
+    let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
+    let mut parser = SwcParser::new_from(lexer);
+
+    parser.parse_module().map_err(|e| {
+        miette::miette!("Error de sintaxis: {:?}", e)
+    })?;
+
+    Ok(())
 }
 
 /// Aplica una refactorización de código
