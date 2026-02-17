@@ -9,57 +9,45 @@ pub fn normalize_pattern(pattern: &str) -> String {
     let normalized = pattern
         .to_lowercase()
         .replace("\\", "/")  // Normalizar separadores de Windows
-        .replace("**", "")   // Quitar comodines globales
-        .replace("*", ""); // Quitar comodines simples
+        .replace("**", "*")   // Unificar comodines
+        .replace("//", "/");
 
-    // Si el patrón termina en /, dejarlo; si no, mantenerlo como está
-    normalized
+    // Limpiar duplicados de / resultantes de la normalización
+    normalized.replace("//", "/")
 }
 
 /// Verifica si un path coincide con un patrón normalizado
-/// Usa matching flexible para soportar diferentes formatos de import
 pub fn matches_pattern(path: &str, pattern: &str) -> bool {
     let normalized_path = path.to_lowercase().replace("\\", "/");
-    let normalized_pattern = pattern.to_lowercase();
+    let raw_pattern = pattern.to_lowercase().replace("\\", "/");
 
-    // Si el patrón está vacío después de normalización, no matchear nada
-    if normalized_pattern.is_empty() {
-        return false;
+    // Si el patrón tiene *, hacemos un split básico
+    // Ejemplo: "src/modules/*/controllers/*" -> partes: ["src/modules/", "/controllers/"]
+    let parts: Vec<&str> = raw_pattern.split('*').filter(|s| !s.is_empty()).collect();
+
+    if parts.is_empty() {
+        return normalized_path.contains(&raw_pattern);
     }
 
-    // Matching flexible para rutas absolutas y relativas
-    // Ejemplos:
-    // - Path: "c:/proyecto/src/components/button.jsx" con Pattern: "src/components/"
-    // - Import: "../services/userservice" con Pattern: "src/services/"
-    //   → Extraer "services/" del pattern y buscar "/services/" o "../services/" en el import
-    // - Import: "@/api/posts" con Pattern: "src/api/"
-    //   → Buscar "/api/" en el import
-
-    if normalized_path.contains(&normalized_pattern) {
-        return true;
-    }
-
-    // Para imports: si el patrón contiene "src/", extraer solo la carpeta después de src/
-    // Ejemplo: "src/services/" → buscar también "/services/" o "services/"
-    if normalized_pattern.contains("src/") {
-        // Extraer la parte después de "src/"
-        if let Some(folder_part) = normalized_pattern.strip_prefix("src/") {
-            // Buscar "/folder/" o "../folder/" en el path (para imports relativos)
-            let with_slash = format!("/{}", folder_part);
-            let with_relative = format!("../{}", folder_part);
-            let with_at = format!("@/{}", folder_part); // Para alias como @/services
-
-            if normalized_path.contains(&with_slash)
-                || normalized_path.contains(&with_relative)
-                || normalized_path.contains(&with_at)
-                || normalized_path.contains(folder_part)
-            {
-                return true;
+    // Todas las partes deben estar presentes en el orden correcto
+    let mut last_pos = 0;
+    for part in parts {
+        if let Some(pos) = normalized_path[last_pos..].find(part) {
+            last_pos += pos + part.len();
+        } else {
+            // Intentar también sin el prefijo "src/" para imports relativos/alias
+            if part.starts_with("src/") {
+                let folder_part = &part[4..];
+                if let Some(pos) = normalized_path.find(folder_part) {
+                    last_pos = pos + folder_part.len();
+                    continue;
+                }
             }
+            return false;
         }
     }
 
-    false
+    true
 }
 
 #[cfg(test)]
