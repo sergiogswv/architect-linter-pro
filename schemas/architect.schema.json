@@ -61,6 +61,16 @@
                 "target/",
                 "coverage/"
             ]
+        },
+        "build_command": {
+            "type": "string",
+            "description": "Command to run to verify the build after applying fixes (e.g., 'npm run build')"
+        },
+        "ai_fix_retries": {
+            "type": "integer",
+            "description": "Maximum number of AI retries for fixing build or syntax errors",
+            "default": 3,
+            "minimum": 0
         }
     },
     "required": [

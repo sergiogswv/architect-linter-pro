@@ -444,99 +444,143 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         println!("💥 Import ofensivo: {}", violation.offensive_import);
         println!();
 
-        println!("🤖 Consultando sugerencia de fix (usando sistema de fallback multimodelo)...");
-        let pb = ProgressBar::new_spinner();
-        pb.set_style(ProgressStyle::default_spinner()
-            .template("{spinner:.green} {msg}")
-            .into_diagnostic()?);
-        pb.set_message("Analizando código y consultando modelos de IA...");
-        pb.enable_steady_tick(std::time::Duration::from_millis(120));
+        let mut build_attempts = 0;
+        let mut last_error: Option<String> = None;
 
-        let suggestion = match runtime.block_on(autofix::suggest_fix_with_retry(
-            violation,
-            project_root,
-            &ctx.ai_configs,
-        )) {
-            Ok(s) => {
-                pb.finish_and_clear();
-                s
-            },
-            Err(e) => {
-                pb.finish_with_message("❌ Error obteniendo sugerencia");
-                eprintln!("❌ Error: {}", e);
-                println!("⏭️  Saltando esta violación...\n");
-                skipped_count += 1;
-                continue;
+        loop {
+            if build_attempts > 0 {
+                println!("🔄 Reintentando fix basándose en el error de build (intento {}/{})...", build_attempts, ctx.ai_fix_retries);
             }
-        };
 
-        println!();
-        println!(
-            "💡 Sugerencia de la IA (confianza: {}):",
-            suggestion.confidence
-        );
-        println!("{}", suggestion.explanation);
-        println!();
-
-        match &suggestion.fix_type {
-            autofix::FixType::Refactor { old_code, new_code } => {
-                println!("📝 Tipo: Refactorización de código");
-                println!("Cambiar:");
-                println!("  ❌ {}", old_code);
-                println!("Por:");
-                println!("  ✅ {}", new_code);
-            }
-            autofix::FixType::MoveFile { from, to } => {
-                println!("📦 Tipo: Mover archivo");
-                println!("  De: {}", from);
-                println!("  A:  {}", to);
-            }
-            autofix::FixType::CreateInterface {
-                interface_path,
-                interface_code,
-                updated_import,
-            } => {
-                println!("🎯 Tipo: Crear interfaz");
-                println!("  Nueva interfaz: {}", interface_path);
-                println!("  Código: {} líneas", interface_code.lines().count());
-                println!("  Nuevo import: {}", updated_import);
-            }
-        }
-
-        println!("──────────────────────────────────────────────────────────────");
-        println!("💡 Tip: Presiona [Enter] para aceptar (Sí) o [n] para rechazar.");
-        let should_apply = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt("¿Deseas aplicar estos cambios en tu código?")
-            .default(true)
-            .interact()
-            .into_diagnostic()?;
-
-        if should_apply {
-            let apply_pb = ProgressBar::new_spinner();
-            apply_pb.set_style(ProgressStyle::default_spinner()
-                .template("{spinner:.cyan} {msg}")
+            println!("🤖 Consultando sugerencia de fix...");
+            let pb = ProgressBar::new_spinner();
+            pb.set_style(ProgressStyle::default_spinner()
+                .template("{spinner:.green} {msg}")
                 .into_diagnostic()?);
-            apply_pb.set_message("Aplicando cambios y validando integridad...");
-            apply_pb.enable_steady_tick(std::time::Duration::from_millis(80));
+            pb.set_message("Analizando código y consultando modelos de IA...");
+            pb.enable_steady_tick(std::time::Duration::from_millis(120));
 
-            // Pausa estética para visibilidad
-            std::thread::sleep(std::time::Duration::from_millis(300));
-
-            match autofix::apply_fix(&suggestion, violation, project_root) {
-                Ok(message) => {
-                    apply_pb.finish_with_message("✅ Cambios aplicados con éxito");
-                    println!("✨ {}", message);
-                    fixed_count += 1;
-                }
+            let suggestion = match runtime.block_on(autofix::suggest_fix_with_retry(
+                violation,
+                project_root,
+                &ctx.ai_configs,
+                last_error.as_deref(),
+            )) {
+                Ok(s) => {
+                    pb.finish_and_clear();
+                    s
+                },
                 Err(e) => {
-                    apply_pb.finish_with_message("⚠️  El fix fue revertido");
+                    pb.finish_with_message("❌ Error obteniendo sugerencia");
                     eprintln!("❌ Error: {}", e);
+                    println!("⏭️  Saltando esta violación...\n");
                     skipped_count += 1;
+                    break;
+                }
+            };
+
+            println!();
+            println!(
+                "💡 Sugerencia de la IA (confianza: {}):",
+                suggestion.confidence
+            );
+            println!("{}", suggestion.explanation);
+            println!();
+
+            match &suggestion.fix_type {
+                autofix::FixType::Refactor { old_code, new_code } => {
+                    println!("📝 Tipo: Refactorización de código");
+                    println!("Cambiar:");
+                    println!("  ❌ {}", old_code);
+                    println!("Por:");
+                    println!("  ✅ {}", new_code);
+                }
+                autofix::FixType::MoveFile { from, to } => {
+                    println!("📦 Tipo: Mover archivo");
+                    println!("  De: {}", from);
+                    println!("  A:  {}", to);
+                }
+                autofix::FixType::CreateInterface {
+                    interface_path,
+                    interface_code,
+                    updated_import,
+                } => {
+                    println!("🎯 Tipo: Crear interfaz");
+                    println!("  Nueva interfaz: {}", interface_path);
+                    println!("  Código: {} líneas", interface_code.lines().count());
+                    println!("  Nuevo import: {}", updated_import);
                 }
             }
-        } else {
-            println!("⏭️  Fix omitido");
-            skipped_count += 1;
+
+            println!("──────────────────────────────────────────────────────────────");
+            println!("💡 Tip: Presiona [Enter] para aceptar (Sí) o [n] para rechazar.");
+            let should_apply = Confirm::with_theme(&ColorfulTheme::default())
+                .with_prompt("¿Deseas aplicar estos cambios en tu código?")
+                .default(true)
+                .interact()
+                .into_diagnostic()?;
+
+            if should_apply {
+                let apply_pb = ProgressBar::new_spinner();
+                apply_pb.set_style(ProgressStyle::default_spinner()
+                    .template("{spinner:.cyan} {msg}")
+                    .into_diagnostic()?);
+                apply_pb.set_message("Aplicando cambios y validando integridad...");
+                apply_pb.enable_steady_tick(std::time::Duration::from_millis(80));
+
+                std::thread::sleep(std::time::Duration::from_millis(300));
+
+                match autofix::apply_fix(&suggestion, violation, project_root) {
+                    Ok(message) => {
+                        // Si hay comando de build, validarlo
+                        if let Some(build_cmd) = &ctx.build_command {
+                            apply_pb.set_message(format!("Ejecutando build: {}...", build_cmd));
+                            
+                            match autofix::run_build_command(build_cmd, project_root) {
+                                Ok(_) => {
+                                    apply_pb.finish_with_message("✅ Cambios aplicados y build exitoso");
+                                    println!("✨ {}", message);
+                                    fixed_count += 1;
+                                    break;
+                                }
+                                Err(build_err) => {
+                                    apply_pb.finish_with_message("⚠️  El build falló tras el fix");
+                                    eprintln!("❌ Error de Build: {}", build_err);
+
+                                    // Revertir cambios
+                                    let _ = std::fs::write(&violation.file_path, &violation.file_content);
+                                    
+                                    build_attempts += 1;
+                                    if build_attempts <= ctx.ai_fix_retries {
+                                        println!("🔄 Iniciando ciclo de auto-corrección de build ({} de {})...", build_attempts, ctx.ai_fix_retries);
+                                        last_error = Some(build_err.to_string());
+                                        continue;
+                                    } else {
+                                        println!("❌ Se alcanzó el máximo de reintentos de build. Saltando violación.");
+                                        skipped_count += 1;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {
+                            apply_pb.finish_with_message("✅ Cambios aplicados con éxito");
+                            println!("✨ {}", message);
+                            fixed_count += 1;
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        apply_pb.finish_with_message("⚠️  El fix fue revertido");
+                        eprintln!("❌ Error: {}", e);
+                        skipped_count += 1;
+                        break;
+                    }
+                }
+            } else {
+                println!("⏭️  Fix omitido");
+                skipped_count += 1;
+                break;
+            }
         }
 
         println!();

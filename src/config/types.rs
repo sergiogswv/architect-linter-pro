@@ -119,6 +119,8 @@ pub struct LinterContext {
     pub ignored_paths: Vec<String>,
     #[allow(dead_code)]
     pub ai_configs: Vec<AIConfig>,
+    pub build_command: Option<String>,
+    pub ai_fix_retries: usize,
 }
 
 #[derive(Error, Debug, Diagnostic)]

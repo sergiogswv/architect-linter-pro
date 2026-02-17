@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.2.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.3.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Rust Edition">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform">
@@ -41,6 +41,7 @@ A multi-language software architecture linter written in Rust that validates arc
 
 ### AI & Automation
 - **🤖 AI-Powered Auto-Fix**: Automatically suggests and applies fixes for architectural violations (--fix) with **multi-model fallback support**
+- **🛡️ Auto-Reconstruction & Build Validation**: (New in v4.3.0) Automatically runs the build after a fix to ensure system integrity, with **intelligent rollback** if the build fails and auto-correction retries based on build errors.
 - **🔌 Multi-Provider AI**: Official support for **Claude, Gemini, OpenAI, Groq, Ollama, Kimi, and DeepSeek**
 - **💬 AI Configuration**: Architect assistant with Claude that suggests rules based on your project
 - **⚙️ Separated Configuration**: `architect.json` for rules (sharable) and `.architect.ai.json` for API keys (private)

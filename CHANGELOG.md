@@ -8,7 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.2.0] - 2026-02-13
 ## [4.3.0] - 2026-02-17
 
-This release introduces comprehensive configuration validation, structured logging, and improved error handling for better DX and observability.
+This release introduces **AI-Powered Build Validation**, comprehensive configuration schema validation, structured logging, and improved error handling for better DX and observability.
+
+### 🛡️ AI Fix Validation & Build Integration
+Garantiza la integridad del sistema tras aplicar correcciones automáticas.
+
+- **Build Command Integration**: Posibilidad de configurar un `build_command` (ej. `npm run build`) en `architect.json`.
+- **Self-Correction Loop**: Si el build falla tras un fix, el linter envía los errores de compilación a la IA para que genere una nueva versión corregida.
+- **Atomic Rollback**: Si tras agotar los reintentos (`ai_fix_retries`) el build sigue fallando, el linter revierte automáticamente los cambios para evitar dejar el código en un estado roto.
+- **Visual Feedback**: Nuevos indicadores de progreso para la fase de build y estados de éxito/error tras la validación.
 
 ### 🧩 Configuration Schema Validation
 

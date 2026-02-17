@@ -3,6 +3,7 @@ use miette::{IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use swc_common::SourceMap;
 use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser as SwcParser, StringInput, Syntax, TsConfig};
 use std::sync::Arc;
@@ -158,14 +159,15 @@ pub async fn suggest_fix_with_retry(
     violation: &Violation,
     project_root: &Path,
     ai_configs: &[AIConfig],
+    initial_error: Option<&str>,
 ) -> Result<FixSuggestion> {
     let mut attempts = 0;
     const MAX_ATTEMPTS: usize = 3;
-    let mut last_error_msg = String::new();
+    let mut last_error_msg = initial_error.map(|e| e.to_string()).unwrap_or_default();
 
     while attempts < MAX_ATTEMPTS {
         // Intentar obtener una sugerencia (puede fallar por red o por parseo JSON)
-        let suggestion_result = if attempts == 0 {
+        let suggestion_result = if attempts == 0 && initial_error.is_none() {
             suggest_fix(violation, project_root, ai_configs, None).await
         } else {
             suggest_fix(violation, project_root, ai_configs, Some(&last_error_msg)).await
@@ -429,4 +431,32 @@ fn get_project_structure(root: &Path) -> String {
     }
 
     structure
+}
+
+/// Ejecuta el comando de build configurado para validar los cambios
+pub fn run_build_command(command: &str, project_root: &Path) -> Result<()> {
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(&["/C", command])
+            .current_dir(project_root)
+            .output()
+            .into_diagnostic()?
+    } else {
+        Command::new("sh")
+            .args(&["-c", command])
+            .current_dir(project_root)
+            .output()
+            .into_diagnostic()?
+    };
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        return Err(miette::miette!(
+            "El comando de build '{}' falló.\n\nSTDOUT:\n{}\n\nSTDERR:\n{}", 
+            command, stdout, stderr
+        ));
+    }
+
+    Ok(())
 }

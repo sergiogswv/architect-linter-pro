@@ -94,6 +94,8 @@ pub fn save_config_from_wizard(
         architecture_pattern: ArchPattern::MVC, // O el que detecte la IA
         forbidden_imports: forbidden_imports.clone(),
         ignored_paths: ignored_paths.clone(),
+        build_command: None,
+        ai_fix_retries: 3,
     };
 
     let json = serde_json::to_string_pretty(&config).into_diagnostic()?;
@@ -128,6 +130,8 @@ pub fn save_config_from_wizard(
         forbidden_imports,
         ignored_paths,
         ai_configs,
+        build_command: config.build_command,
+        ai_fix_retries: config.ai_fix_retries,
     })
 }
 

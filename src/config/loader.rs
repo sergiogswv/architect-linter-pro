@@ -18,6 +18,13 @@ pub struct ConfigFile {
     pub forbidden_imports: Vec<ForbiddenRule>,
     #[serde(default = "super::ignored_paths::default_ignored_paths")]
     pub ignored_paths: Vec<String>,
+    pub build_command: Option<String>,
+    #[serde(default = "default_ai_fix_retries")]
+    pub ai_fix_retries: usize,
+}
+
+fn default_ai_fix_retries() -> usize {
+    3
 }
 
 /// Estructura para el archivo de configuración de IA (ahora soporta múltiples)
@@ -110,6 +117,8 @@ pub fn load_config(root: &Path) -> Result<LinterContext> {
         forbidden_imports: config.forbidden_imports,
         ignored_paths: config.ignored_paths,
         ai_configs,
+        build_command: config.build_command,
+        ai_fix_retries: config.ai_fix_retries,
     })
 }
 
