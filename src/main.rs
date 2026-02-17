@@ -172,6 +172,11 @@ fn main() -> Result<()> {
     let ctx = Arc::new(config::setup_or_load_config(&project_root)?);
     tracing::info!("✅ Configuration loaded: {:?} pattern", ctx.pattern);
 
+    if cli_args.check_mode {
+        println!("✅ Configuración válida.");
+        return Ok(());
+    }
+
     let no_cache = cli_args.no_cache;
 
     // 6. Check for daemon mode

@@ -1,4 +1,5 @@
 {
+  "$schema": "./schemas/architect.schema.json",
   "max_lines_per_function": 60,
   "architecture_pattern": "MVC",
   "forbidden_imports": [

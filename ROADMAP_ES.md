@@ -44,11 +44,8 @@ v4.0.0 (Base) ───┬─> v4.1.0 (Estabilización) ✅ LISTO
 - [x] **Análisis Incremental** (detección de cambios con Git)
 - [x] **Benchmark Suite** (4 benchmarks con Criterion)
 - [x] **Reporting de Coverage** (74% TypeScript, 40% global)
+- [x] **Validación de Schema de Configuración** ✅ (Completado 2026-02-17)
 
-### En Progreso (para v4.3.0)
-
-- [x] Manejo de Errores & Logging ✅ (Completado 2026-02-17)
-- [ ] Validación de Schema de Configuración (JSON Schema para architect.json)
 - [ ] Integración LSP (servidor LSP con tower-lsp)
 
 ---
@@ -97,12 +94,13 @@ v4.0.0 (Base) ───┬─> v4.1.0 (Estabilización) ✅ LISTO
   - Logging en puntos clave: startup, configuración, análisis de archivos
 - **Documentación:** \`docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md\`
 
-### Prioridad Alta - EN PROGRESO 🔄
-#### ✅ Validación de Schema de Configuración
-- JSON Schema para `architect.json`
-- Auto-completado en IDEs (VSCode, IntelliJ)
-- Herramienta de migración de configs antiguas
-- Config validation pre-commit hook
+### Prioridad Alta - COMPLETADO ✅
+#### ✅ Validación de Schema de Configuración ✅ (Completado 2026-02-17)
+- [x] JSON Schema para `architect.json`
+- [x] Auto-completado en IDEs (VSCode, IntelliJ)
+- [x] Herramienta de migración de configs antiguas
+- [x] Config validation pre-commit hook (flag `--check`)
+- **Estado:** COMPLETADO
 
 ### Prioridad Media
 

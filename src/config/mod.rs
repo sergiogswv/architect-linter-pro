@@ -10,6 +10,7 @@
 mod husky;
 mod ignored_paths;
 mod loader;
+mod migration;
 mod types;
 mod wizard;
 

@@ -44,6 +44,8 @@ notify = "6.1" # File system watcher for watch mode
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 tracing-appender = "0.2"
+# Configuration validation (v4.3.0)
+jsonschema = "0.17"
 
 # Tree-sitter for multi-language support
 tree-sitter = "0.22"

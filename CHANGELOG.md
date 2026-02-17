@@ -8,9 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.2.0] - 2026-02-13
 ## [4.3.0] - 2026-02-17
 
-### 🔍 Error Handling & Logging
+This release introduces comprehensive configuration validation, structured logging, and improved error handling for better DX and observability.
 
-This release introduces comprehensive structured logging and improved error handling for better observability and debugging.
+### 🧩 Configuration Schema Validation
+
+Full JSON Schema integration for robust configuration management and IDE support.
+
+- **JSON Schema Engine** (`schemas/architect.schema.json`):
+  - Strict validation of `architect.json` against a formal schema
+  - Protection against invalid types, missing fields, and duplicate rules
+  - Formal definition for all configuration properties including `$schema`
+
+- **IDE Support & Autocompletion**:
+  - Full autocompletion in VS Code and IntelliJ via `$schema` reference
+  - Built-in documentation for each property directly in the editor
+  - Automatic schema association via `.vscode/settings.json`
+
+- **Configuration Migration** (`src/config/migration.rs`):
+  - Intelligent migration logic for legacy configuration formats
+  - Automatic updates to ensure forward compatibility
+  - Built-in data transformation before validation
+
+- **CLI Validation Mode**:
+  - New `--check` flag for fast configuration-only validation
+  - Explicit config validation phase in pre-commit hooks
+  - Instant feedback on configuration errors without full code analysis
 
 ### Added
 - **Structured Logging** (`src/logging.rs`):
@@ -40,6 +62,10 @@ This release introduces comprehensive structured logging and improved error hand
   - Mode selection logging (NORMAL, WATCH, FIX, INCREMENTAL)
   - Cache hit/miss tracking
 
+- **Explicit Config Check**:
+  - Pre-commit hook now runs `architect-linter-pro --check` before full analysis
+  - Prevents committing with an invalid architecture configuration
+
 ### Changed
 - **CLI**:
   - Added `--debug` flag to enable verbose logging
@@ -61,15 +87,20 @@ This release introduces comprehensive structured logging and improved error hand
   - `tracing = "0.1"` - Structured logging framework
   - `tracing-subscriber = "0.3"` - Subscriber implementations with env-filter, fmt, and json features
   - `tracing-appender = "0.2"` - File appender support
+  - `jsonschema = "0.17"` - JSON Schema validation engine
 
 - **New Modules**:
   - `src/logging.rs` (99 lines) - Logging configuration and initialization
+  - `src/config/migration.rs` - Legacy configuration transformation logic
+  - `schemas/architect.schema.json` - Formal JSON Schema definition
 
 - **Modified Files**:
-  - `src/main.rs` - Logging initialization and panic handler
-  - `src/cli.rs` - Debug flag support
+  - `src/main.rs` - Logging initialization, early check mode exit
+  - `src/cli.rs` - Debug flag and check flag support
+  - `src/config/loader.rs` - Integration with JSON Schema validation and migration
+  - `src/config/husky.rs` - Explicit config validation in pre-commit hooks
   - `src/analyzer/collector.rs` - Analysis logging
-  - `Cargo.toml` - Logging dependencies
+  - `Cargo.toml` - Logging and validation dependencies
 
 ### Usage Examples
 

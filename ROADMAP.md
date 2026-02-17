@@ -44,12 +44,10 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
 - [x] **Incremental Analysis** (Git-based change detection)
 - [x] **Benchmark Suite** (4 benchmarks with Criterion)
 - [x] **Coverage Reporting** (74% TypeScript, 40% overall)
-- [x] **Error Handling & Logging** (structured logging with tracing, --debug flag) ✅ NEW!
+- [x] **Error Handling & Logging** ✅ (Completed 2026-02-17)
+- [x] **Configuration Schema Validation** ✅ (Completed 2026-02-17)
+    - JSON Schema, Autocompletion, Migration tool, `--check` flag.
 
-### 🚧 In Progress (for v4.3.0)
-
-
-- [ ] Configuration Schema Validation (JSON Schema for architect.json)
 - [ ] LSP Integration (tower-lsp server implementation)
 
 ---
@@ -99,13 +97,13 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
     - Logs show timestamp, thread ID, module, file, and line number in debug mode
   - **Documentation:** `docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md`
 
-### High Priority - IN PROGRESS 🔄
+### High Priority - COMPLETED ✅
 
-- [ ] **Configuration Schema Validation**
-  - JSON Schema for `architect.json`
-  - Auto-completion in IDEs (VSCode, IntelliJ)
-  - Migration tool for old configs
-  - Config validation pre-commit hook
+- [x] **Configuration Schema Validation** ✅ (Completed 2026-02-17)
+  - [x] JSON Schema for `architect.json`
+  - [x] Auto-completion in IDEs (VSCode, IntelliJ)
+  - [x] Migration tool for old configs
+  - [x] Config validation pre-commit hook (`--check` flag)
   - **Effort:** 3-5 days
 
 ### Medium Priority

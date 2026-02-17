@@ -49,9 +49,11 @@ A multi-language software architecture linter written in Rust that validates arc
 - **🎯 Automatic Framework Detection**: Recognizes NestJS, React, Angular, Express, Django, Laravel, Spring Boot and more
 - **🏗️ Architectural Patterns**: Support for Hexagonal, Clean Architecture, MVC and more
 - **🎨 Interactive Mode**: Guided configuration on first run with enhanced visual banner
+- **🧩 Configuration Schema**: Full JSON Schema validation for `architect.json` with IDE autocompletion
 - **🪝 Git Hooks Integration**: Automatic Husky and pre-commit hook configuration
 - **🐙 GitHub Action**: Official action for CI/CD pipeline integration
 - **🔍 Debug Mode**: Structured logging with `--debug` flag for troubleshooting and observability
+- **✅ Config Validation**: Instant schema validation with the `--check` flag
 
 ## Supported Languages
 
@@ -397,6 +399,7 @@ A forbidden rule defines a **Source (from)** → **Target (to)** relationship:
 
 #### Properties in architect.json
 
+- **`$schema`** (string): Path to the JSON Schema for autocompletion (e.g., `"./schemas/architect.schema.json"`)
 - **`max_lines_per_function`** (number): Line limit per method/function
 - **`architecture_pattern`** (string): Architectural pattern (`"Hexagonal"`, `"Clean"`, `"MVC"`, `"Ninguno"`)
 - **`forbidden_imports`** (array): List of rules with:
@@ -586,6 +589,7 @@ architect-linter-pro [OPTIONS] [PATH]
 - `-r, --report <FORMAT>`: Generate report in specified format (json or markdown)
 - `-o, --output <FILE>`: Output file path for the report
 - `--debug`: Debug mode - enables verbose logging with timestamps, thread IDs, and detailed execution flow
+- `--check`: Configuration check - only validates `architect.json` against the schema and exits
 - **No arguments**: Interactive mode, shows menu of available projects
 - **With path**: `architect-linter-pro /project/path` - Analyzes the specified project
 

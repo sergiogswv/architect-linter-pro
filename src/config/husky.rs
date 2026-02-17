@@ -31,6 +31,12 @@ pub fn setup_husky_pre_commit(root: &Path) -> Result<()> {
                 let pre_commit_content = r#"#!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+echo "🏗️  Validando configuración de arquitectura..."
+architect-linter-pro --check .
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 echo "🏗️  Ejecutando Architect Linter Pro..."
 
 # Ejecutar architect-linter-pro en el directorio actual (.)
@@ -65,12 +71,18 @@ exit 0
                 {
                     let pre_commit_bat = root.join(".husky").join("pre-commit.bat");
                     let pre_commit_bat_content = r#"@echo off
+echo 🏗️  Validando configuración de arquitectura...
+architect-linter-pro --check .
+if errorlevel 1 (
+    exit /b 1
+)
+
 echo 🏗️  Ejecutando Architect Linter Pro...
 
-REM Ejecutar architect-linter-pro en el directorio actual (.)
+# Ejecutar architect-linter-pro en el directorio actual (.)
 architect-linter-pro .
 
-REM Si el linter encuentra errores, el commit se cancelará
+# Si el linter encuentra errores, el commit se cancelará
 if errorlevel 1 (
     echo.
     echo ❌ El commit fue cancelado debido a violaciones de arquitectura

@@ -43,6 +43,8 @@ pub struct CliArgs {
     pub daemon_mode: bool,
     /// Enable debug logging
     pub debug_mode: bool,
+    /// Only validate configuration and exit
+    pub check_mode: bool,
 }
 
 /// Muestra la ayuda del CLI
@@ -69,6 +71,7 @@ pub fn print_help() {
     println!("  -o, --output <PATH>  Archivo de salida para el reporte");
     println!("  --no-cache           Disable analysis cache");
     println!("  --debug              Enable debug logging (verbose output)");
+    println!("  --check              Solo validar configuración y salir");
     println!();
     println!("EJEMPLOS:");
     println!("  architect-linter-pro                         # Modo interactivo");
@@ -124,6 +127,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut no_cache = false;
     let mut daemon_mode = false;
     let mut debug_mode = false;
+    let mut check_mode = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
     let mut project_path: Option<String> = None;
@@ -160,6 +164,9 @@ pub fn process_args() -> Option<CliArgs> {
             }
             "--debug" => {
                 debug_mode = true;
+            }
+            "--check" => {
+                check_mode = true;
             }
             "--report" | "-r" => {
                 // Next argument should be the format
@@ -208,6 +215,7 @@ pub fn process_args() -> Option<CliArgs> {
         no_cache,
         daemon_mode,
         debug_mode,
+        check_mode,
         report_format,
         output_path,
     })

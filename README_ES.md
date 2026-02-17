@@ -49,9 +49,11 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 - **🎯 Detección Automática de Framework**: Reconoce NestJS, React, Angular, Express, Django, Laravel, Spring Boot y más
 - **🏗️ Patrones Arquitectónicos**: Soporte para Hexagonal, Clean Architecture, MVC y más
 - **🎨 Modo Interactivo**: Configuración guiada en primera ejecución con banner visual mejorado
+- **🧩 Esquema de Configuración**: Validación completa con JSON Schema para `architect.json` con autocompletado en IDEs
 - **🪝 Integración con Git Hooks**: Configuración automática de Husky y pre-commit hooks
 - **🐙 GitHub Action**: Action oficial para integración en pipelines CI/CD
 - **🔍 Modo Debug**: Logging estructurado con flag `--debug` para troubleshooting y observabilidad
+- **✅ Validación de Config**: Validación instantánea del esquema con el flag `--check`
 
 ## Lenguajes Soportados
 
@@ -302,6 +304,7 @@ Una regla prohibida define una relación **Origen (from)** → **Destino (to)**:
 
 #### Propiedades de architect.json
 
+- **`$schema`** (string): Ruta al JSON Schema para autocompletado (ej: `"./schemas/architect.schema.json"`)
 - **`max_lines_per_function`** (número): Límite de líneas por método/función
 - **`architecture_pattern`** (string): Patrón arquitectónico (`"Hexagonal"`, `"Clean"`, `"MVC"`, `"Ninguno"`)
 - **`forbidden_imports`** (array): Lista de reglas con:
@@ -487,6 +490,7 @@ architect-linter-pro [OPCIONES] [RUTA]
 - `-w, --watch`: Modo watch - monitorea cambios y re-analiza automáticamente
 - `-d, --daemon`: Modo daemon - ejecuta el linter en segundo plano (ideal con --watch)
 - `--debug`: Modo debug - habilita logging verbose con timestamps, thread IDs y flujo de ejecución detallado
+- `--check`: Validación de configuración - solo valida `architect.json` contra el esquema y sale
 - `-f, --fix`: Modo fix - auto-reparación de violaciones con IA
 - **Sin argumentos**: Modo interactivo, muestra menú de proyectos disponibles
 - **Con ruta**: `architect-linter-pro /ruta/proyecto` - Analiza el proyecto especificado
