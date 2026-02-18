@@ -3,7 +3,7 @@ name = "architect-linter-pro"
 version = "4.3.0"
 edition = "2021"
 authors = ["Sergio Guadarrama"]
-description = "Multi-language architecture linter with dynamic rules engine (TypeScript, JavaScript, Python, Go, PHP, Java)"
+description = "Multi-language architecture linter with dynamic rules engine (TS, JS, Py, Go, PHP, Java, C#, Ruby, Kotlin, Rust)"
 license = "MIT"
 repository = "https://github.com/sergiogswv/architect-linter"
 keywords = ["linter", "architecture", "multi-language", "code-quality", "tree-sitter"]
@@ -48,13 +48,17 @@ tracing-appender = "0.2"
 jsonschema = "0.17"
 
 # Tree-sitter for multi-language support
-tree-sitter = "0.22"
-tree-sitter-typescript = "0.21"
-tree-sitter-python = "0.21"
-tree-sitter-go = "0.21"
-tree-sitter-rust = "0.21"
-tree-sitter-java = "0.21"
-tree-sitter-php = "0.22"
+tree-sitter = "0.25"
+streaming-iterator = "0.1"
+tree-sitter-typescript = "0.23"
+tree-sitter-python = "0.25"
+tree-sitter-go = "0.25"
+tree-sitter-rust = "0.24"
+tree-sitter-java = "0.23"
+tree-sitter-php = "0.24"
+tree-sitter-c-sharp = "0.23"
+tree-sitter-ruby = "0.23"
+tree-sitter-kotlin = { package = "tree-sitter-kotlin-ng", version = "1.1" }
 
 # v4.0 additions
 git2 = "0.20"

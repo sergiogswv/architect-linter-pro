@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.2.0] - 2026-02-13
-## [4.3.0] - 2026-02-17
+## [4.3.0] - 2026-02-18
 
-This release introduces **AI-Powered Build Validation**, comprehensive configuration schema validation, structured logging, and improved error handling for better DX and observability.
+This release introduces **Additional Language Support (C#, Ruby, Kotlin, Rust)**, **AI-Powered Build Validation**, comprehensive configuration schema validation, structured logging, and improved error handling for better DX and observability.
+
+### 🌐 Additional Language Support
+Architect Linter Pro now supports 10 languages! We've integrated the following:
+- **C# Support**: Extraction of `using` directives and alias names.
+- **Ruby Support**: Full support for `require`, `require_relative`, and `load`.
+- **Kotlin Support**: Support for `import` statements and package-based wildcards.
+- **Rust Support**: Detailed `use` declaration analysis.
+- **Modern Tree-sitter**: Upgraded to Tree-sitter 0.25 and `StreamingIterator` for maximum performance and safety.
 
 ### 🛡️ AI Fix Validation & Build Integration
 Garantiza la integridad del sistema tras aplicar correcciones automáticas.
@@ -43,6 +51,8 @@ Full JSON Schema integration for robust configuration management and IDE support
   - Instant feedback on configuration errors without full code analysis
 
 ### Added
+- **Additional Language Support**: Integrated C#, Ruby, Kotlin, and Rust parsers.
+- **Modern Tree-sitter core**: Updated to v0.25 core with `StreamingIterator` support.
 - **Structured Logging** (`src/logging.rs`):
   - Integration with `tracing` crate for structured, leveled logging
   - Configurable log levels: TRACE, DEBUG, INFO, WARN, ERROR
@@ -181,6 +191,13 @@ RUST_LOG=trace architect-linter-pro /path/to/project
 - Chunk size optimization for large projects
 
 ## [Unreleased]
+### Added
+- **Documentation Website (Docusaurus)**:
+  - Initialized Docusaurus project in `website/` directory using TypeScript and the classic template.
+  - Configured project details, branding, and GitHub Pages deployment settings.
+  - Migrated core documentation (`README.md`, `ROADMAP.md`, `CHANGELOG.md`) to the Docusaurus site.
+  - Organized technical documentation into a structured technical guides section.
+  - Added Docusaurus frontmatter for improved navigation and SEO.
 
 ## [4.1.0-beta] - 2026-02-15
 

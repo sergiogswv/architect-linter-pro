@@ -13,12 +13,12 @@
   <img src="https://img.shields.io/badge/powered_by-Tree--sitter-green.svg" alt="Tree-sitter">
 </p>
 
-Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida reglas arquitectónicas mediante un motor de reglas dinámicas. Soporta **TypeScript, JavaScript, Python, Go, PHP y Java** usando Tree-sitter para análisis rápido y preciso. Asegura que el diseño del software (Hexagonal, Clean, MVC, etc.) se respete sin importar quién escriba el código.
+Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida reglas arquitectónicas mediante un motor de reglas dinámicas. Soporta **10 lenguajes (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin y Rust)** usando Tree-sitter para análisis rápido y preciso. Asegura que el diseño del software (Hexagonal, Clean, MVC, etc.) se respete sin importar quién escriba el código.
 
 ## Características
 
 ### Análisis Principal
-- **🌐 Soporte Multi-Lenguaje**: TypeScript, JavaScript, Python, Go, PHP y Java con análisis Tree-sitter
+- **🌐 Soporte Multi-Lenguaje**: 10 lenguajes (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin y Rust) con análisis Tree-sitter
 - **🔧 Motor de Reglas Dinámicas**: Define restricciones personalizadas entre capas mediante `architect.json`
 - **🔍 Detección de Dependencias Cíclicas**: Analiza el grafo de dependencias y detecta ciclos automáticamente
 - **📦 Validación de Importaciones**: Detecta y bloquea importaciones que violan la arquitectura definida en todos los lenguajes soportados
@@ -69,6 +69,10 @@ Architect Linter utiliza **Tree-sitter** para análisis multi-lenguaje rápido y
 | **Go** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
 | **PHP** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
 | **Java** | `.java` | `import package.Class` | `import com.example.models.User;` |
+| **C#** | `.cs` | `using X` | `using System.Collections.Generic;` |
+| **Ruby** | `.rb` | `require 'X'` | `require 'json'` |
+| **Kotlin** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
+| **Rust** | `.rs` | `use X` | `use std::collections::HashMap;` |
 
 ### Características Específicas por Lenguaje
 
@@ -77,6 +81,10 @@ Architect Linter utiliza **Tree-sitter** para análisis multi-lenguaje rápido y
 - **Go**: Imports basados en paquetes con soporte de rutas completas
 - **PHP**: Compatible con autoloading PSR-4, soporta declaraciones `use`, `require`, `include`
 - **Java**: Imports de paquetes con soporte para wildcards
+- **C#**: Soporte completo para directivas `using`, alias e imports estáticos
+- **Ruby**: Soporta `require`, `require_relative` y `load`
+- **Kotlin**: Soporte completo de paquetes e imports con coincidencia de wildcards
+- **Rust**: Soporta declaraciones `use` incluyendo rutas basadas en crate, super y self
 
 Todos los lenguajes comparten el mismo motor de reglas, permitiéndote definir restricciones arquitectónicas de manera consistente en proyectos políglotas.
 
@@ -717,7 +725,11 @@ architect-linter-pro/
 │       ├── python.rs           # Parser Python (Tree-sitter)
 │       ├── go.rs               # Parser Go (Tree-sitter)
 │       ├── php.rs              # Parser PHP (Tree-sitter)
-│       └── java.rs             # Parser Java (Tree-sitter)
+│       ├── java.rs             # Parser Java (Tree-sitter)
+│       ├── csharp.rs           # Parser C# (Tree-sitter)
+│       ├── ruby.rs             # Parser Ruby (Tree-sitter)
+│       ├── kotlin.rs           # Parser Kotlin (Tree-sitter)
+│       └── rust.rs             # Parser Rust (Tree-sitter)
 ├── public/
 │   └── architect-linter-pro-banner.png  # Imagen del banner del proyecto
 ├── Cargo.toml                  # Dependencias y configuración del proyecto
@@ -743,6 +755,10 @@ architect-linter-pro/
   - `tree-sitter-go`: Gramática Go
   - `tree-sitter-php`: Gramática PHP
   - `tree-sitter-java`: Gramática Java
+  - `tree-sitter-c-sharp`: Gramática C#
+  - `tree-sitter-ruby`: Gramática Ruby
+  - `tree-sitter-kotlin`: Gramática Kotlin
+  - `tree-sitter-rust`: Gramática Rust
 - **swc_ecma_parser**: Parser de TypeScript/JavaScript de alto rendimiento (soporte legacy)
 - **rayon**: Procesamiento paralelo automático para análisis ultrarrápido
 - **miette**: Reportes de diagnóstico elegantes con contexto rico
@@ -783,14 +799,13 @@ Prohibición hardcoded: archivos que contienen `"controller"` no pueden importar
 - [x] **Detección de dependencias cíclicas** con análisis de grafo y DFS
 - [x] **Configuración automática de Husky** durante el setup inicial
 - [x] **Modo watch** con análisis incremental y caché inteligente
-- [x] **Soporte multi-lenguaje**: TypeScript, JavaScript, Python, Go, PHP, Java (6 lenguajes)
-- [x] **Integración Tree-sitter** para análisis rápido y preciso en todos los lenguajes
+- [x] **Soporte multi-lenguaje**: 10 lenguajes (TS, JS, Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust)
+- [x] **Integración Tree-sitter** (v0.25) para análisis rápido y preciso en todos los lenguajes
 - [x] **Auto-fix con IA** para violaciones arquitectónicas (--fix)
 
 ### Próximamente 🚧
 - [ ] Exportación de reportes (JSON, HTML, Markdown)
 - [ ] Dashboard web para visualizar violaciones históricas
-- [ ] Soporte para más lenguajes (Rust, C#, Ruby, Kotlin)
 
 ### Futuro 🔮
 - [ ] Reglas personalizadas mediante plugins en Rust/WASM

@@ -5,7 +5,7 @@
 /// - Detect architectural violations
 /// - Handle language-specific syntax
 ///
-/// Covers: TypeScript, JavaScript, Python, Go, PHP, Java
+/// Covers: TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust
 use architect_linter_pro::config::{ArchPattern, ForbiddenRule, Framework, LinterContext};
 use architect_linter_pro::parsers::{ArchitectParser, Language};
 use std::path::Path;
@@ -69,6 +69,27 @@ fn test_language_from_extension_php() {
 #[test]
 fn test_language_from_extension_java() {
     assert_eq!(Language::from_extension("java"), Some(Language::Java));
+}
+
+#[test]
+fn test_language_from_extension_csharp() {
+    assert_eq!(Language::from_extension("cs"), Some(Language::CSharp));
+}
+
+#[test]
+fn test_language_from_extension_ruby() {
+    assert_eq!(Language::from_extension("rb"), Some(Language::Ruby));
+}
+
+#[test]
+fn test_language_from_extension_kotlin() {
+    assert_eq!(Language::from_extension("kt"), Some(Language::Kotlin));
+    assert_eq!(Language::from_extension("kts"), Some(Language::Kotlin));
+}
+
+#[test]
+fn test_language_from_extension_rust() {
+    assert_eq!(Language::from_extension("rs"), Some(Language::Rust));
 }
 
 #[test]
@@ -477,6 +498,109 @@ public class UserController {
 }
 
 // ============================================================================
+// C# Parser Tests
+// ============================================================================
+
+#[test]
+fn test_csharp_extract_imports_basic() {
+    use architect_linter_pro::parsers::csharp::CSharpParser;
+
+    let parser = CSharpParser::new();
+    let source = r#"
+        using System;
+        using System.Collections.Generic;
+        using MyProject.Models;
+        using static System.Math;
+    "#;
+
+    let imports = parser.extract_imports(source, Path::new("test.cs")).unwrap();
+    
+    assert!(imports.len() >= 3);
+    assert!(imports.iter().any(|i| i.source == "System"));
+    assert!(imports.iter().any(|i| i.source == "System.Collections.Generic"));
+}
+
+#[test]
+fn test_csharp_detect_violation() {
+    use architect_linter_pro::parsers::csharp::CSharpParser;
+
+    let parser = CSharpParser::new();
+    let source = "using MyProject.Infrastructure;";
+    let context = create_test_context(vec![forbidden_rule("Domain", "Infrastructure")]);
+
+    let violations = parser.find_violations(source, Path::new("src/Domain/User.cs"), &context).unwrap();
+    assert_eq!(violations.len(), 1);
+}
+
+// ============================================================================
+// Ruby Parser Tests
+// ============================================================================
+
+#[test]
+fn test_ruby_extract_imports_basic() {
+    use architect_linter_pro::parsers::ruby::RubyParser;
+
+    let parser = RubyParser::new();
+    let source = r#"
+        require 'json'
+        require_relative 'models/user'
+        load 'config.rb'
+    "#;
+
+    let imports = parser.extract_imports(source, Path::new("test.rb")).unwrap();
+    
+    assert_eq!(imports.len(), 3);
+    assert!(imports.iter().any(|i| i.source == "json"));
+    assert!(imports.iter().any(|i| i.source == "models/user"));
+    assert!(imports.iter().any(|i| i.source == "config.rb"));
+}
+
+// ============================================================================
+// Kotlin Parser Tests
+// ============================================================================
+
+#[test]
+fn test_kotlin_extract_imports_basic() {
+    use architect_linter_pro::parsers::kotlin::KotlinParser;
+
+    let parser = KotlinParser::new();
+    let source = r#"
+        package com.example
+        import java.util.List
+        import com.example.models.User
+        import com.example.services.*
+    "#;
+
+    let imports = parser.extract_imports(source, Path::new("test.kt")).unwrap();
+    
+    assert_eq!(imports.len(), 3);
+    assert!(imports.iter().any(|i| i.source == "java.util.List"));
+    assert!(imports.iter().any(|i| i.source == "com.example.services.*"));
+}
+
+// ============================================================================
+// Rust Parser Tests
+// ============================================================================
+
+#[test]
+fn test_rust_extract_imports_basic() {
+    use architect_linter_pro::parsers::rust::RustParser;
+
+    let parser = RustParser::new();
+    let source = r#"
+        use std::collections::HashMap;
+        use crate::models::User;
+        use super::utils::*;
+    "#;
+
+    let imports = parser.extract_imports(source, Path::new("test.rs")).unwrap();
+    
+    assert_eq!(imports.len(), 3);
+    assert!(imports.iter().any(|i| i.source == "std::collections::HashMap"));
+    assert!(imports.iter().any(|i| i.source == "crate::models::User"));
+}
+
+// ============================================================================
 // Parser Factory Tests
 // ============================================================================
 
@@ -526,6 +650,38 @@ fn test_get_parser_for_java() {
 
     let parser = get_parser_for_file(Path::new("test.java"));
     assert!(parser.is_some(), "Should return parser for .java");
+}
+
+#[test]
+fn test_get_parser_for_csharp() {
+    use architect_linter_pro::parsers::get_parser_for_file;
+
+    let parser = get_parser_for_file(Path::new("test.cs"));
+    assert!(parser.is_some(), "Should return parser for .cs");
+}
+
+#[test]
+fn test_get_parser_for_ruby() {
+    use architect_linter_pro::parsers::get_parser_for_file;
+
+    let parser = get_parser_for_file(Path::new("test.rb"));
+    assert!(parser.is_some(), "Should return parser for .rb");
+}
+
+#[test]
+fn test_get_parser_for_kotlin() {
+    use architect_linter_pro::parsers::get_parser_for_file;
+
+    let parser = get_parser_for_file(Path::new("test.kt"));
+    assert!(parser.is_some(), "Should return parser for .kt");
+}
+
+#[test]
+fn test_get_parser_for_rust() {
+    use architect_linter_pro::parsers::get_parser_for_file;
+
+    let parser = get_parser_for_file(Path::new("test.rs"));
+    assert!(parser.is_some(), "Should return parser for .rs");
 }
 
 #[test]
@@ -611,6 +767,10 @@ fn test_all_parsers_handle_empty_files() {
         "test.go",
         "test.php",
         "test.java",
+        "test.cs",
+        "test.rb",
+        "test.kt",
+        "test.rs",
     ];
 
     for file in test_files {

@@ -1,5 +1,4 @@
-//! Java parser using Tree-sitter
-
+//! Kotlin parser using Tree-sitter
 use super::{ArchitectParser, Import};
 use crate::autofix::Violation;
 use crate::config::{ForbiddenRule, LinterContext};
@@ -9,23 +8,22 @@ use std::sync::Mutex;
 use tree_sitter::{Parser, Query, QueryCursor};
 use streaming_iterator::StreamingIterator;
 
-pub struct JavaParser {
+pub struct KotlinParser {
     parser: Mutex<Parser>,
 }
 
-impl JavaParser {
+impl KotlinParser {
     pub fn new() -> Self {
         let mut parser = Parser::new();
         parser
-            .set_language(&tree_sitter_java::LANGUAGE.into())
-            .expect("Failed to load Java grammar");
+            .set_language(&tree_sitter_kotlin::LANGUAGE.into())
+            .expect("Failed to load Kotlin grammar");
 
         Self {
             parser: Mutex::new(parser),
         }
     }
 
-    /// Check if a file/import path matches a pattern (Java-specific)
     fn matches_pattern(path: &str, pattern: &str) -> bool {
         let normalized_path = path.to_lowercase().replace('\\', "/");
         let normalized_pattern = pattern
@@ -38,51 +36,31 @@ impl JavaParser {
             return true;
         }
 
-        // Java uses dot notation: com.example.package.ClassName
-        // Convert between dots and slashes for matching
+        // Kotlin uses dot notation for packages
         let path_with_dots = normalized_path.replace('/', ".");
         let pattern_with_dots = normalized_pattern.replace('/', ".");
 
-        if path_with_dots.contains(&pattern_with_dots) {
-            return true;
-        }
-
-        // Check if import ends with pattern folder
-        if let Some(last_segment) = path_with_dots.split('.').last() {
-            if let Some(pattern_last) = pattern_with_dots.split('.').last() {
-                if last_segment.contains(pattern_last) {
-                    return true;
-                }
-            }
-        }
-
-        false
+        path_with_dots.contains(&pattern_with_dots)
     }
 }
 
-impl ArchitectParser for JavaParser {
+impl ArchitectParser for KotlinParser {
     fn extract_imports(&self, source_code: &str, _file_path: &Path) -> Result<Vec<Import>> {
         let mut imports = Vec::new();
 
-        // Parse the source code
         let tree = self
             .parser
             .lock()
             .unwrap()
             .parse(source_code, None)
-            .ok_or_else(|| miette::miette!("Failed to parse Java"))?;
+            .ok_or_else(|| miette::miette!("Failed to parse Kotlin"))?;
 
-        // Query for import declarations
+        // Query for imports
         let query_source = r#"
-            [
-              (import_declaration
-                (scoped_identifier) @import_path)
-              (import_declaration
-                (identifier) @import_path)
-            ]
+            (import) @import_node
         "#;
 
-        let query = Query::new(&tree_sitter_java::LANGUAGE.into(), query_source).into_diagnostic()?;
+        let query = Query::new(&tree_sitter_kotlin::LANGUAGE.into(), query_source).into_diagnostic()?;
 
         let mut cursor = QueryCursor::new();
         let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
@@ -90,30 +68,16 @@ impl ArchitectParser for JavaParser {
         while let Some(match_) = matches.next() {
             for capture in match_.captures {
                 let node = capture.node;
-                let import_path = node.utf8_text(source_code.as_bytes()).into_diagnostic()?;
+                let full_text = node.utf8_text(source_code.as_bytes()).into_diagnostic()?;
                 let line_number = node.start_position().row + 1;
 
-                // Get the full import statement
-                let mut parent = node.parent();
-                while let Some(p) = parent {
-                    if p.kind() == "import_declaration" {
-                        break;
-                    }
-                    parent = p.parent();
-                }
-
-                let raw_statement = if let Some(p) = parent {
-                    p.utf8_text(source_code.as_bytes())
-                        .unwrap_or(import_path)
-                        .to_string()
-                } else {
-                    format!("import {};", import_path)
-                };
+                // Strip "import " prefix
+                let import_path = full_text.trim_start_matches("import").trim().to_string();
 
                 imports.push(Import {
-                    source: import_path.to_string(),
+                    source: import_path,
                     line_number,
-                    raw_statement,
+                    raw_statement: full_text.trim().to_string(),
                 });
             }
         }
@@ -132,7 +96,6 @@ impl ArchitectParser for JavaParser {
         let file_path_str = file_path.to_string_lossy().to_lowercase();
 
         for import in imports {
-            // Check against forbidden rules
             for rule in &context.forbidden_imports {
                 let file_matches = Self::matches_pattern(&file_path_str, &rule.from);
                 let import_matches = Self::matches_pattern(&import.source, &rule.to);
@@ -149,24 +112,6 @@ impl ArchitectParser for JavaParser {
                         line_number: import.line_number,
                     });
                 }
-            }
-
-            // Java-specific rules
-            // Example: Controllers shouldn't import Repositories directly
-            if file_path_str.contains("controller")
-                && (import.source.to_lowercase().contains("repository")
-                    || import.source.to_lowercase().contains(".repo."))
-            {
-                violations.push(Violation {
-                    file_path: file_path.to_path_buf(),
-                    file_content: source_code.to_string(),
-                    offensive_import: import.raw_statement.clone(),
-                    rule: ForbiddenRule {
-                        from: "controller".to_string(),
-                        to: "repository".to_string(),
-                    },
-                    line_number: import.line_number,
-                });
             }
         }
 

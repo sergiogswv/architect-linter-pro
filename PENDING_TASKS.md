@@ -11,15 +11,16 @@
 ### Estado General del Proyecto
 - ✅ **v4.1.0 - Core Hardening**: COMPLETADO (2026-02-15)
 - ✅ **v4.2.0 - Performance**: COMPLETADO (2026-02-13)
-- ✅ **v4.3.0 - Mayo 2026**: COMPLETADO (2026-02-17)
+- ✅ **v4.3.0 - Mayo 2026**: COMPLETADO (2026-02-18)
+- ✅ **Documentation Website**: COMPLETADO (2026-02-18)
 - ⏳ **v4.5.0 - Pro Tier Launch**: PENDIENTE
 - ⏳ **v5.0.0 - Enterprise Platform**: PLANIFICADO (Q3-Q4 2026)
 
 ### Métricas de Completitud
-- **Tests**: 406 tests (100% pass rate) ✅
+- **Tests**: 418 tests (100% pass rate) ✅
 - **Cobertura**: 74% TypeScript, 40% overall ✅
 - **Performance**: 3-5x más rápido con Rayon ✅
-- **Lenguajes Soportados**: 6 (TS, JS, Python, Go, PHP, Java) ✅
+- **Lenguajes Soportados**: 10 (TS, JS, Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust) ✅
 
 ---
 
@@ -128,18 +129,20 @@ schemars = "0.8"
 ### 🟡 PRIORIDAD MEDIA (v4.3.0 - v4.4.0)
 
 #### 4. Documentation Website
-**Estado:** ❌ No iniciado  
+**Estado:** 🚧 EN PROGRESO (Iniciado 2026-02-18)  
 **Esfuerzo Estimado:** 2 semanas  
-**Herramienta Sugerida:** Docusaurus
+**Herramienta:** Docusaurus (clásico con TypeScript)
 
 **Tareas Específicas:**
-- [ ] Setup Docusaurus project
-- [ ] Migrar README.md a docs interactivos
-- [ ] Crear guías por framework (NestJS, Django, Laravel, etc.)
-- [ ] Agregar ejemplos interactivos
-- [ ] Video tutoriales (opcional)
-- [ ] API documentation para uso programático
-- [ ] Desplegar en GitHub Pages o Vercel
+- ✅ Initial setup of Docusaurus project in `website/`
+- ✅ Configure `docusaurus.config.ts` with project details
+- ✅ Migrar README.md a `docs/intro.md`
+- ✅ Migrar ROADMAP.md y CHANGELOG.md a la estructura de docs
+- ✅ Organizar documentos técnicos en `website/docs/technical/`
+- ✅ Crear guías por framework (NestJS, Django, Laravel, etc.)
+- ✅ Agregar ejemplos interactivos (via MDX tabs y code blocks)
+- ✅ API documentation para uso programático (JSON Reference)
+- ✅ Configurar GitHub Actions para despliegue automático en GitHub Pages
 
 **Estructura Sugerida:**
 ```
@@ -189,23 +192,30 @@ architect-lint:
 
 ---
 
-#### 6. Additional Language Support
-**Estado:** ❌ No iniciado  
+#### 6. Additional Language Support ✅
+**Estado:** ✅ COMPLETADO (2026-02-18)  
 **Esfuerzo Estimado:** 1 semana por lenguaje  
 **Prioridad:** Basada en requests de usuarios
 
-**Lenguajes Candidatos:**
-1. **C#** - Alta demanda (.NET ecosystem)
-2. **Ruby** - Media demanda (Rails)
-3. **Kotlin** - Media demanda (Android/Spring)
-4. **Rust** - Baja demanda (nicho)
+**Lenguajes Soportaos (v4.3+):**
+1. **C#** - Soporte para `using` directives y alias. ✅
+2. **Ruby** - Soporte para `require`, `require_relative` y `load`. ✅
+3. **Kotlin** - Soporte para `import` y wildcards. ✅
+4. **Rust** - Soporte para `use` declarations (incluyendo path-based). ✅
 
-**Tareas por Lenguaje:**
-- [ ] Agregar Tree-sitter grammar
-- [ ] Crear parser en `src/parsers/{language}.rs`
-- [ ] Agregar tests de integración
-- [ ] Documentar patrones arquitectónicos comunes
-- [ ] Actualizar README con ejemplos
+**Tareas Completadas:**
+- ✅ Agregar Tree-sitter grammar (v0.25 core compat)
+- ✅ Crear parser en `src/parsers/{language}.rs`
+- ✅ Agregar tests de integración en `tests/test_parsers.rs`
+- ✅ Documentar patrones arquitectónicos comunes
+- ✅ Actualizar README con ejemplos
+
+**Archivos Creados/Modificados:**
+- `src/parsers/csharp.rs`
+- `src/parsers/ruby.rs`
+- `src/parsers/kotlin.rs`
+- `src/parsers/rust.rs`
+- `tests/test_parsers.rs` (Agregados 13 tests nuevos)
 
 ---
 
@@ -473,9 +483,15 @@ src/smells/
 
 ## 🔄 Última Actualización
 
-**Fecha:** 2026-02-17  
+**Fecha:** 2026-02-18  
 **Autor:** AI Assistant  
 **Cambios Recientes:**
+- ✅ **COMPLETADO: Documentation Website** (v4.3.0)
+  - Inicializado proyecto Docusaurus con TypeScript.
+  - Migrados todos los documentos principales y guías técnicas.
+  - Creadas guías de integración para NestJS, Python, Laravel, Go, Java y Frontend (React/Next.js).
+  - Configurado GitHub Action para despliegue automático.
+  - Organizada estructura de sidebar por categorías.
 - ✅ **COMPLETADO: Limpieza de Código Muerto (Dead Code Cleanup)**
   - Eliminados más de 1000 líneas de código no utilizado marcado por `cargo check`.
   - Removido módulo `memory_cache.rs` y struct `HybridCache`.

@@ -13,12 +13,12 @@
   <img src="https://img.shields.io/badge/powered_by-Tree--sitter-green.svg" alt="Tree-sitter">
 </p>
 
-A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **TypeScript, JavaScript, Python, Go, PHP, and Java** using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.
+A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **10 languages (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust)** using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.
 
 ## Features
 
 ### Core Analysis
-- **🌐 Multi-Language Support**: TypeScript, JavaScript, Python, Go, PHP, and Java with Tree-sitter parsing
+- **🌐 Multi-Language Support**: 10 languages (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust) with Tree-sitter parsing
 - **🔧 Dynamic Rule Engine**: Define custom constraints between layers via `architect.json`
 - **🔍 Circular Dependency Detection**: Analyzes the dependency graph and automatically detects cycles
 - **📦 Import Validation**: Detects and blocks imports that violate the defined architecture across all supported languages
@@ -70,6 +70,10 @@ Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsi
 | **Go** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
 | **PHP** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
 | **Java** | `.java` | `import package.Class` | `import com.example.models.User;` |
+| **C#** | `.cs` | `using X` | `using System.Collections.Generic;` |
+| **Ruby** | `.rb` | `require 'X'` | `require 'json'` |
+| **Kotlin** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
+| **Rust** | `.rs` | `use X` | `use std::collections::HashMap;` |
 
 ### Language-Specific Features
 
@@ -78,6 +82,10 @@ Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsi
 - **Go**: Package-based imports with full path support
 - **PHP**: PSR-4 autoloading compatible, supports `use`, `require`, `include` statements
 - **Java**: Package imports with wildcard support
+- **C#**: Full support for `using` directives, alias and static imports
+- **Ruby**: Supports `require`, `require_relative` and `load`
+- **Kotlin**: Full package and import support with wildcard matching
+- **Rust**: Supports `use` declarations including crate, super and self-based paths
 
 All languages share the same rule engine, allowing you to define architectural constraints consistently across polyglot projects.
 

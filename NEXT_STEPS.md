@@ -46,7 +46,7 @@
 
 ## 🧹 Maintenance & Cleanup
 
-- [ ] **Finalize README_ES.md updates** to match current features.
+- [x] **Finalize README_ES.md updates** ✅ (Completed 2026-02-18)
 - [ ] **CI/CD Hardening**: Ensure benchmarks run on every PR to prevent performance regressions.
 - [ ] **Documentation Website**: Start the Docusaurus project in the `docs/` directory.
 

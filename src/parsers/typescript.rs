@@ -19,7 +19,7 @@ impl TypeScriptParser {
     pub fn new() -> Self {
         let mut parser = Parser::new();
         parser
-            .set_language(&tree_sitter_typescript::language_typescript())
+            .set_language(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())
             .expect("Failed to load TypeScript grammar");
 
         Self {

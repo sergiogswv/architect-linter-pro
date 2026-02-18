@@ -7,6 +7,7 @@ use miette::{IntoDiagnostic, Result};
 use std::path::Path;
 use std::sync::Mutex;
 use tree_sitter::{Parser, Query, QueryCursor};
+use streaming_iterator::StreamingIterator;
 
 pub struct GoParser {
     parser: Mutex<Parser>,
@@ -16,7 +17,7 @@ impl GoParser {
     pub fn new() -> Self {
         let mut parser = Parser::new();
         parser
-            .set_language(&tree_sitter_go::language())
+            .set_language(&tree_sitter_go::LANGUAGE.into())
             .expect("Failed to load Go grammar");
 
         Self {
@@ -73,12 +74,12 @@ impl ArchitectParser for GoParser {
             ]
         "#;
 
-        let query = Query::new(&tree_sitter_go::language(), query_source).into_diagnostic()?;
+        let query = Query::new(&tree_sitter_go::LANGUAGE.into(), query_source).into_diagnostic()?;
 
         let mut cursor = QueryCursor::new();
-        let matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
+        let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
 
-        for match_ in matches {
+        while let Some(match_) = matches.next() {
             for capture in match_.captures {
                 let node = capture.node;
                 let import_path_raw = node.utf8_text(source_code.as_bytes()).into_diagnostic()?;

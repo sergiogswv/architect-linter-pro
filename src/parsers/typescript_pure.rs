@@ -8,6 +8,7 @@ use crate::config::{ForbiddenRule, LinterContext};
 use miette::IntoDiagnostic;
 use std::path::Path;
 use tree_sitter::{Query, QueryCursor, Tree};
+use streaming_iterator::StreamingIterator;
 
 /// Represents an import statement extracted from source code
 #[derive(Debug, Clone, PartialEq)]
@@ -46,13 +47,13 @@ pub fn extract_imports_from_tree(tree: &Tree, source_code: &str) -> miette::Resu
           source: (string (string_fragment) @import_path))
     "#;
 
-    let query = Query::new(&tree_sitter_typescript::language_typescript(), query_source)
+    let query = Query::new(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(), query_source)
         .into_diagnostic()?;
 
     let mut cursor = QueryCursor::new();
-    let matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
+    let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
 
-    for match_ in matches {
+    while let Some(match_) = matches.next() {
         for capture in match_.captures {
             let node = capture.node;
             let import_path = node.utf8_text(source_code.as_bytes()).into_diagnostic()?;
