@@ -85,6 +85,9 @@ pub fn save_config_from_wizard(
 
     let framework = crate::detector::detect_framework(root);
 
+    // Obtener build_command sugerido
+    let suggested_build_command = crate::detector::get_build_command_suggestion(&framework);
+
     // Obtener ignored_paths según el framework
     let ignored_paths = get_framework_ignored_paths(&framework);
 
@@ -94,7 +97,7 @@ pub fn save_config_from_wizard(
         architecture_pattern: ArchPattern::MVC, // O el que detecte la IA
         forbidden_imports: forbidden_imports.clone(),
         ignored_paths: ignored_paths.clone(),
-        build_command: None,
+        build_command: suggested_build_command,
         ai_fix_retries: 3,
     };
 

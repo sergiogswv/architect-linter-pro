@@ -63,7 +63,10 @@
             ]
         },
         "build_command": {
-            "type": "string",
+            "type": [
+                "string",
+                "null"
+            ],
             "description": "Command to run to verify the build after applying fixes (e.g., 'npm run build')"
         },
         "ai_fix_retries": {

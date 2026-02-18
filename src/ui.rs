@@ -279,3 +279,24 @@ pub fn get_interactive_path() -> Result<PathBuf> {
         Ok(projects[selection].clone())
     }
 }
+pub fn print_manual_fix_advice(explanation: &str, error: &str) {
+    println!();
+    println!("{}", style("💡 Resumen para corrección manual:").yellow().bold());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("{}", style("Lo que se intentó:").cyan());
+    println!("  {}", explanation);
+    println!();
+    println!("{}", style("Error persistente:").red());
+    let trimmed_error = if error.len() > 200 {
+        format!("{}...", &error[..200])
+    } else {
+        error.to_string()
+    };
+    println!("  {}", trimmed_error);
+    println!();
+    println!("{}", style("Sugerencia de ajuste:").green());
+    println!("  Verifica que el archivo de destino exista o que el 'interface_path'");
+    println!("  sea correcto. A veces la IA sugiere rutas que no existen en el disco.");
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!();
+}

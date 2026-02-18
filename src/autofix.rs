@@ -54,9 +54,16 @@ pub async fn suggest_fix(
     project_root: &Path,
     ai_configs: &[AIConfig],
     previous_error: Option<&str>,
+    previous_suggestion: Option<&str>,
 ) -> Result<FixSuggestion> {
     // Obtener estructura de carpetas del proyecto
     let folder_structure = get_project_structure(project_root);
+
+    // Obtener un fragmento del código alrededor de la violación
+    let lines: Vec<&str> = violation.file_content.lines().collect();
+    let start_line = violation.line_number.saturating_sub(10);
+    let end_line = std::cmp::min(violation.line_number + 10, lines.len());
+    let relevant_code = lines[start_line..end_line].join("\n");
 
     // Construir prompt estructurado
     let mut prompt = format!(
@@ -64,9 +71,9 @@ pub async fn suggest_fix(
 
 ** REGLAS DE ORO **:
 1. El JSON debe ser VÁLIDO y seguir la estructura exacta.
-2. `old_code` debe coincidir EXACTO con el código del archivo (incluyendo espacios y punto y coma).
+2. `old_code` debe ser EXACTAMENTE el contenido de la línea ofensiva o el bloque ofensivo.
 3. `new_code` debe ser sintácticamente válido para el lenguaje del archivo.
-4. Para TypeScript/JavaScript: SIEMPRE incluye el punto y coma `;` al final de los imports.
+4. MUY IMPORTANTE: Antes de sugerir un 'new_code', revisa la ESTRUCTURA DEL PROYECTO para asegurarte de que el archivo/carpeta de destino REALMENTE EXISTE.
 
 ** CONTEXTO DEL PROYECTO **:
 {}
@@ -74,29 +81,33 @@ pub async fn suggest_fix(
 ** VIOLACIÓN **:
 Archivo: {}
 Regla: No se permite importar desde '{}' en archivos situados en '{}'
-Línea {}: {}
+Línea ofensiva (Línea {}): {}
 
-** CÓDIGO FUENTE (Fragmento relevante) **:
+** CÓDIGO FUENTE (Alrededor de la violación) **:
 ```
 {}
 ```
 
 ** TAREA **:
-Elige la mejor estrategia (refactor, move_file o create_interface) y responde ÚNICAMENTE con el JSON."#,
+Elige la mejor estrategia (refactor, move_file o create_interface) y responde ÚNICAMENTE con el JSON.
+Si eliges 'refactor', asegúrate de que 'old_code' sea exactamente la línea '{}'."#,
         folder_structure,
         violation.file_path.display(),
         violation.rule.to,
         violation.rule.from,
         violation.line_number,
         violation.offensive_import,
-        violation.file_content
+        relevant_code,
+        violation.offensive_import
     );
 
     // Si hubo un error previo, añadirlo al prompt para que la IA lo corrija
     if let Some(error) = previous_error {
+        let suggestion_text = previous_suggestion.map(|s| format!("\nTu sugerencia anterior fue: {}", s)).unwrap_or_default();
+        let error_type = if error.contains("sintaxis") { "DE SINTAXIS" } else { "EL BUILD" };
         prompt.push_str(&format!(
-            "\n\n⚠️ **ATENCIÓN: TU RESPUESTA ANTERIOR FALLÓ**\nError: {}\nPor favor, corrige tu respuesta asegurándote de que el JSON sea válido y el código sea correcto.",
-            error
+            "\n\n⚠️ **ATENCIÓN: TU INTENTO ANTERIOR FALLÓ {}**\n{} \nError: {}\nPor favor, intenta una estrategia DIFERENTE. Si el import anterior no funcionó, puede que la ruta sea incorrecta o necesites crear una interfaz.",
+            error_type, suggestion_text, error
         ));
     }
 
@@ -160,17 +171,19 @@ pub async fn suggest_fix_with_retry(
     project_root: &Path,
     ai_configs: &[AIConfig],
     initial_error: Option<&str>,
+    previous_suggestion: Option<&str>,
 ) -> Result<FixSuggestion> {
     let mut attempts = 0;
     const MAX_ATTEMPTS: usize = 3;
     let mut last_error_msg = initial_error.map(|e| e.to_string()).unwrap_or_default();
+    let current_prev_suggestion = previous_suggestion.map(|s| s.to_string());
 
     while attempts < MAX_ATTEMPTS {
         // Intentar obtener una sugerencia (puede fallar por red o por parseo JSON)
         let suggestion_result = if attempts == 0 && initial_error.is_none() {
-            suggest_fix(violation, project_root, ai_configs, None).await
+            suggest_fix(violation, project_root, ai_configs, None, None).await
         } else {
-            suggest_fix(violation, project_root, ai_configs, Some(&last_error_msg)).await
+            suggest_fix(violation, project_root, ai_configs, Some(&last_error_msg), current_prev_suggestion.as_deref()).await
         };
 
         match suggestion_result {
@@ -221,6 +234,12 @@ fn dry_run_and_validate(
             if violation.file_content == updated_content && !old.ends_with(';') {
                 let old_with_semi = format!("{};", old);
                 updated_content = violation.file_content.replace(&old_with_semi, new);
+            }
+            
+            // Si sigue sin funcionar, intentar un reemplazo basado en la línea ofensiva conocida
+            if violation.file_content == updated_content {
+                let offensive = violation.offensive_import.trim();
+                updated_content = violation.file_content.replace(offensive, new);
             }
 
             if violation.file_content == updated_content {
@@ -399,38 +418,66 @@ fn apply_create_interface(
     ))
 }
 
-/// Obtiene la estructura de carpetas del proyecto
+/// Obtiene la estructura de carpetas del proyecto de forma más profunda
 fn get_project_structure(root: &Path) -> String {
     let mut structure = String::new();
+    let mut explorer = ProjectExplorer::new(root);
+    explorer.explore(root, 0, &mut structure);
+    structure
+}
 
-    if let Ok(entries) = fs::read_dir(root) {
-        for entry in entries.flatten() {
-            if let Ok(metadata) = entry.metadata() {
-                let name = entry.file_name().to_string_lossy().to_string();
+struct ProjectExplorer {
+    root: PathBuf,
+    max_depth: usize,
+    max_items_per_dir: usize,
+}
 
-                // Ignorar node_modules, .git, etc.
-                if name.starts_with('.') || name == "node_modules" {
-                    continue;
-                }
-
-                if metadata.is_dir() {
-                    structure.push_str(&format!("  📁 {}/\n", name));
-
-                    // Listar subdirectorios (máximo 2 niveles)
-                    if let Ok(sub_entries) = fs::read_dir(entry.path()) {
-                        for sub_entry in sub_entries.flatten().take(5) {
-                            let sub_name = sub_entry.file_name().to_string_lossy().to_string();
-                            if !sub_name.starts_with('.') {
-                                structure.push_str(&format!("    - {}\n", sub_name));
-                            }
-                        }
-                    }
-                }
-            }
+impl ProjectExplorer {
+    fn new(root: &Path) -> Self {
+        Self {
+            root: root.to_path_buf(),
+            max_depth: 4,
+            max_items_per_dir: 10,
         }
     }
 
-    structure
+    fn explore(&mut self, dir: &Path, depth: usize, out: &mut String) {
+        if depth >= self.max_depth {
+            return;
+        }
+
+        if let Ok(entries) = fs::read_dir(dir) {
+            let mut entries_vec: Vec<_> = entries.flatten().collect();
+            // Sort entries: directories first
+            entries_vec.sort_by_key(|e| !e.path().is_dir());
+
+            for entry in entries_vec.iter().take(self.max_items_per_dir) {
+                let path = entry.path();
+                let name = entry.file_name().to_string_lossy().to_string();
+
+                if name.starts_with('.') || name == "node_modules" || name == "target" || name == "dist" {
+                    continue;
+                }
+
+                let indent = "  ".repeat(depth);
+                if path.is_dir() {
+                    out.push_str(&format!("{}📁 {}/\n", indent, name));
+                    self.explore(&path, depth + 1, out);
+                } else {
+                    // Only show files that are likely to be relevant for architecture (TS, JS, etc.)
+                    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+                    if matches!(ext, "ts" | "tsx" | "js" | "jsx" | "py" | "go" | "php" | "java") {
+                        out.push_str(&format!("{}  - {}\n", indent, name));
+                    }
+                }
+            }
+            
+            if entries_vec.len() > self.max_items_per_dir {
+                let indent = "  ".repeat(depth);
+                out.push_str(&format!("{}  ... ({} más items)\n", indent, entries_vec.len() - self.max_items_per_dir));
+            }
+        }
+    }
 }
 
 /// Ejecuta el comando de build configurado para validar los cambios

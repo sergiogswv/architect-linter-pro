@@ -18,6 +18,7 @@ pub struct ConfigFile {
     pub forbidden_imports: Vec<ForbiddenRule>,
     #[serde(default = "super::ignored_paths::default_ignored_paths")]
     pub ignored_paths: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub build_command: Option<String>,
     #[serde(default = "default_ai_fix_retries")]
     pub ai_fix_retries: usize,

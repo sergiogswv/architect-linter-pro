@@ -431,9 +431,11 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
     let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
 
-    for (index, violation) in all_violations.iter().enumerate() {
+    let mut all_violations = all_violations;
+    let total_violations = all_violations.len();
+    for (index, violation) in all_violations.iter_mut().enumerate() {
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        println!("Violación #{}/{}", index + 1, all_violations.len());
+        println!("Violación #{}/{}", index + 1, total_violations);
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!("📄 Archivo: {}", violation.file_path.display());
         println!("📍 Línea: {}", violation.line_number);
@@ -444,8 +446,17 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         println!("💥 Import ofensivo: {}", violation.offensive_import);
         println!();
 
+        // Refrescar contenido del archivo para asegurar que trabajamos con la versión más reciente
+        if let Ok(current_content) = std::fs::read_to_string(&violation.file_path) {
+            violation.file_content = current_content;
+        }
+        
+        // Guardar el estado inicial antes de intentar arreglar ESTA violación
+        let pre_violation_content = violation.file_content.clone();
+
         let mut build_attempts = 0;
         let mut last_error: Option<String> = None;
+        let mut last_suggestion_desc: Option<String> = None;
 
         loop {
             if build_attempts > 0 {
@@ -465,6 +476,7 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                 project_root,
                 &ctx.ai_configs,
                 last_error.as_deref(),
+                last_suggestion_desc.as_deref(),
             )) {
                 Ok(s) => {
                     pb.finish_and_clear();
@@ -473,6 +485,11 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                 Err(e) => {
                     pb.finish_with_message("❌ Error obteniendo sugerencia");
                     eprintln!("❌ Error: {}", e);
+                    
+                    if let Some(error_str) = last_error.as_deref() {
+                        ui::print_manual_fix_advice("No se pudo obtener una sugerencia válida para corregir el error de build.", error_str);
+                    }
+                    
                     println!("⏭️  Saltando esta violación...\n");
                     skipped_count += 1;
                     break;
@@ -486,6 +503,13 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
             );
             println!("{}", suggestion.explanation);
             println!();
+
+            // Record this suggestion in case the build fails
+            last_suggestion_desc = Some(match &suggestion.fix_type {
+                autofix::FixType::Refactor { new_code, .. } => format!("Cambiar código a: '{}'", new_code),
+                autofix::FixType::MoveFile { to, .. } => format!("Mover archivo a: '{}'", to),
+                autofix::FixType::CreateInterface { interface_path, .. } => format!("Crear interfaz en: '{}'", interface_path),
+            });
 
             match &suggestion.fix_type {
                 autofix::FixType::Refactor { old_code, new_code } => {
@@ -512,13 +536,18 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                 }
             }
 
-            println!("──────────────────────────────────────────────────────────────");
-            println!("💡 Tip: Presiona [Enter] para aceptar (Sí) o [n] para rechazar.");
-            let should_apply = Confirm::with_theme(&ColorfulTheme::default())
-                .with_prompt("¿Deseas aplicar estos cambios en tu código?")
-                .default(true)
-                .interact()
-                .into_diagnostic()?;
+            let should_apply = if build_attempts == 0 {
+                println!("──────────────────────────────────────────────────────────────");
+                println!("💡 Tip: Presiona [Enter] para aceptar (Sí) o [n] para rechazar.");
+                Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt("¿Deseas aplicar estos cambios en tu código?")
+                    .default(true)
+                    .interact()
+                    .into_diagnostic()?
+            } else {
+                println!("🔄 Aplicando automáticamente el siguiente intento de fix...");
+                true
+            };
 
             if should_apply {
                 let apply_pb = ProgressBar::new_spinner();
@@ -547,8 +576,8 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                                     apply_pb.finish_with_message("⚠️  El build falló tras el fix");
                                     eprintln!("❌ Error de Build: {}", build_err);
 
-                                    // Revertir cambios
-                                    let _ = std::fs::write(&violation.file_path, &violation.file_content);
+                                    // Revertir cambios al estado inicial de esta violación
+                                    let _ = std::fs::write(&violation.file_path, &pre_violation_content);
                                     
                                     build_attempts += 1;
                                     if build_attempts <= ctx.ai_fix_retries {
@@ -557,6 +586,9 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                                         continue;
                                     } else {
                                         println!("❌ Se alcanzó el máximo de reintentos de build. Saltando violación.");
+                                        if let Some(error) = &last_error {
+                                            ui::print_manual_fix_advice(&suggestion.explanation, error);
+                                        }
                                         skipped_count += 1;
                                         break;
                                     }
@@ -572,6 +604,7 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                     Err(e) => {
                         apply_pb.finish_with_message("⚠️  El fix fue revertido");
                         eprintln!("❌ Error: {}", e);
+                        ui::print_manual_fix_advice(&suggestion.explanation, &e.to_string());
                         skipped_count += 1;
                         break;
                     }

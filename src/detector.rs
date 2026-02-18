@@ -145,3 +145,14 @@ pub fn get_loc_suggestion(framework: &Framework) -> usize {
         Framework::Unknown => 50, // Estándar general
     }
 }
+/// Sugiere el comando de build basado en el framework detectado.
+pub fn get_build_command_suggestion(framework: &Framework) -> Option<String> {
+    match framework {
+        Framework::NestJS => Some("npm run build".to_string()),
+        Framework::React => Some("npm run build".to_string()),
+        Framework::Angular => Some("ng build".to_string()),
+        Framework::Gin | Framework::Echo => Some("go build ./...".to_string()),
+        Framework::Spring => Some("./gradlew build".to_string()),
+        _ => None,
+    }
+}
