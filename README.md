@@ -55,6 +55,8 @@ A multi-language software architecture linter written in Rust that validates arc
 - **🐙 GitHub Action**: Official action for CI/CD pipeline integration
 - **🔍 Debug Mode**: Structured logging with `--debug` flag for troubleshooting and observability
 - **✅ Config Validation**: Instant schema validation with the `--check` flag
+- **🧪 Enhanced Stability**: (New in v4.3.0) Robust initialization with `Default` trait implementations and cleaned-up codebase for reliable CI/CD execution.
+- **📊 Advanced Metrics Utilities**: (New in v4.3.0) Inter-file function call tracking using high-performance SWC analysis.
 
 ## Supported Languages
 

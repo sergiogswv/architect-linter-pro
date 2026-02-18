@@ -84,6 +84,7 @@ fn test_cli_args_default_values() {
         daemon_mode: false,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(args.project_path.is_none());
@@ -109,6 +110,7 @@ fn test_cli_args_with_all_flags() {
         daemon_mode: true,
         report_format: Some(ReportFormat::Json),
         output_path: Some("/path/to/report.json".to_string()),
+        ..Default::default()
     };
 
     assert_eq!(args.project_path, Some("/path/to/project".to_string()));
@@ -134,6 +136,7 @@ fn test_cli_args_with_watch_mode() {
         daemon_mode: false,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(args.watch_mode);
@@ -153,6 +156,7 @@ fn test_cli_args_with_staged_mode() {
         daemon_mode: false,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(!args.watch_mode);
@@ -172,6 +176,7 @@ fn test_cli_args_with_incremental_mode() {
         daemon_mode: false,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(!args.staged_mode);
@@ -190,6 +195,7 @@ fn test_cli_args_with_report_json() {
         daemon_mode: false,
         report_format: Some(ReportFormat::Json),
         output_path: None,
+        ..Default::default()
     };
 
     assert_eq!(args.report_format, Some(ReportFormat::Json));
@@ -207,6 +213,7 @@ fn test_cli_args_with_report_markdown() {
         daemon_mode: false,
         report_format: Some(ReportFormat::Markdown),
         output_path: None,
+        ..Default::default()
     };
 
     assert_eq!(args.report_format, Some(ReportFormat::Markdown));
@@ -224,6 +231,7 @@ fn test_cli_args_with_daemon_mode() {
         daemon_mode: true,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(args.daemon_mode);
@@ -242,6 +250,7 @@ fn test_cli_args_with_no_cache() {
         daemon_mode: false,
         report_format: None,
         output_path: None,
+        ..Default::default()
     };
 
     assert!(args.no_cache);
@@ -259,6 +268,7 @@ fn test_cli_args_with_output_path() {
         daemon_mode: false,
         report_format: None,
         output_path: Some("report.md".to_string()),
+        ..Default::default()
     };
 
     assert_eq!(args.output_path, Some("report.md".to_string()));
@@ -283,6 +293,7 @@ fn test_cli_args_clone() {
         daemon_mode: false,
         report_format: Some(ReportFormat::Json),
         output_path: None,
+        ..Default::default()
     };
 
     let args2 = args1.clone();

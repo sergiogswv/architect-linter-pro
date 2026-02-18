@@ -70,6 +70,7 @@ fn create_test_context() -> LinterContext {
         forbidden_imports: vec![],
         ignored_paths: vec![],
         ai_configs: vec![],
+        ..Default::default()
     }
 }
 

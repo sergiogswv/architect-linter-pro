@@ -8,19 +8,14 @@
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::fs;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::path::PathBuf;
 use std::time::Instant;
 use tempfile::TempDir;
 
 // Import our modules for benchmarking
 use architect_linter_pro::analyzer::collector::analyze_all_files;
 use architect_linter_pro::cache::{AnalysisCache, FileCacheEntry};
-use architect_linter_pro::config::{
-    AIConfig, ArchPattern, ForbiddenRule, Framework, LinterContext,
-};
-use architect_linter_pro::discovery;
-use architect_linter_pro::memory_cache::MemoryCache;
+use architect_linter_pro::config::{ArchPattern, ForbiddenRule, Framework, LinterContext};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 
@@ -80,6 +75,7 @@ fn setup_linter_context() -> LinterContext {
         }],
         ignored_paths: vec![],
         ai_configs: vec![],
+        ..Default::default()
     }
 }
 
@@ -133,7 +129,6 @@ fn bench_cache_performance(c: &mut Criterion) {
     let project_root = temp_dir.path();
 
     // Create and populate cache
-    let cache_key = "test".to_string();
     let mut cache = AnalysisCache::new("test_config_hash".to_string());
 
     // Pre-populate cache with some entries
@@ -193,27 +188,6 @@ fn bench_cache_performance(c: &mut Criterion) {
         });
     });
     cache_miss_group.finish();
-
-    // Benchmark memory cache performance
-    let mut mem_cache_group = c.benchmark_group("memory_cache");
-
-    let memory_cache = Arc::new(MemoryCache::new(100));
-
-    // Populate memory cache
-    for i in 0..50 {
-        let file_path = project_root.join(format!("file_{}.ts", i));
-        memory_cache.put(file_path, format!("hash_{}", i));
-    }
-
-    mem_cache_group.bench_function("memory_cache_get", |b| {
-        b.iter(|| {
-            for i in 0..50 {
-                let file_path = project_root.join(format!("file_{}.ts", i));
-                black_box(memory_cache.get(&file_path));
-            }
-        });
-    });
-    mem_cache_group.finish();
 
     // Drop temp directory
     drop(temp_dir);

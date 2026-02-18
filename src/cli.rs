@@ -47,6 +47,24 @@ pub struct CliArgs {
     pub check_mode: bool,
 }
 
+impl Default for CliArgs {
+    fn default() -> Self {
+        Self {
+            project_path: None,
+            watch_mode: false,
+            fix_mode: false,
+            staged_mode: false,
+            incremental_mode: false,
+            report_format: None,
+            output_path: None,
+            no_cache: false,
+            daemon_mode: false,
+            debug_mode: false,
+            check_mode: false,
+        }
+    }
+}
+
 /// Muestra la ayuda del CLI
 pub fn print_help() {
     println!("architect-linter-pro {}", VERSION);

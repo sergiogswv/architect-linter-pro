@@ -1,16 +1,17 @@
-use architect_linter_pro::cache::{FileCacheEntry, HybridCache};
+use architect_linter_pro::cache::{AnalysisCache, FileCacheEntry};
 use std::path::PathBuf;
 use tempfile::TempDir;
 
 #[test]
-fn test_three_layer_cache_with_promotion() {
+fn test_analysis_cache_basic_ops() {
     let temp_dir = TempDir::new().unwrap();
     let config_hash = "test_config".to_string();
 
-    let mut cache = HybridCache::new(10, temp_dir.path(), config_hash.clone()).unwrap();
+    let mut cache = AnalysisCache::new(config_hash.clone());
 
     // 1. Put file into cache
     let file_path = PathBuf::from("test.ts");
+    let key = AnalysisCache::normalize_path(&file_path, temp_dir.path());
     let entry = FileCacheEntry {
         content_hash: "hash123".to_string(),
         violations: vec![],
@@ -19,22 +20,20 @@ fn test_three_layer_cache_with_promotion() {
         function_count: 1,
     };
 
-    cache.put(file_path.clone(), entry);
+    cache.insert(key.clone(), entry);
 
-    // 2. Get from memory (Layer 1)
-    let result = cache.get(&file_path);
+    // 2. Get from memory
+    let result = cache.get(&key, "hash123");
     assert!(result.is_some());
-    assert_eq!(result.unwrap(), "hash123");
+    assert_eq!(result.unwrap().content_hash, "hash123");
 
-    // 3. Clear memory to force disk access
-    cache.clear_memory();
+    // 3. Test persistence
+    cache.save(temp_dir.path()).unwrap();
 
-    // 4. Get should promote from disk (Layer 2) to memory
-    let result2 = cache.get(&file_path);
-    assert!(result2.is_some(), "Should promote from disk to memory");
-    assert_eq!(result2.unwrap(), "hash123");
-
-    // 5. Second get should hit memory (not disk)
-    let result3 = cache.get(&file_path);
-    assert_eq!(result3, Some("hash123".to_string()));
+    // 4. Load from disk
+    let loaded_cache =
+        AnalysisCache::load(temp_dir.path(), &config_hash).expect("Should load cache");
+    let result2 = loaded_cache.get(&key, "hash123");
+    assert!(result2.is_some(), "Should load from disk");
+    assert_eq!(result2.unwrap().content_hash, "hash123");
 }

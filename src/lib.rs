@@ -17,6 +17,7 @@ pub mod detector;
 pub mod discovery;
 pub mod git;
 pub mod git_changes;
+pub mod logging;
 
 pub mod metrics;
 pub mod notification;
@@ -32,4 +33,3 @@ pub use analysis_result::AnalysisResult;
 pub use circular::CircularDependency;
 pub use config::ArchPattern;
 pub use metrics::{ComplexityStats, HealthGrade, HealthScore, LayerStats, ScoreComponents};
-

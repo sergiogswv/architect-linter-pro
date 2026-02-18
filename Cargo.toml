@@ -66,6 +66,7 @@ lru = "0.13"
 
 # OS integration (v4.1.0-beta)
 notify-rust = "4.12"
+swc_ecma_visit = "0.96"
 
 [target.'cfg(unix)'.dependencies]
 # daemonize is unmaintained but needed for Unix daemon functionality

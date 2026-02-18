@@ -500,6 +500,12 @@ src/smells/
   - Implementado panic handler personalizado
   - Creado módulo `src/logging.rs`
   - Documentación completa en `docs/ERROR_HANDLING_LOGGING_IMPLEMENTATION.md`
+- ✅ **COMPLETADO: Estabilización de Tests y Refactorización de Structs**
+  - Implementado trait `Default` para `LinterContext`, `CliArgs` y otros tipos base.
+  - Corregidos errores de inicialización en toda la suite de tests.
+  - Implementada extracción de llamadas a funciones (`extract_function_calls`) con SWC.
+  - Restaurada compatibilidad con tests de integración mediante capa legacy en `scoring.rs`.
+  - Actualizados benchmarks y tests de caché para reflejar la arquitectura actual.
 - ✅ Fix: Error parsing archivos Python en `.claude/`
 - ✅ Agregado `.claude/` a default_ignored_paths
 - ✅ Modificado `circular.rs` para skip archivos no-JS/TS

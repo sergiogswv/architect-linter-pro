@@ -3,7 +3,7 @@ use miette::{Diagnostic, SourceSpan};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum Framework {
     NestJS,
     React,
@@ -21,6 +21,7 @@ pub enum Framework {
     // PHP frameworks
     Laravel,
     Symfony,
+    #[default]
     Unknown,
 }
 
@@ -48,15 +49,16 @@ impl Framework {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum ArchPattern {
     Hexagonal,
     Clean,
     MVC,
+    #[default]
     Ninguno,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ForbiddenRule {
     pub from: String,
     pub to: String,
@@ -109,6 +111,7 @@ impl Default for AIConfig {
     }
 }
 
+#[derive(Default)]
 pub struct LinterContext {
     pub max_lines: usize,
     #[allow(dead_code)]

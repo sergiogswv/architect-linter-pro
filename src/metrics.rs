@@ -167,4 +167,41 @@ pub struct ComplexityStats {
     pub max_lines_threshold: usize,
 }
 
+/// Statistics for performance analysis
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct PerformanceMetrics {
+    pub total_time_ms: u64,
+    pub files_analyzed: usize,
+    pub files_from_cache: usize,
+    pub memory_cache_hits: usize,
+    pub disk_cache_hits: usize,
+    pub peak_memory_mb: u64,
+    pub threads_used: usize,
+}
 
+impl PerformanceMetrics {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn cache_hit_rate(&self) -> f64 {
+        if self.files_analyzed == 0 {
+            0.0
+        } else {
+            ((self.memory_cache_hits + self.disk_cache_hits) as f64 / self.files_analyzed as f64)
+                * 100.0
+        }
+    }
+}
+
+impl std::fmt::Display for PerformanceMetrics {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "PerformanceMetrics: total_time_ms: {}, files_analyzed: {}, cache_hit_rate: {:.2}%",
+            self.total_time_ms,
+            self.files_analyzed,
+            self.cache_hit_rate()
+        )
+    }
+}

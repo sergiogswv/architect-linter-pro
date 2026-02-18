@@ -176,10 +176,10 @@ pub fn extract_folder_from_pattern(pattern: &str) -> Option<String> {
 /// ```
 pub fn generate_import_patterns(folder: &str) -> Vec<String> {
     vec![
-        format!("/{}", folder),           // Absolute path pattern
-        format!("../{}", folder),         // Relative path pattern
-        format!("@/{}", folder),          // Alias pattern
-        folder.to_string(),               // Direct pattern
+        format!("/{}", folder),   // Absolute path pattern
+        format!("../{}", folder), // Relative path pattern
+        format!("@/{}", folder),  // Alias pattern
+        folder.to_string(),       // Direct pattern
     ]
 }
 
@@ -279,11 +279,7 @@ pub fn matches_pattern(path: &str, pattern: &str) -> bool {
 ///     &rule
 /// ));
 /// ```
-pub fn matches_forbidden_rule(
-    file_path: &str,
-    import_source: &str,
-    rule: &ForbiddenRule,
-) -> bool {
+pub fn matches_forbidden_rule(file_path: &str, import_source: &str, rule: &ForbiddenRule) -> bool {
     let file_matches = matches_pattern(file_path, &rule.from);
     let import_matches = matches_pattern(import_source, &rule.to);
 
@@ -329,8 +325,8 @@ pub fn is_controller_to_repository_violation(file_path: &str, import_source: &st
     let normalized_import = normalize_path(import_source);
 
     let is_controller = normalized_file_path.contains("controller");
-    let is_repository = normalized_import.contains("repository")
-        || normalized_import.contains(".repository");
+    let is_repository =
+        normalized_import.contains("repository") || normalized_import.contains(".repository");
 
     is_controller && is_repository
 }
@@ -344,7 +340,6 @@ pub fn is_controller_to_repository_violation(file_path: &str, import_source: &st
 ///
 /// # Returns
 /// A vector of matching rule indices
-
 
 /// Create violations for a matching rule
 ///
@@ -429,7 +424,6 @@ pub fn find_violations_in_imports(
 /// # Returns
 /// Imports whose source matches the pattern
 
-
 /// Check if any import matches a pattern
 ///
 /// # Arguments
@@ -439,7 +433,6 @@ pub fn find_violations_in_imports(
 /// # Returns
 /// true if any import matches the pattern
 
-
 /// Count imports matching a pattern
 ///
 /// # Arguments
@@ -448,7 +441,6 @@ pub fn find_violations_in_imports(
 ///
 /// # Returns
 /// Number of imports matching the pattern
-
 
 #[cfg(test)]
 mod tests {
@@ -472,7 +464,10 @@ mod tests {
 
     #[test]
     fn test_normalize_path_lowercase() {
-        assert_eq!(normalize_path("SRC/Components/Button"), "src/components/button");
+        assert_eq!(
+            normalize_path("SRC/Components/Button"),
+            "src/components/button"
+        );
         assert_eq!(normalize_path("MyFile.TS"), "myfile.ts");
     }
 
@@ -543,8 +538,14 @@ mod tests {
 
     #[test]
     fn test_matches_pattern_direct_containment() {
-        assert!(matches_pattern("src/components/button.tsx", "src/components/"));
-        assert!(matches_pattern("src/components/nested/Button.tsx", "src/components/"));
+        assert!(matches_pattern(
+            "src/components/button.tsx",
+            "src/components/"
+        ));
+        assert!(matches_pattern(
+            "src/components/nested/Button.tsx",
+            "src/components/"
+        ));
     }
 
     #[test]
@@ -670,9 +671,6 @@ mod tests {
         ));
     }
 
-
-
-
     // =========================================================================
     // Integration-style tests
     // =========================================================================
@@ -702,6 +700,7 @@ mod tests {
             }],
             ignored_paths: vec![],
             ai_configs: vec![],
+            ..Default::default()
         };
 
         let violations = find_violations_in_imports(
@@ -735,6 +734,7 @@ mod tests {
             }],
             ignored_paths: vec![],
             ai_configs: vec![],
+            ..Default::default()
         };
 
         let violations = find_violations_in_imports(

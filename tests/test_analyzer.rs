@@ -52,7 +52,7 @@ fn test_incremental_analysis_mode() {
     // This test verifies that the CLI includes incremental_mode field
 
     // Create default CLI args to verify the field exists
-    let mut args = architect_linter_pro::cli::CliArgs {
+    let args = architect_linter_pro::cli::CliArgs {
         project_path: None,
         watch_mode: false,
         fix_mode: false,
@@ -62,6 +62,7 @@ fn test_incremental_analysis_mode() {
         report_format: None,
         output_path: None,
         daemon_mode: false,
+        ..Default::default()
     };
 
     // Verify the field exists and can be set

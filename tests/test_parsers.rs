@@ -23,6 +23,7 @@ fn create_test_context(rules: Vec<ForbiddenRule>) -> LinterContext {
         forbidden_imports: rules,
         ignored_paths: vec![],
         ai_configs: vec![],
+        ..Default::default()
     }
 }
 

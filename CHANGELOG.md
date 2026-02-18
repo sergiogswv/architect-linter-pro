@@ -128,10 +128,23 @@ RUST_LOG=trace architect-linter-pro /path/to/project
 - Updated ROADMAP.md with completion status
 - Updated README.md with debug mode documentation
 
+### 🧪 Stability & Test Hardening
+- **Struct Defaults**: Implemented `Default` trait for `LinterContext`, `CliArgs`, `Framework`, `ArchPattern`, and `ForbiddenRule` to ensure robust initialization and fix failing tests.
+- **Cache Modernization**: Updated `tests/test_cache.rs` and `benches/performance_bench.rs` to reflect the new `AnalysisCache` architecture.
+- **Legacy Compatibility Layer**: Re-introduced essential types in `src/scoring.rs` for backward compatibility with integration tests during the transition to the 4.0 scoring system.
+- **Dependency cleanup**: Removed non-existent `MemoryCache` references from benchmarks.
+- **Test coverage**: Fixed multiple broken integration tests in `test_analyzer.rs`, `test_multi_file_analysis.rs`, and `test_scoring.rs`.
+
+### 📊 Metrics Improvements
+- **Function Call Extraction**: Added `extract_function_calls` using SWC visitor pattern to track inter-file dependencies.
+- **Public API Refactoring**: Re-exported essential metrics utilities from `src/analyzer/mod.rs` for better accessibility.
+
 ### Bug Fixes
-- Fixed `.claude/` directory parsing errors (Python files)
-- Added `.claude/` to default ignored paths
-- Modified `circular.rs` to skip non-JS/TS files
+- Fixed `.claude/` directory parsing errors (Python files).
+- Added `.claude/` to default ignored paths.
+- Modified `circular.rs` to skip non-JS/TS files.
+- Fixed missing field errors in `CliArgs` and `LinterContext` initializers across the test suite.
+- Corrected syntax errors and missing types in `src/metrics.rs`.
 
 ---
 

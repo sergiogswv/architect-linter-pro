@@ -6,35 +6,28 @@
 //! - Files with multiple architectural violations
 //! - Edge cases with decorators and violations combined
 
+use architect_linter_pro::analyzer::collect_violations_from_file;
 use architect_linter_pro::analyzer::{
     count_functions, count_imports, extract_function_calls, find_long_functions,
 };
-use architect_linter_pro::analyzer::collect_violations_from_file;
-use architect_linter_pro::config::{ArchPattern, Framework, ForbiddenRule, LinterContext};
+use architect_linter_pro::config::{ArchPattern, ForbiddenRule, Framework, LinterContext};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 
 /// Helper function to create a LinterContext for testing
 fn create_test_context() -> LinterContext {
     LinterContext {
-        max_lines: 30,
-        framework: Framework::Express,
-        pattern: ArchPattern::MVC,
-        forbidden_imports: vec![],
-        ignored_paths: vec![],
         ai_configs: vec![],
+        ..Default::default()
     }
 }
 
 /// Helper function to create a context with forbidden imports
 fn create_context_with_rules(rules: Vec<ForbiddenRule>) -> LinterContext {
     LinterContext {
-        max_lines: 30,
-        framework: Framework::Express,
-        pattern: ArchPattern::MVC,
         forbidden_imports: rules,
-        ignored_paths: vec![],
         ai_configs: vec![],
+        ..Default::default()
     }
 }
 
@@ -356,19 +349,21 @@ export class DomainService {
     std::fs::write(&file_path, code).unwrap();
 
     // Create context with forbidden import rules
-    let rules = vec![
-        ForbiddenRule {
-            from: "/domain/".to_string(),
-            to: "/infrastructure/".to_string(),
-        },
-    ];
+    let rules = vec![ForbiddenRule {
+        from: "/domain/".to_string(),
+        to: "/infrastructure/".to_string(),
+    }];
     let ctx = create_context_with_rules(rules);
 
     // Collect violations (should find 4 forbidden imports)
     let violations = collect_violations_from_file(&cm, &file_path, &ctx);
     assert!(violations.is_ok());
     let viols = violations.unwrap();
-    assert_eq!(viols.len(), 4, "Should detect 4 forbidden import violations");
+    assert_eq!(
+        viols.len(),
+        4,
+        "Should detect 4 forbidden import violations"
+    );
 
     // Verify each violation is for infrastructure imports
     for violation in &viols {
@@ -446,12 +441,10 @@ class CombinedViolations {
     std::fs::write(&file_path, code).unwrap();
 
     // Create context with forbidden import rules
-    let rules = vec![
-        ForbiddenRule {
-            from: "/domain/".to_string(),
-            to: "/infrastructure/".to_string(),
-        },
-    ];
+    let rules = vec![ForbiddenRule {
+        from: "/domain/".to_string(),
+        to: "/infrastructure/".to_string(),
+    }];
     let ctx = create_context_with_rules(rules);
 
     // Test 1: Check for forbidden import violations
@@ -538,12 +531,10 @@ export class ViolatingService {
     std::fs::write(&file_path, code).unwrap();
 
     // Create context with forbidden rules
-    let rules = vec![
-        ForbiddenRule {
-            from: "/domain/".to_string(),
-            to: "/infrastructure/".to_string(),
-        },
-    ];
+    let rules = vec![ForbiddenRule {
+        from: "/domain/".to_string(),
+        to: "/infrastructure/".to_string(),
+    }];
     let ctx = create_context_with_rules(rules);
 
     // Test 1: Verify it parses decorated class correctly

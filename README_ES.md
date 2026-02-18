@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-4.2.0-blue.svg" alt="Versión">
+  <img src="https://img.shields.io/badge/versión-4.3.0-blue.svg" alt="Versión">
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Edición Rust">
   <img src="https://img.shields.io/badge/licencia-MIT-green.svg" alt="Licencia">
   <img src="https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Plataforma">
@@ -54,6 +54,8 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 - **🐙 GitHub Action**: Action oficial para integración en pipelines CI/CD
 - **🔍 Modo Debug**: Logging estructurado con flag `--debug` para troubleshooting y observabilidad
 - **✅ Validación de Config**: Validación instantánea del esquema con el flag `--check`
+- **🧪 Estabilidad Mejorada**: (Nuevo en v4.3.0) Inicialización robusta con implementaciones del rasgo `Default` y base de código limpia para ejecución confiable en CI/CD.
+- **📊 Utilidades de Métricas Avanzadas**: (Nuevo en v4.3.0) Rastreo de llamadas a funciones inter-archivo mediante análisis SWC de alto rendimiento.
 
 ## Lenguajes Soportados
 

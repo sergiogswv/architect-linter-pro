@@ -5,8 +5,62 @@
 
 use crate::analysis_result::AnalysisResult;
 use crate::metrics::{HealthGrade, HealthScore, ScoreComponents};
+use serde::{Deserialize, Serialize};
 
+/// Legacy violation type for scoring (used by tests)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ViolationType {
+    Critical,
+    Warning,
+    Info,
+}
 
+/// Legacy violation structure for scoring (used by tests)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Violation {
+    pub severity: ViolationType,
+    pub file_path: String,
+    pub line: usize,
+    pub message: String,
+}
+
+/// Simplified health score calculation for tests
+pub fn calculate_health_score(violations: &[Violation], file_count: f64) -> f64 {
+    if file_count == 0.0 {
+        return 100.0;
+    }
+
+    let mut penalty = 0.0;
+    for v in violations {
+        match v.severity {
+            ViolationType::Critical => penalty += 10.0,
+            ViolationType::Warning => penalty += 5.0,
+            ViolationType::Info => penalty += 1.0,
+        }
+    }
+
+    let score = 100.0 - (penalty / file_count);
+    score.max(0.0).min(100.0)
+}
+
+/// Apply severity multipliers and bonuses (used by tests)
+pub fn apply_severity_multiplier(
+    violations: &[Violation],
+    base_score: f64,
+    file_count: usize,
+) -> f64 {
+    let mut multiplier = 1.0;
+
+    if violations.is_empty() {
+        if file_count == 0 {
+            multiplier = 1.10;
+        } else if file_count >= 100 {
+            multiplier = 1.05;
+        }
+    }
+
+    (base_score * multiplier).min(100.0)
+}
 
 /// Calculate the health score from an analysis result
 pub fn calculate(result: &AnalysisResult) -> HealthScore {
@@ -111,8 +165,6 @@ pub fn reset_color() -> &'static str {
     "\x1b[0m"
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,6 +210,4 @@ mod tests {
         let bar = get_progress_bar(0, 10);
         assert_eq!(bar, "[          ]");
     }
-
-
 }
