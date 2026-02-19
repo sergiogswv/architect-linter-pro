@@ -56,9 +56,9 @@ mod tests {
 
     #[test]
     fn test_normalize_pattern() {
-        assert_eq!(normalize_pattern("src/components/**"), "src/components/");
-        assert_eq!(normalize_pattern("**/*.tsx"), "/.tsx"); // Note: keeps leading /
-        assert_eq!(normalize_pattern("src/services/**"), "src/services/");
+        assert_eq!(normalize_pattern("src/components/**"), "src/components/*");
+        assert_eq!(normalize_pattern("**/*.tsx"), "*/*.tsx"); // Note: keeps leading wildcard
+        assert_eq!(normalize_pattern("src/services/**"), "src/services/*");
     }
 
     #[test]

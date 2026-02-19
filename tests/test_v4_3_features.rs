@@ -2,7 +2,6 @@
 
 mod common;
 use common::TestProject;
-use std::fs;
 
 #[test]
 fn test_config_schema_validation_success() {
@@ -129,6 +128,7 @@ fn test_rollback_on_syntax_error() {
         rule: ForbiddenRule {
             from: "test.ts".into(),
             to: "b".into(),
+            severity: None,
         },
         line_number: 1,
     };

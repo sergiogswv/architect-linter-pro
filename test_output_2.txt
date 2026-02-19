@@ -1,0 +1,591 @@
+warning: field `root` is never read
+   --> src\autofix.rs:430:5
+    |
+429 | struct ProjectExplorer {
+    |        --------------- field in this struct
+430 |     root: PathBuf,
+    |     ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `architect-linter-pro` (lib) generated 1 warning
+warning: unused imports: `FunctionCall`, `count_functions`, `count_imports`, `extract_function_calls`, and `find_long_functions`
+  --> src\analyzer\mod.rs:18:5
+   |
+18 |     count_functions, count_imports, extract_function_calls, find_long_functions, FunctionCall,
+   |     ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `FunctionCall` is never constructed
+  --> src\analyzer\metrics.rs:14:12
+   |
+14 | pub struct FunctionCall {
+   |            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `extract_function_calls` is never used
+   --> src\analyzer\metrics.rs:272:8
+    |
+272 | pub fn extract_function_calls(cm: &SourceMap, path: &Path) -> ...
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `CallVisitor` is never constructed
+   --> src\analyzer\metrics.rs:308:8
+    |
+308 | struct CallVisitor<'a> {
+    |        ^^^^^^^^^^^
+
+warning: field `root` is never read
+   --> src\autofix.rs:430:5
+    |
+429 | struct ProjectExplorer {
+    |        --------------- field in this struct
+430 |     root: PathBuf,
+    |     ^^^^
+
+warning: struct `PerformanceMetrics` is never constructed
+   --> src\metrics.rs:172:12
+    |
+172 | pub struct PerformanceMetrics {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `cache_hit_rate` are never used
+   --> src\metrics.rs:183:12
+    |
+182 | impl PerformanceMetrics {
+    | ----------------------- associated items in this implementation
+183 |     pub fn new() -> Self {
+    |            ^^^
+...
+187 |     pub fn cache_hit_rate(&self) -> f64 {
+    |            ^^^^^^^^^^^^^^
+
+warning: enum `ViolationType` is never used
+  --> src\scoring.rs:12:10
+   |
+12 | pub enum ViolationType {
+   |          ^^^^^^^^^^^^^
+
+warning: struct `Violation` is never constructed
+  --> src\scoring.rs:20:12
+   |
+20 | pub struct Violation {
+   |            ^^^^^^^^^
+
+warning: function `calculate_health_score` is never used
+  --> src\scoring.rs:28:8
+   |
+28 | pub fn calculate_health_score(violations: &[Violation], file_co...
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `apply_severity_multiplier` is never used
+  --> src\scoring.rs:47:8
+   |
+47 | pub fn apply_severity_multiplier(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `architect-linter-pro` (bin "architect-linter-pro") generated 11 warnings (run `cargo fix --bin "architect-linter-pro" -p architect-linter-pro` to apply 1 suggestion)
+warning: unused import: `std::path::PathBuf`
+  --> tests\test_cli.rs:12:5
+   |
+12 | use std::path::PathBuf;
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `tempfile::TempDir`
+  --> tests\test_cli.rs:13:5
+   |
+13 | use tempfile::TempDir;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+  --> tests\test_cli.rs:22:14
+   |
+22 |     Command::cargo_bin("architect-linter-pro").unwrap()
+   |              ^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: methods `collect_ts_files` and `collect_files_with_extensions` are never used
+  --> tests\common\mod.rs:64:12
+   |
+17 | impl TestProject {
+   | ---------------- methods in this implementation
+...
+64 |     pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+   |            ^^^^^^^^^^^^^^^^
+...
+69 |     pub fn collect_files_with_extensions(&self, extensions: &[&...
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `join_rules` is never used
+   --> tests\common\mod.rs:106:8
+    |
+106 | pub fn join_rules(rules: &[String]) -> String {
+    |        ^^^^^^^^^^
+
+warning: function `create_temp_ts_project` is never used
+   --> tests\common\mod.rs:111:8
+    |
+111 | pub fn create_temp_ts_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_temp_py_project` is never used
+   --> tests\common\mod.rs:119:8
+    |
+119 | pub fn create_temp_py_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_architect_config` is never used
+   --> tests\common\mod.rs:127:8
+    |
+127 | pub fn create_architect_config(temp_dir: &Path, config: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ArchPattern`
+  --> tests\test_multi_file_analysis.rs:12:49
+   |
+12 | use architect_linter_pro::config::{load_config, ArchPattern};
+   |                                                 ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `ArchPattern` and `Framework`
+  --> tests\integration\classes_and_violations.rs:13:36
+   |
+13 | ...::config::{ArchPattern, ForbiddenRule, Framework, LinterCont...
+   |               ^^^^^^^^^^^                 ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `ctx`
+   --> tests\integration\classes_and_violations.rs:582:9
+    |
+582 |     let ctx = create_test_context();
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_ctx`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `collect_ts_files` and `collect_files_with_extensions` are never used
+  --> tests\integration\..\common\mod.rs:64:12
+   |
+17 | impl TestProject {
+   | ---------------- methods in this implementation
+...
+64 |     pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+   |            ^^^^^^^^^^^^^^^^
+...
+69 |     pub fn collect_files_with_extensions(&self, extensions: &[&...
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `join_rules` is never used
+   --> tests\integration\..\common\mod.rs:106:8
+    |
+106 | pub fn join_rules(rules: &[String]) -> String {
+    |        ^^^^^^^^^^
+
+warning: function `create_temp_ts_project` is never used
+   --> tests\integration\..\common\mod.rs:111:8
+    |
+111 | pub fn create_temp_ts_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_temp_py_project` is never used
+   --> tests\integration\..\common\mod.rs:119:8
+    |
+119 | pub fn create_temp_py_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_architect_config` is never used
+   --> tests\integration\..\common\mod.rs:127:8
+    |
+127 | pub fn create_architect_config(temp_dir: &Path, config: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `collect_ts_files` and `collect_files_with_extensions` are never used
+  --> tests\e2e\..\common\mod.rs:64:12
+   |
+17 | impl TestProject {
+   | ---------------- methods in this implementation
+...
+64 |     pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+   |            ^^^^^^^^^^^^^^^^
+...
+69 |     pub fn collect_files_with_extensions(&self, extensions: &[&...
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `join_rules` is never used
+   --> tests\e2e\..\common\mod.rs:106:8
+    |
+106 | pub fn join_rules(rules: &[String]) -> String {
+    |        ^^^^^^^^^^
+
+warning: function `create_temp_ts_project` is never used
+   --> tests\e2e\..\common\mod.rs:111:8
+    |
+111 | pub fn create_temp_ts_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_temp_py_project` is never used
+   --> tests\e2e\..\common\mod.rs:119:8
+    |
+119 | pub fn create_temp_py_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_architect_config` is never used
+   --> tests\e2e\..\common\mod.rs:127:8
+    |
+127 | pub fn create_architect_config(temp_dir: &Path, config: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `collect_ts_files` and `collect_files_with_extensions` are never used
+  --> tests\e2e\github_action\..\..\common\mod.rs:64:12
+   |
+17 | impl TestProject {
+   | ---------------- methods in this implementation
+...
+64 |     pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+   |            ^^^^^^^^^^^^^^^^
+...
+69 |     pub fn collect_files_with_extensions(&self, extensions: &[&...
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `join_rules` is never used
+   --> tests\e2e\github_action\..\..\common\mod.rs:106:8
+    |
+106 | pub fn join_rules(rules: &[String]) -> String {
+    |        ^^^^^^^^^^
+
+warning: function `create_temp_ts_project` is never used
+   --> tests\e2e\github_action\..\..\common\mod.rs:111:8
+    |
+111 | pub fn create_temp_ts_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_temp_py_project` is never used
+   --> tests\e2e\github_action\..\..\common\mod.rs:119:8
+    |
+119 | pub fn create_temp_py_project(content: &str) -> TempDir {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_architect_config` is never used
+   --> tests\e2e\github_action\..\..\common\mod.rs:127:8
+    |
+127 | pub fn create_architect_config(temp_dir: &Path, config: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `predicates::prelude::*`
+ --> tests\test_fixtures.rs:8:5
+  |
+8 | use predicates::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+  --> tests\test_fixtures.rs:27:14
+   |
+27 |     Command::cargo_bin("architect-linter-pro")
+   |              ^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+  --> tests\test_fixtures.rs:76:14
+   |
+76 |     Command::cargo_bin("architect-linter-pro")
+   |              ^^^^^^^^^
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+   --> tests\test_fixtures.rs:131:14
+    |
+131 |     Command::cargo_bin("architect-linter-pro")
+    |              ^^^^^^^^^
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+   --> tests\test_fixtures.rs:239:14
+    |
+239 |     Command::cargo_bin("architect-linter-pro")
+    |              ^^^^^^^^^
+
+warning: unused return value of `assert_cmd::Command::assert` that must be used
+  --> tests\test_fixtures.rs:27:5
+   |
+27 | /     Command::cargo_bin("architect-linter-pro")
+28 | |         .unwrap()
+29 | |         .current_dir(&fixture_dir)
+30 | |         .arg("--report")
+...  |
+34 | |         .arg(".")
+35 | |         .assert();
+   | |_________________^
+   |
+   = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+27 |     let _ = Command::cargo_bin("architect-linter-pro")
+   |     +++++++
+
+warning: unused variable: `function_count`
+   --> tests\test_parser_snapshots.rs:352:9
+    |
+352 |     let function_count = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_count`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `function_calls`
+   --> tests\test_parser_snapshots.rs:353:9
+    |
+353 |     let function_calls = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_calls`
+
+warning: unused variable: `function_count`
+   --> tests\test_parser_snapshots.rs:434:9
+    |
+434 |     let function_count = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_count`
+
+warning: unused variable: `function_calls`
+   --> tests\test_parser_snapshots.rs:435:9
+    |
+435 |     let function_calls = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_calls`
+
+warning: unused variable: `function_count`
+   --> tests\test_parser_snapshots.rs:556:9
+    |
+556 |     let function_count = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_count`
+
+warning: unused variable: `function_calls`
+   --> tests\test_parser_snapshots.rs:557:9
+    |
+557 |     let function_calls = count_functions(&cm, &file_path);
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_function_calls`
+
+warning: unused import: `std::fs`
+ --> tests\test_v4_3_features.rs:5:5
+  |
+5 | use std::fs;
+  |     ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `architect-linter-pro` (test "test_cli") generated 8 warnings (run `cargo fix --test "test_cli" -p architect-linter-pro` to apply 2 suggestions)
+warning: `architect-linter-pro` (test "test_multi_file_analysis") generated 1 warning (run `cargo fix --test "test_multi_file_analysis" -p architect-linter-pro` to apply 1 suggestion)
+warning: `architect-linter-pro` (test "test_integration") generated 7 warnings (run `cargo fix --test "test_integration" -p architect-linter-pro` to apply 2 suggestions)
+warning: `architect-linter-pro` (test "test_e2e_github_action") generated 10 warnings
+warning: `architect-linter-pro` (test "test_fixtures") generated 6 warnings (run `cargo fix --test "test_fixtures" -p architect-linter-pro` to apply 1 suggestion)
+warning: `architect-linter-pro` (test "test_parser_snapshots") generated 6 warnings (run `cargo fix --test "test_parser_snapshots" -p architect-linter-pro` to apply 6 suggestions)
+warning: `architect-linter-pro` (test "test_common") generated 4 warnings (4 duplicates)
+warning: `architect-linter-pro` (bin "architect-linter-pro" test) generated 11 warnings (11 duplicates)
+warning: `architect-linter-pro` (test "test_v4_3_features") generated 6 warnings (5 duplicates) (run `cargo fix --test "test_v4_3_features" -p architect-linter-pro` to apply 1 suggestion)
+warning: comparison is useless due to type limits
+   --> tests\test_parsers.rs:301:9
+    |
+301 |         imports.len() >= 0,
+    |         ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_comparisons)]` on by default
+
+warning: function `join_rules` is never used
+   --> tests\common\mod.rs:106:8
+    |
+106 | pub fn join_rules(rules: &[String]) -> String {
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> tests\test_scoring.rs:463:9
+    |
+463 |     let mut result1 = create_test_result();
+    |         ----^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> tests\test_scoring.rs:464:9
+    |
+464 |     let mut result2 = create_test_result();
+    |         ----^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `fixture_path`
+   --> tests\test_scoring.rs:459:9
+    |
+459 |     let fixture_path =
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_fixture_path`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: comparison is useless due to type limits
+   --> tests\test_scoring.rs:150:13
+    |
+150 |     assert!(score.total >= 0 && score.total <= 100);
+    |             ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_comparisons)]` on by default
+
+warning: comparison is useless due to type limits
+   --> tests\test_scoring.rs:164:13
+    |
+164 |     assert!(score.total >= 0 && score.total <= 100);
+    |             ^^^^^^^^^^^^^^^^
+
+warning: comparison is useless due to type limits
+   --> tests\test_scoring.rs:187:13
+    |
+187 |     assert!(score.total >= 0 && score.total <= 100);
+    |             ^^^^^^^^^^^^^^^^
+
+warning: function `create_ai_config_file` is never used
+  --> tests\test_config.rs:16:4
+   |
+16 | fn create_ai_config_file(project: &TestProject, content: &str) ...
+   |    ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `collect_ts_files` and `collect_files_with_extensions` are never used
+  --> tests\common\mod.rs:64:12
+   |
+17 | impl TestProject {
+   | ---------------- methods in this implementation
+...
+64 |     pub fn collect_ts_files(&self) -> Vec<PathBuf> {
+   |            ^^^^^^^^^^^^^^^^
+...
+69 |     pub fn collect_files_with_extensions(&self, extensions: &[&...
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `architect-linter-pro` (test "test_parsers") generated 1 warning
+warning: `architect-linter-pro` (test "test_circular") generated 4 warnings (3 duplicates)
+warning: `architect-linter-pro` (test "test_scoring") generated 6 warnings (run `cargo fix --test "test_scoring" -p architect-linter-pro` to apply 3 suggestions)
+warning: `architect-linter-pro` (test "test_config") generated 6 warnings (4 duplicates)
+warning: `architect-linter-pro` (lib test) generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.78s
+     Running unittests src\lib.rs (target\debug\deps\architect_linter_pro-3ae383b0ffbfa205.exe)
+
+running 35 tests
+test analyzer::pattern_matcher::tests::test_matches_pattern_basic ... ok
+test analyzer::pattern_matcher::tests::test_matches_pattern_with_relative_imports ... ok
+test analyzer::pattern_matcher::tests::test_normalize_pattern ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_with_src ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_multiple_violations ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_without_src ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_no_violations ... ok
+test logging::tests::test_init_normal_mode ... ok
+test parsers::typescript_pure::tests::test_generate_import_patterns ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_controller ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_repository ... ok
+test logging::tests::test_init_debug_mode ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_true ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_file ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_import ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_violation ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_alias_imports ... ok
+test parsers::typescript_pure::tests::test_normalize_path_lowercase ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_case_insensitive ... ok
+test parsers::typescript_pure::tests::test_normalize_path_mixed_separators ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_no_match ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_relative_imports ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_windows_paths ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_wildcards ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_empty_pattern ... ok
+test parsers::typescript_pure::tests::test_normalize_path_windows_to_unix ... ok
+test report::tests::test_markdown_report_structure ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_no_wildcards ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_direct_containment ... ok
+test scoring::tests::test_progress_bar ... ok
+test scoring::tests::test_score_components_calculate_total ... ok
+test scoring::tests::test_health_grade_from_score ... ok
+test report::tests::test_json_report_structure ... ok
+test git::tests::test_is_git_repo ... ok
+test git_changes::tests::test_git_detection_in_crate ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src\main.rs (target\debug\deps\architect_linter_pro-9202588137955bee.exe)
+
+running 35 tests
+test analyzer::pattern_matcher::tests::test_matches_pattern_basic ... ok
+test analyzer::pattern_matcher::tests::test_matches_pattern_with_relative_imports ... ok
+test analyzer::pattern_matcher::tests::test_normalize_pattern ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_true ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_with_src ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_file ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_no_violations ... ok
+test parsers::typescript_pure::tests::test_generate_import_patterns ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_controller ... ok
+test logging::tests::test_init_debug_mode ... ok
+test logging::tests::test_init_normal_mode ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_without_src ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_multiple_violations ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_import ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_repository ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_violation ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_alias_imports ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_no_wildcards ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_direct_containment ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_empty_pattern ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_no_match ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_relative_imports ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_windows_paths ... ok
+test report::tests::test_markdown_report_structure ... ok
+test parsers::typescript_pure::tests::test_normalize_path_mixed_separators ... ok
+test scoring::tests::test_health_grade_from_score ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_case_insensitive ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_wildcards ... ok
+test scoring::tests::test_progress_bar ... ok
+test parsers::typescript_pure::tests::test_normalize_path_lowercase ... ok
+test report::tests::test_json_report_structure ... ok
+test scoring::tests::test_score_components_calculate_total ... ok
+test parsers::typescript_pure::tests::test_normalize_path_windows_to_unix ... ok
+test git::tests::test_is_git_repo ... ok
+test git_changes::tests::test_git_detection_in_crate ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\test_analyzer.rs (target\debug\deps\test_analyzer-595d4aa1f2916ab1.exe)
+
+running 2 tests
+test test_incremental_analysis_mode ... ok
+test test_parallel_analysis_produces_same_results ... FAILED
+
+failures:
+
+---- test_parallel_analysis_produces_same_results stdout ----
+Ôä╣´©Å  La configuraci├│n ha sido migrada autom├íticamente al formato m├ís reciente.
+
+thread 'test_parallel_analysis_produces_same_results' (11348) panicked at tests\test_analyzer.rs:13:75:
+called `Result::unwrap()` on an `Err` value: config::invalid
+
+  ├ù El archivo architect.json no cumple con el esquema esperado
+  help: Problemas detectados:
+        - : Additional properties are not allowed ('framework' was unexpected)
+        
+        Revisa la documentaci├│n o usa el esquema para autocompletado.
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    test_parallel_analysis_produces_same_results
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--test test_analyzer`

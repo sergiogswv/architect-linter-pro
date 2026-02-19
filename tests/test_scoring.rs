@@ -146,8 +146,7 @@ fn test_complexity_with_zero_functions() {
 
     let score = scoring::calculate(&result);
 
-    // Should handle gracefully, not panic
-    assert!(score.total >= 0 && score.total <= 100);
+    assert!(score.total <= 100);
     // Complexity component should not be 0 due to division by zero
     assert!(score.components.complexity > 0);
 }
@@ -160,8 +159,7 @@ fn test_layer_isolation_with_zero_imports() {
 
     let score = scoring::calculate(&result);
 
-    // Should handle gracefully
-    assert!(score.total >= 0 && score.total <= 100);
+    assert!(score.total <= 100);
     assert!(score.components.layer_isolation > 0);
 }
 
@@ -183,8 +181,7 @@ fn test_empty_project_scoring() {
 
     let score = scoring::calculate(&result);
 
-    // Empty project should get a reasonable score (not crash)
-    assert!(score.total >= 0 && score.total <= 100);
+    assert!(score.total <= 100);
     // Should not be F just because it's empty
     assert_ne!(score.grade, HealthGrade::F);
 }
@@ -349,6 +346,7 @@ fn test_violations_component_few() {
         rule: ForbiddenRule {
             from: "domain".to_string(),
             to: "infrastructure".to_string(),
+            severity: None,
         },
         line_number: 10,
     };
@@ -377,6 +375,7 @@ fn test_violations_component_many() {
             rule: ForbiddenRule {
                 from: "domain".to_string(),
                 to: "infrastructure".to_string(),
+                severity: None,
             },
             line_number: i * 10,
         };
@@ -454,12 +453,8 @@ fn test_scoring_determinism_100_runs() {
 #[test]
 fn test_scoring_with_identical_projects() {
     // Two identical projects should get same score
-    let fixture_path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/perfect_mvc_project");
-
-    // Simple test: analyze twice with the same empty result
-    let mut result1 = create_test_result();
-    let mut result2 = create_test_result();
+    let result1 = create_test_result();
+    let result2 = create_test_result();
 
     let score1 = scoring::calculate(&result1);
     let score2 = scoring::calculate(&result2);

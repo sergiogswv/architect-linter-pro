@@ -16,13 +16,7 @@
         },
         "architecture_pattern": {
             "type": "string",
-            "description": "The architectural pattern to enforce",
-            "enum": [
-                "Hexagonal",
-                "Clean",
-                "MVC",
-                "Ninguno"
-            ],
+            "description": "The architectural pattern to enforce (e.g. Hexagonal, Clean, MVC, Atomic Design, etc.)",
             "default": "Ninguno"
         },
         "forbidden_imports": {

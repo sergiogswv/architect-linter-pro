@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fs;
 /// Common test utilities and helpers
 ///
@@ -76,7 +78,10 @@ impl TestProject {
                     if path.is_dir() {
                         // Skip node_modules and hidden dirs
                         if let Some(name) = path.file_name() {
-                            if name.to_str().map_or(false, |n| n.starts_with('.') || n == "node_modules") {
+                            if name
+                                .to_str()
+                                .map_or(false, |n| n.starts_with('.') || n == "node_modules")
+                            {
                                 continue;
                             }
                         }

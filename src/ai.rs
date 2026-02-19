@@ -2,7 +2,7 @@ use crate::config::{AIConfig, AIProvider};
 use serde::{Deserialize, Serialize};
 
 // Estructuras para el mapeo de la respuesta de la IA
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AISuggestionResponse {
     pub pattern: String,
     pub suggested_max_lines: usize,
@@ -14,6 +14,17 @@ pub struct SuggestedRule {
     pub from: String,
     pub to: String,
     pub reason: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct ArchOption {
+    pub name: String,
+    pub description: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Top3Response {
+    pub options: Vec<ArchOption>,
 }
 
 /// Obtiene la lista de modelos disponibles para el proveedor configurado
@@ -98,7 +109,10 @@ pub async fn consultar_ia(prompt: String, ai_config: AIConfig) -> anyhow::Result
 }
 
 /// Orquestador que intenta consultar varias IAs en orden hasta que una funcione
-pub async fn consultar_ia_con_fallback(prompt: String, configs: &[AIConfig]) -> anyhow::Result<String> {
+pub async fn consultar_ia_con_fallback(
+    prompt: String,
+    configs: &[AIConfig],
+) -> anyhow::Result<String> {
     if configs.is_empty() {
         return Err(anyhow::anyhow!("No hay configuraciones de IA disponibles. Ejecuta el linter sin architect.json para configurar una."));
     }
@@ -200,6 +214,84 @@ pub async fn sugerir_arquitectura_inicial(
     Ok(suggestion)
 }
 
+/// Sugiere un Top 3 de arquitecturas basadas en el framework detectado
+pub async fn sugerir_top_3_arquitecturas(
+    framework: &str,
+    ai_configs: Vec<AIConfig>,
+) -> anyhow::Result<Vec<ArchOption>> {
+    let prompt = format!(
+        "Eres un Arquitecto de Software Senior. El proyecto usa el framework '{framework}'.
+        
+        TAREA:
+        Sugiere un Top 3 de patrones arquitectónicos ideales para este framework (ej: Hexagonal, Clean, MVC, Layered, Modular Monolith, etc.).
+        
+        RESPONDE EXCLUSIVAMENTE EN FORMATO JSON con esta estructura:
+        {{
+          \"options\": [
+            {{ \"name\": \"Nombre del patrón\", \"description\": \"Breve explicación de por qué es ideal para {framework}\" }}
+          ]
+        }}
+        
+        Asegúrate de que sean exactamente 3 opciones.",
+        framework = framework
+    );
+
+    let response_text = consultar_ia_con_fallback(prompt, &ai_configs).await?;
+    let json_start = response_text
+        .find('{')
+        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
+    let json_end = response_text
+        .rfind('}')
+        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
+    let clean_json = &response_text[json_start..=json_end];
+
+    let response: Top3Response = serde_json::from_str(clean_json)?;
+    Ok(response.options)
+}
+
+/// Sugiere reglas específicas para un patrón seleccionado
+pub async fn sugerir_reglas_para_patron(
+    pattern_name: &str,
+    context: crate::discovery::ProjectContext,
+    ai_configs: Vec<AIConfig>,
+) -> anyhow::Result<AISuggestionResponse> {
+    let prompt = format!(
+        "Eres un Arquitecto de Software Senior. Se ha seleccionado el patrón '{pattern_name}' para el proyecto {framework}.
+        Dependencias: {deps:?}
+        Estructura de carpetas: {files:?}
+        Archivos clave: {key_files:?}
+
+        TAREA:
+        Genera reglas de importaciones prohibidas específicas para implementar el patrón '{pattern_name}' en este proyecto.
+        
+        RESPONDE EXCLUSIVAMENTE EN FORMATO JSON con esta estructura:
+        {{
+          \"pattern\": \"{pattern_name}\",
+          \"suggested_max_lines\": 60,
+          \"rules\": [
+            {{ \"from\": \"capa_origen\", \"to\": \"capa_prohibida\", \"reason\": \"explicación corta\" }}
+          ]
+        }}",
+        pattern_name = pattern_name,
+        framework = context.framework,
+        deps = context.dependencies,
+        files = context.folder_structure,
+        key_files = context.key_files
+    );
+
+    let response_text = consultar_ia_con_fallback(prompt, &ai_configs).await?;
+    let json_start = response_text
+        .find('{')
+        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
+    let json_end = response_text
+        .rfind('}')
+        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
+    let clean_json = &response_text[json_start..=json_end];
+
+    let suggestion: AISuggestionResponse = serde_json::from_str(clean_json)?;
+    Ok(suggestion)
+}
+
 /// Consulta la API de Claude (Anthropic)
 pub async fn consultar_claude(prompt: String, ai_config: AIConfig) -> anyhow::Result<String> {
     let url = format!("{}/v1/messages", ai_config.api_url.trim_end_matches('/'));
@@ -271,7 +363,10 @@ pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Re
 }
 
 /// Consulta APIs compatibles con OpenAI (OpenAI, Groq, Ollama)
-pub async fn consultar_openai_compatible(prompt: String, ai_config: AIConfig) -> anyhow::Result<String> {
+pub async fn consultar_openai_compatible(
+    prompt: String,
+    ai_config: AIConfig,
+) -> anyhow::Result<String> {
     let url = format!(
         "{}/chat/completions",
         ai_config.api_url.trim_end_matches('/')

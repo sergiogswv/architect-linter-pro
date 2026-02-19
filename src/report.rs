@@ -15,6 +15,7 @@ pub fn generate_report(result: &AnalysisResult, format: ReportFormat) -> String 
     match format {
         ReportFormat::Json => to_json(result),
         ReportFormat::Markdown => to_markdown(result),
+        ReportFormat::CodeClimate => to_code_climate(result),
     }
 }
 
@@ -205,6 +206,69 @@ pub fn to_markdown(result: &AnalysisResult) -> String {
     }
 
     md
+}
+
+/// Export analysis result to Code Climate (GitLab Code Quality) format
+pub fn to_code_climate(result: &AnalysisResult) -> String {
+    let mut reports = Vec::new();
+
+    // 1. Forbidden import violations
+    for cv in &result.violations {
+        reports.push(json!({
+            "description": format!("Architectural violation: '{}' cannot import from '{}' (Import: {})", 
+                cv.violation.rule.from, cv.violation.rule.to, cv.violation.offensive_import),
+            "fingerprint": format!("{:x}", md5::compute(format!("{}:{}:{}", 
+                cv.violation.file_path.display(), cv.violation.line_number, cv.violation.offensive_import))),
+            "severity": match cv.category {
+                crate::analysis_result::ViolationCategory::Blocked => "major",
+                crate::analysis_result::ViolationCategory::Warning => "minor",
+                crate::analysis_result::ViolationCategory::Info => "info",
+            },
+            "location": {
+                "path": cv.violation.file_path.to_string_lossy().to_string(),
+                "lines": {
+                    "begin": cv.violation.line_number
+                }
+            }
+        }));
+    }
+
+    // 2. Circular dependencies
+    for cd in &result.circular_dependencies {
+        // Find the first file in the cycle to pin the violation
+        if let Some(first_file) = cd.cycle.first() {
+            reports.push(json!({
+                "description": format!("Circular dependency detected: {}", cd.description),
+                "fingerprint": format!("{:x}", md5::compute(format!("circular:{}", cd.description))),
+                "severity": "info",
+                "location": {
+                    "path": first_file,
+                    "lines": {
+                        "begin": 1
+                    }
+                }
+            }));
+        }
+    }
+
+    // 3. Long functions
+    for lf in &result.long_functions {
+        reports.push(json!({
+            "description": format!("Long function '{}' ({} lines) exceeds threshold ({} lines)",
+                lf.name, lf.lines, lf.threshold),
+            "fingerprint": format!("{:x}", md5::compute(format!("{}:{}:{}",
+                lf.file_path.display(), lf.line_start, lf.name))),
+            "severity": "minor",
+            "location": {
+                "path": lf.file_path.to_string_lossy().to_string(),
+                "lines": {
+                    "begin": lf.line_start
+                }
+            }
+        }));
+    }
+
+    serde_json::to_string_pretty(&reports).unwrap_or_else(|_| "[]".to_string())
 }
 
 /// Write report to file

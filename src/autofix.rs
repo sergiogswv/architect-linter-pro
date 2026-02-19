@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Arc;
 use swc_common::SourceMap;
 use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser as SwcParser, StringInput, Syntax, TsConfig};
-use std::sync::Arc;
 
 /// Representa una violación arquitectónica detectada
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,11 +27,21 @@ pub struct Violation {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "fix_type", rename_all = "snake_case")]
 pub enum FixType {
-    /// Refactorizar código (cambiar imports, crear interfaces)
+    /// Refactorizar código (cambiar imports, etc.)
     Refactor { old_code: String, new_code: String },
-    /// Mover archivo a otra capa
-    MoveFile { from: String, to: String },
-    /// Crear nueva interfaz/abstracción
+    /// Mover archivo a otra capa y actualizar el import en el archivo afectado
+    MoveFile {
+        from: String,
+        to: String,
+        updated_import: Option<String>,
+    },
+    /// Crear un nuevo archivo (helper, util, etc.) y actualizar el import
+    CreateFile {
+        path: String,
+        content: String,
+        updated_import: String,
+    },
+    /// Crear nueva interfaz/abstracción (especializado en desacoplamiento)
     CreateInterface {
         interface_path: String,
         interface_code: String,
@@ -103,15 +113,22 @@ Si eliges 'refactor', asegúrate de que 'old_code' sea exactamente la línea '{}
 
     // Si hubo un error previo, añadirlo al prompt para que la IA lo corrija
     if let Some(error) = previous_error {
-        let suggestion_text = previous_suggestion.map(|s| format!("\nTu sugerencia anterior fue: {}", s)).unwrap_or_default();
-        let error_type = if error.contains("sintaxis") { "DE SINTAXIS" } else { "EL BUILD" };
+        let suggestion_text = previous_suggestion
+            .map(|s| format!("\nTu sugerencia anterior fue: {}", s))
+            .unwrap_or_default();
+        let error_type = if error.contains("sintaxis") {
+            "DE SINTAXIS"
+        } else {
+            "EL BUILD"
+        };
         prompt.push_str(&format!(
             "\n\n⚠️ **ATENCIÓN: TU INTENTO ANTERIOR FALLÓ {}**\n{} \nError: {}\nPor favor, intenta una estrategia DIFERENTE. Si el import anterior no funcionó, puede que la ruta sea incorrecta o necesites crear una interfaz.",
             error_type, suggestion_text, error
         ));
     }
 
-    prompt.push_str(r#"
+    prompt.push_str(
+        r#"
 
 Responde siguiendo ESTRICTAMENTE este esquema JSON:
 
@@ -123,21 +140,34 @@ Responde siguiendo ESTRICTAMENTE este esquema JSON:
   "confidence": "high"
 }
 
-O BIEN:
+O BIEN (Si necesitas mover código a un nuevo archivo):
 
 {
-  "fix_type": "create_interface",
-  "interface_path": "src/domain/IExample.ts",
-  "interface_code": "export interface IExample { }",
-  "updated_import": "import { IExample } from './IExample';",
-  "explanation": "Desacoplamiento mediante interfaz.",
+  "fix_type": "create_file",
+  "path": "src/utils/materials.ts",
+  "content": "export const myHelper = () => { ... }",
+  "updated_import": "import { myHelper } from '../utils/materials';",
+  "explanation": "Moviendo lógica a un nuevo archivo util.",
   "confidence": "high"
 }
 
-No incluyas texto fuera del JSON."#);
+O BIEN (Si necesitas mover un archivo existente):
+
+{
+  "fix_type": "move_file",
+  "from": "src/city/materials.ts",
+  "to": "src/utils/materials.ts",
+  "updated_import": "import { ... } from '../utils/materials';",
+  "explanation": "Moviendo archivo a la capa de utils.",
+  "confidence": "high"
+}
+
+No incluyas texto fuera del JSON."#,
+    );
 
     // Hacer la petición a la IA usando el sistema de fallback
-    let content = crate::ai::consultar_ia_con_fallback(prompt, ai_configs).await
+    let content = crate::ai::consultar_ia_con_fallback(prompt, ai_configs)
+        .await
         .map_err(|e| miette::miette!("No se pudo obtener sugerencia de ningún modelo: {}", e))?;
 
     // Debug logging
@@ -183,7 +213,14 @@ pub async fn suggest_fix_with_retry(
         let suggestion_result = if attempts == 0 && initial_error.is_none() {
             suggest_fix(violation, project_root, ai_configs, None, None).await
         } else {
-            suggest_fix(violation, project_root, ai_configs, Some(&last_error_msg), current_prev_suggestion.as_deref()).await
+            suggest_fix(
+                violation,
+                project_root,
+                ai_configs,
+                Some(&last_error_msg),
+                current_prev_suggestion.as_deref(),
+            )
+            .await
         };
 
         match suggestion_result {
@@ -205,7 +242,10 @@ pub async fn suggest_fix_with_retry(
                 attempts += 1;
                 last_error_msg = format!("Error de formato JSON o comunicación: {}", e);
                 if attempts < MAX_ATTEMPTS {
-                    println!("⚠️  Error en el formato de respuesta de la IA. Reintentando ({}/{})...", attempts, MAX_ATTEMPTS);
+                    println!(
+                        "⚠️  Error en el formato de respuesta de la IA. Reintentando ({}/{})...",
+                        attempts, MAX_ATTEMPTS
+                    );
                 } else {
                     return Err(e);
                 }
@@ -213,7 +253,10 @@ pub async fn suggest_fix_with_retry(
         }
     }
 
-    Err(miette::miette!("No se pudo obtener una sugerencia válida tras {} intentos.", MAX_ATTEMPTS))
+    Err(miette::miette!(
+        "No se pudo obtener una sugerencia válida tras {} intentos.",
+        MAX_ATTEMPTS
+    ))
 }
 
 /// Simula la aplicación del fix y valida la sintaxis en memoria
@@ -226,16 +269,16 @@ fn dry_run_and_validate(
         FixType::Refactor { old_code, new_code } => {
             let old = old_code.trim();
             let new = new_code.trim();
-            
+
             // Intentar reemplazo exacto
             let mut updated_content = violation.file_content.replace(old, new);
-            
+
             // Si no funcionó, intentar ignorando punto y coma si la IA lo olvidó
             if violation.file_content == updated_content && !old.ends_with(';') {
                 let old_with_semi = format!("{};", old);
                 updated_content = violation.file_content.replace(&old_with_semi, new);
             }
-            
+
             // Si sigue sin funcionar, intentar un reemplazo basado en la línea ofensiva conocida
             if violation.file_content == updated_content {
                 let offensive = violation.offensive_import.trim();
@@ -245,15 +288,32 @@ fn dry_run_and_validate(
             if violation.file_content == updated_content {
                 return Err(miette::miette!(
                     "El código antiguo ('{}') no se encontró exactamente en el archivo. \
-                    Asegúrate de incluir los espacios y el punto y coma exactamente como están.", 
+                    Asegúrate de incluir los espacios y el punto y coma exactamente como están.",
                     old
                 ));
             }
             validate_syntax_str(&updated_content, &violation.file_path)
         }
-        FixType::MoveFile { .. } => Ok(()), 
+        FixType::MoveFile { updated_import, .. } => {
+            if let Some(import_fix) = updated_import {
+                let updated_content = violation
+                    .file_content
+                    .replace(&violation.offensive_import, import_fix);
+                validate_syntax_str(&updated_content, &violation.file_path)
+            } else {
+                Ok(())
+            }
+        }
+        FixType::CreateFile { updated_import, .. } => {
+            let updated_content = violation
+                .file_content
+                .replace(&violation.offensive_import, updated_import);
+            validate_syntax_str(&updated_content, &violation.file_path)
+        }
         FixType::CreateInterface { updated_import, .. } => {
-            let updated_content = violation.file_content.replace(&violation.offensive_import, updated_import);
+            let updated_content = violation
+                .file_content
+                .replace(&violation.offensive_import, updated_import);
             if violation.file_content == updated_content {
                 return Err(miette::miette!("No se pudo reemplazar el import ofensivo. Asegúrate de que 'updated_import' sea correcto."));
             }
@@ -271,7 +331,7 @@ pub fn apply_fix(
     match &suggestion.fix_type {
         FixType::Refactor { old_code, new_code } => {
             let result = apply_refactor(violation, old_code, new_code)?;
-            
+
             // Validar sintaxis después de aplicar leyendo el archivo
             let content = fs::read_to_string(&violation.file_path).into_diagnostic()?;
             if let Err(e) = validate_syntax_str(&content, &violation.file_path) {
@@ -283,8 +343,17 @@ pub fn apply_fix(
                 ));
             }
             Ok(result)
-        },
-        FixType::MoveFile { from, to } => apply_move_file(project_root, from, to),
+        }
+        FixType::MoveFile {
+            from,
+            to,
+            updated_import,
+        } => apply_move_file(project_root, violation, from, to, updated_import.as_deref()),
+        FixType::CreateFile {
+            path,
+            content,
+            updated_import,
+        } => apply_create_file(project_root, violation, path, content, updated_import),
         FixType::CreateInterface {
             interface_path,
             interface_code,
@@ -309,14 +378,17 @@ pub fn apply_fix(
                 ));
             }
             Ok(result)
-        },
+        }
     }
 }
 
 /// Valida que una cadena de código sea sintácticamente válida
 pub fn validate_syntax_str(content: &str, file_path_hint: &Path) -> Result<()> {
-    let extension = file_path_hint.extension().and_then(|e| e.to_str()).unwrap_or("");
-    
+    let extension = file_path_hint
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
+
     if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {
         return Ok(());
     }
@@ -343,9 +415,9 @@ pub fn validate_syntax_str(content: &str, file_path_hint: &Path) -> Result<()> {
     let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
     let mut parser = SwcParser::new_from(lexer);
 
-    parser.parse_module().map_err(|e| {
-        miette::miette!("Error de sintaxis: {:?}", e)
-    })?;
+    parser
+        .parse_module()
+        .map_err(|e| miette::miette!("Error de sintaxis: {:?}", e))?;
 
     Ok(())
 }
@@ -372,8 +444,14 @@ fn apply_refactor(violation: &Violation, old_code: &str, new_code: &str) -> Resu
     ))
 }
 
-/// Aplica el movimiento de un archivo
-fn apply_move_file(project_root: &Path, from: &str, to: &str) -> Result<String> {
+/// Aplica el movimiento de un archivo y opcionalmente actualiza el import
+fn apply_move_file(
+    project_root: &Path,
+    violation: &Violation,
+    from: &str,
+    to: &str,
+    updated_import: Option<&str>,
+) -> Result<String> {
     let from_path = project_root.join(from);
     let to_path = project_root.join(to);
 
@@ -385,7 +463,50 @@ fn apply_move_file(project_root: &Path, from: &str, to: &str) -> Result<String> 
     // Mover el archivo
     fs::rename(&from_path, &to_path).into_diagnostic()?;
 
-    Ok(format!("✅ Archivo movido: {} → {}", from, to))
+    let mut msg = format!("✅ Archivo movido: {} → {}", from, to);
+
+    // Actualizar el import si se proporcionó uno
+    if let Some(import_fix) = updated_import {
+        let content = fs::read_to_string(&violation.file_path).into_diagnostic()?;
+        let updated_content = content.replace(&violation.offensive_import, import_fix);
+        fs::write(&violation.file_path, updated_content).into_diagnostic()?;
+        msg.push_str(&format!(
+            " y import actualizado en {}",
+            violation.file_path.display()
+        ));
+    }
+
+    Ok(msg)
+}
+
+/// Crea un nuevo archivo y actualiza el import
+fn apply_create_file(
+    project_root: &Path,
+    violation: &Violation,
+    path: &str,
+    content: &str,
+    updated_import: &str,
+) -> Result<String> {
+    let full_path = project_root.join(path);
+
+    // Crear el directorio si no existe
+    if let Some(parent) = full_path.parent() {
+        fs::create_dir_all(parent).into_diagnostic()?;
+    }
+
+    // Crear el archivo con el contenido
+    fs::write(&full_path, content).into_diagnostic()?;
+
+    // Actualizar el import en el archivo original
+    let file_content = fs::read_to_string(&violation.file_path).into_diagnostic()?;
+    let updated_content = file_content.replace(&violation.offensive_import, updated_import);
+    fs::write(&violation.file_path, updated_content).into_diagnostic()?;
+
+    Ok(format!(
+        "✅ Archivo creado: {} y import actualizado en {}",
+        path,
+        violation.file_path.display()
+    ))
 }
 
 /// Crea una nueva interfaz y actualiza el import
@@ -427,15 +548,13 @@ fn get_project_structure(root: &Path) -> String {
 }
 
 struct ProjectExplorer {
-    root: PathBuf,
     max_depth: usize,
     max_items_per_dir: usize,
 }
 
 impl ProjectExplorer {
-    fn new(root: &Path) -> Self {
+    fn new(_root: &Path) -> Self {
         Self {
-            root: root.to_path_buf(),
             max_depth: 4,
             max_items_per_dir: 10,
         }
@@ -455,7 +574,11 @@ impl ProjectExplorer {
                 let path = entry.path();
                 let name = entry.file_name().to_string_lossy().to_string();
 
-                if name.starts_with('.') || name == "node_modules" || name == "target" || name == "dist" {
+                if name.starts_with('.')
+                    || name == "node_modules"
+                    || name == "target"
+                    || name == "dist"
+                {
                     continue;
                 }
 
@@ -466,22 +589,49 @@ impl ProjectExplorer {
                 } else {
                     // Only show files that are likely to be relevant for architecture (TS, JS, etc.)
                     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-                    if matches!(ext, "ts" | "tsx" | "js" | "jsx" | "py" | "go" | "php" | "java") {
+                    if matches!(
+                        ext,
+                        "ts" | "tsx" | "js" | "jsx" | "py" | "go" | "php" | "java"
+                    ) {
                         out.push_str(&format!("{}  - {}\n", indent, name));
                     }
                 }
             }
-            
+
             if entries_vec.len() > self.max_items_per_dir {
                 let indent = "  ".repeat(depth);
-                out.push_str(&format!("{}  ... ({} más items)\n", indent, entries_vec.len() - self.max_items_per_dir));
+                out.push_str(&format!(
+                    "{}  ... ({} más items)\n",
+                    indent,
+                    entries_vec.len() - self.max_items_per_dir
+                ));
             }
         }
     }
 }
 
 /// Ejecuta el comando de build configurado para validar los cambios
+#[allow(dead_code)]
 pub fn run_build_command(command: &str, project_root: &Path) -> Result<()> {
+    let output = capture_build_output(command, project_root)?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        return Err(miette::miette!(
+            "El comando de build '{}' falló.\n\nSTDOUT:\n{}\n\nSTDERR:\n{}",
+            command,
+            stdout,
+            stderr
+        ));
+    }
+
+    Ok(())
+}
+
+/// Captura la salida del comando de build sin devolver error,
+/// para poder comparar errores antes vs después de un fix.
+pub fn capture_build_output(command: &str, project_root: &Path) -> Result<std::process::Output> {
     let output = if cfg!(target_os = "windows") {
         Command::new("cmd")
             .args(&["/C", command])
@@ -496,14 +646,25 @@ pub fn run_build_command(command: &str, project_root: &Path) -> Result<()> {
             .into_diagnostic()?
     };
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-        return Err(miette::miette!(
-            "El comando de build '{}' falló.\n\nSTDOUT:\n{}\n\nSTDERR:\n{}", 
-            command, stdout, stderr
-        ));
-    }
+    Ok(output)
+}
 
-    Ok(())
+/// Extrae las líneas de error de la salida del build (filtra sólo líneas que
+/// contienen "error TS" o patrones similares de error del compilador)
+pub fn extract_build_errors(output: &std::process::Output) -> Vec<String> {
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let combined = format!("{}\n{}", stdout, stderr);
+
+    combined
+        .lines()
+        .filter(|line| {
+            let l = line.trim();
+            l.contains("error TS")
+                || l.contains("error:")
+                || l.contains("Error:")
+                || l.contains("ERROR")
+        })
+        .map(|l| l.trim().to_string())
+        .collect()
 }

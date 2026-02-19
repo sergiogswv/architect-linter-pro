@@ -36,7 +36,7 @@ pub fn analyze_all_files(
 ) -> Result<AnalysisResult> {
     tracing::info!("Starting file analysis for {} files", files.len());
     tracing::debug!("Project root: {}", project_root.display());
-    
+
     // Get project name from directory
     let project_name = project_root
         .file_name()
@@ -74,7 +74,7 @@ pub fn analyze_all_files(
     if cache_enabled {
         tracing::debug!("Analysis cache enabled");
     }
-    
+
     let cache_mutex: Option<Mutex<AnalysisCache>> = analysis_cache
         .as_mut()
         .map(|cache| Mutex::new((**cache).clone()));
@@ -121,8 +121,12 @@ pub fn analyze_all_files(
             let mut file_violations = Vec::new();
             if let Ok(violations) = collect_violations_from_file(&cm, file_path, ctx) {
                 for violation in violations {
-                    let categorized =
-                        CategorizedViolation::new(violation, ViolationCategory::Blocked);
+                    let category = match violation.rule.get_severity() {
+                        crate::config::Severity::Error => ViolationCategory::Blocked,
+                        crate::config::Severity::Warning => ViolationCategory::Warning,
+                        crate::config::Severity::Info => ViolationCategory::Info,
+                    };
+                    let categorized = CategorizedViolation::new(violation, category);
                     file_violations.push(categorized);
                 }
             }
@@ -166,8 +170,11 @@ pub fn analyze_all_files(
     if let Some(ref p) = pb {
         p.finish_with_message("Analysis complete");
     }
-    
-    tracing::info!("File analysis complete. Processed {} files", file_results.len());
+
+    tracing::info!(
+        "File analysis complete. Processed {} files",
+        file_results.len()
+    );
 
     // Update the original cache from the mutex
     if let Some(mutex) = cache_mutex {

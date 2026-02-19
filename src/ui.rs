@@ -1,4 +1,4 @@
-use crate::ai::{AISuggestionResponse, SuggestedRule};
+use crate::ai::{AISuggestionResponse, ArchOption, SuggestedRule};
 use crate::config::AIConfig;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect, Select};
@@ -139,38 +139,39 @@ pub fn ask_ai_configs() -> Result<Vec<AIConfig>> {
             provider.as_str()
         );
         let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
-        let model: String =
-            match runtime.block_on(crate::ai::obtener_modelos_disponibles(&provider, &api_url, &api_key)) {
-                Ok(mut models) if !models.is_empty() => {
-                    models.sort();
-                    let selection = Select::with_theme(&ColorfulTheme::default())
-                        .with_prompt("Selecciona el modelo")
-                        .items(&models)
-                        .default(0)
-                        .interact()
-                        .into_diagnostic()?;
-                    models[selection].clone()
-                }
-                Err(e) => {
-                    println!(
-                        "⚠️  No se pudieron obtener los modelos automáticamente: {}",
-                        e
-                    );
-                    Input::with_theme(&ColorfulTheme::default())
+        let model: String = match runtime.block_on(crate::ai::obtener_modelos_disponibles(
+            &provider, &api_url, &api_key,
+        )) {
+            Ok(mut models) if !models.is_empty() => {
+                models.sort();
+                let selection = Select::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Selecciona el modelo")
+                    .items(&models)
+                    .default(0)
+                    .interact()
+                    .into_diagnostic()?;
+                models[selection].clone()
+            }
+            Err(e) => {
+                println!(
+                    "⚠️  No se pudieron obtener los modelos automáticamente: {}",
+                    e
+                );
+                Input::with_theme(&ColorfulTheme::default())
                     .with_prompt(
                         "Ingresa el nombre del modelo manualmente (ej: claude-3-5-sonnet-20241022)",
                     )
                     .interact_text()
                     .into_diagnostic()?
-                }
-                _ => {
-                    println!("⚠️  La lista de modelos está vacía.");
-                    Input::with_theme(&ColorfulTheme::default())
-                        .with_prompt("Ingresa el nombre del modelo manualmente")
-                        .interact_text()
-                        .into_diagnostic()?
-                }
-            };
+            }
+            _ => {
+                println!("⚠️  La lista de modelos está vacía.");
+                Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Ingresa el nombre del modelo manualmente")
+                    .interact_text()
+                    .into_diagnostic()?
+            }
+        };
 
         configs.push(crate::config::AIConfig {
             name,
@@ -240,6 +241,39 @@ pub fn ask_user_to_confirm_rules(
     Ok((selected_rules, max_lines))
 }
 
+/// Permite al usuario elegir un patrón del Top 3 o realizar un análisis automático
+pub fn ask_for_architecture_choice(options: &[ArchOption]) -> Result<Option<usize>> {
+    println!(
+        "\n🏛️  {} ",
+        style("TOP 3 ARQUITECTURAS RECOMENDADAS").bold().cyan()
+    );
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    let mut items: Vec<String> = options
+        .iter()
+        .map(|o| format!("{}: {}", style(&o.name).bold().green(), o.description))
+        .collect();
+
+    items.push(format!(
+        "{}: {}",
+        style("Análisis Automático").bold().yellow(),
+        "Analizar la estructura actual y sugerir reglas basadas en ella."
+    ));
+
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Selecciona una opción para continuar")
+        .items(&items)
+        .default(0)
+        .interact()
+        .into_diagnostic()?;
+
+    if selection == options.len() {
+        Ok(None) // Análisis automático
+    } else {
+        Ok(Some(selection)) // Uno de los patrones del Top 3
+    }
+}
+
 pub fn get_interactive_path() -> Result<PathBuf> {
     let current_dir = env::current_dir().into_diagnostic()?;
     let search_dir = current_dir.parent().unwrap_or(&current_dir);
@@ -281,7 +315,10 @@ pub fn get_interactive_path() -> Result<PathBuf> {
 }
 pub fn print_manual_fix_advice(explanation: &str, error: &str) {
     println!();
-    println!("{}", style("💡 Resumen para corrección manual:").yellow().bold());
+    println!(
+        "{}",
+        style("💡 Resumen para corrección manual:").yellow().bold()
+    );
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("{}", style("Lo que se intentó:").cyan());
     println!("  {}", explanation);

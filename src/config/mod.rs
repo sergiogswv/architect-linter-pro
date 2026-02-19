@@ -16,7 +16,7 @@ mod wizard;
 
 // Re-export tipos públicos
 pub use types::{
-    AIConfig, AIProvider, ArchError, ArchPattern, ForbiddenRule, Framework, LinterContext,
+    AIConfig, AIProvider, ArchError, ArchPattern, ForbiddenRule, Framework, LinterContext, Severity,
 };
 
 // Re-export funciones de loader

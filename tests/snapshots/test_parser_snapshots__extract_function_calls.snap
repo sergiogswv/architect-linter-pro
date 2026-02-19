@@ -1,16 +1,8 @@
 ---
 source: tests/test_parser_snapshots.rs
+assertion_line: 97
 expression: function_calls
 ---
 Ok(
-    [
-        FunctionCall {
-            name: "this.helper",
-            line: 4,
-        },
-        FunctionCall {
-            name: "console.log",
-            line: 5,
-        },
-    ],
+    2,
 )

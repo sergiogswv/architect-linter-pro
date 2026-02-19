@@ -1,0 +1,24 @@
+# Architect Linter Pro - GitLab CI Template
+# This template enables architectural linting and Code Quality reports in GitLab
+
+variables:
+  ARCHITECT_VERSION: "latest"
+  ARCHITECT_IMAGE: "registry.gitlab.com/sergiogswv/architect-linter-pro:$ARCHITECT_VERSION"
+
+architect-lint:
+  stage: test
+  image: $ARCHITECT_IMAGE
+  script:
+    - echo "Running Architect Linter Pro..."
+    - architect-linter-pro --report codeclimate --output gl-code-quality-report.json .
+  artifacts:
+    name: "architect-linter-report"
+    when: always
+    paths:
+      - gl-code-quality-report.json
+    reports:
+      codequality: gl-code-quality-report.json
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true # Set to false if you want to block the pipeline on violations

@@ -44,15 +44,52 @@ pub fn setup_or_load_config(root: &Path) -> Result<Arc<LinterContext>> {
 
     // 2. IA (Procesamiento inteligente)
     let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
-    let suggestions = runtime.block_on(crate::ai::sugerir_arquitectura_inicial(project_info, ai_configs.clone()))
-        .map_err(|e| miette::miette!("Error consultando la IA: {}", e))?;
+
+    // a. Obtener Top 3 arquitecturas sugeridas
+    println!("🔍 Analizando framework y sugiriendo mejores prácticas...");
+    let top_3 = runtime
+        .block_on(crate::ai::sugerir_top_3_arquitecturas(
+            &project_info.framework,
+            ai_configs.clone(),
+        ))
+        .map_err(|e| miette::miette!("Error consultando Top 3 arquitecturas: {}", e))?;
+
+    // b. Seleccionar modo: Uno del Top 3 o Análisis Automático
+    let choice = crate::ui::ask_for_architecture_choice(&top_3)?;
+
+    let suggestions = match choice {
+        Some(index) => {
+            let selected_pattern = &top_3[index].name;
+            println!(
+                "🚀 Generando reglas para el patrón: {}...",
+                selected_pattern
+            );
+            runtime
+                .block_on(crate::ai::sugerir_reglas_para_patron(
+                    selected_pattern,
+                    project_info,
+                    ai_configs.clone(),
+                ))
+                .map_err(|e| miette::miette!("Error sugiriendo reglas para el patrón: {}", e))?
+        }
+        None => {
+            println!("🔍 Realizando análisis profundo de la estructura actual...");
+            runtime
+                .block_on(crate::ai::sugerir_arquitectura_inicial(
+                    project_info,
+                    ai_configs.clone(),
+                ))
+                .map_err(|e| miette::miette!("Error consultando la IA: {}", e))?
+        }
+    };
 
     // 3. UI (Wizard de confirmación)
-    let (selected_rules, max_lines) = crate::ui::ask_user_to_confirm_rules(suggestions)?;
+    let (selected_rules, max_lines) = crate::ui::ask_user_to_confirm_rules(suggestions.clone())?;
 
     // 4. Config (Persistencia)
     let final_ctx = save_config_from_wizard(
         root,
+        suggestions.pattern,
         selected_rules,
         max_lines,
         ai_configs,
@@ -66,6 +103,7 @@ pub fn setup_or_load_config(root: &Path) -> Result<Arc<LinterContext>> {
 /// PERSISTENCIA: Guarda las reglas de la IA y devuelve el contexto nuevo
 pub fn save_config_from_wizard(
     root: &Path,
+    pattern_name: String,
     rules: Vec<SuggestedRule>,
     max_lines: usize,
     ai_configs: Vec<AIConfig>,
@@ -80,6 +118,7 @@ pub fn save_config_from_wizard(
         .map(|r| ForbiddenRule {
             from: r.from,
             to: r.to,
+            severity: None,
         })
         .collect();
 
@@ -91,10 +130,18 @@ pub fn save_config_from_wizard(
     // Obtener ignored_paths según el framework
     let ignored_paths = get_framework_ignored_paths(&framework);
 
+    // Mapear nombre de patrón a Enum si es posible
+    let architecture_pattern = match pattern_name.to_lowercase().as_str() {
+        p if p.contains("hexagonal") => ArchPattern::Hexagonal,
+        p if p.contains("clean") => ArchPattern::Clean,
+        p if p.contains("mvc") => ArchPattern::MVC,
+        _ => ArchPattern::Custom(pattern_name),
+    };
+
     // Valores por defecto para el primer architect.json
     let config = ConfigFile {
         max_lines_per_function: max_lines,
-        architecture_pattern: ArchPattern::MVC, // O el que detecte la IA
+        architecture_pattern,
         forbidden_imports: forbidden_imports.clone(),
         ignored_paths: ignored_paths.clone(),
         build_command: suggested_build_command,

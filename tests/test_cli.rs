@@ -9,8 +9,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
-use std::path::PathBuf;
-use tempfile::TempDir;
 
 #[path = "common/mod.rs"]
 mod common;
@@ -19,7 +17,7 @@ use common::TestProject;
 
 /// Get the binary command
 fn cmd() -> Command {
-    Command::cargo_bin("architect-linter-pro").unwrap()
+    Command::new(env!("CARGO_BIN_EXE_architect-linter-pro"))
 }
 
 // ============================================================================
@@ -32,7 +30,7 @@ fn test_version_flag() {
         .arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("4.1.0-beta"));
+        .stdout(predicate::str::contains("4.3.0"));
 }
 
 #[test]
@@ -41,7 +39,7 @@ fn test_version_short_flag() {
         .arg("-v")
         .assert()
         .success()
-        .stdout(predicate::str::contains("4.1.0-beta"));
+        .stdout(predicate::str::contains("4.3.0"));
 }
 
 #[test]

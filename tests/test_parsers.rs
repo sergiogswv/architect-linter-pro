@@ -32,6 +32,7 @@ fn forbidden_rule(from: &str, to: &str) -> ForbiddenRule {
     ForbiddenRule {
         from: from.to_string(),
         to: to.to_string(),
+        severity: None,
     }
 }
 
@@ -295,12 +296,9 @@ func main() {
         .unwrap();
 
     // Go parser might not extract imports from grouped imports
-    // At minimum, it should not fail
-    assert!(
-        imports.len() >= 0,
-        "Go parser should extract imports: found {}",
-        imports.len()
-    );
+    // At minimum, it should not fail (already checked by unwrap)
+    let _ = imports;
+    assert!(true);
 }
 
 #[test]
@@ -513,11 +511,15 @@ fn test_csharp_extract_imports_basic() {
         using static System.Math;
     "#;
 
-    let imports = parser.extract_imports(source, Path::new("test.cs")).unwrap();
-    
+    let imports = parser
+        .extract_imports(source, Path::new("test.cs"))
+        .unwrap();
+
     assert!(imports.len() >= 3);
     assert!(imports.iter().any(|i| i.source == "System"));
-    assert!(imports.iter().any(|i| i.source == "System.Collections.Generic"));
+    assert!(imports
+        .iter()
+        .any(|i| i.source == "System.Collections.Generic"));
 }
 
 #[test]
@@ -528,7 +530,9 @@ fn test_csharp_detect_violation() {
     let source = "using MyProject.Infrastructure;";
     let context = create_test_context(vec![forbidden_rule("Domain", "Infrastructure")]);
 
-    let violations = parser.find_violations(source, Path::new("src/Domain/User.cs"), &context).unwrap();
+    let violations = parser
+        .find_violations(source, Path::new("src/Domain/User.cs"), &context)
+        .unwrap();
     assert_eq!(violations.len(), 1);
 }
 
@@ -547,8 +551,10 @@ fn test_ruby_extract_imports_basic() {
         load 'config.rb'
     "#;
 
-    let imports = parser.extract_imports(source, Path::new("test.rb")).unwrap();
-    
+    let imports = parser
+        .extract_imports(source, Path::new("test.rb"))
+        .unwrap();
+
     assert_eq!(imports.len(), 3);
     assert!(imports.iter().any(|i| i.source == "json"));
     assert!(imports.iter().any(|i| i.source == "models/user"));
@@ -571,8 +577,10 @@ fn test_kotlin_extract_imports_basic() {
         import com.example.services.*
     "#;
 
-    let imports = parser.extract_imports(source, Path::new("test.kt")).unwrap();
-    
+    let imports = parser
+        .extract_imports(source, Path::new("test.kt"))
+        .unwrap();
+
     assert_eq!(imports.len(), 3);
     assert!(imports.iter().any(|i| i.source == "java.util.List"));
     assert!(imports.iter().any(|i| i.source == "com.example.services.*"));
@@ -593,10 +601,14 @@ fn test_rust_extract_imports_basic() {
         use super::utils::*;
     "#;
 
-    let imports = parser.extract_imports(source, Path::new("test.rs")).unwrap();
-    
+    let imports = parser
+        .extract_imports(source, Path::new("test.rs"))
+        .unwrap();
+
     assert_eq!(imports.len(), 3);
-    assert!(imports.iter().any(|i| i.source == "std::collections::HashMap"));
+    assert!(imports
+        .iter()
+        .any(|i| i.source == "std::collections::HashMap"));
     assert!(imports.iter().any(|i| i.source == "crate::models::User"));
 }
 

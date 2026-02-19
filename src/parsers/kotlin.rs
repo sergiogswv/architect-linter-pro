@@ -1,12 +1,12 @@
 //! Kotlin parser using Tree-sitter
 use super::{ArchitectParser, Import};
 use crate::autofix::Violation;
-use crate::config::{ForbiddenRule, LinterContext};
+use crate::config::LinterContext;
 use miette::{IntoDiagnostic, Result};
 use std::path::Path;
 use std::sync::Mutex;
-use tree_sitter::{Parser, Query, QueryCursor};
 use streaming_iterator::StreamingIterator;
+use tree_sitter::{Parser, Query, QueryCursor};
 
 pub struct KotlinParser {
     parser: Mutex<Parser>,
@@ -60,7 +60,8 @@ impl ArchitectParser for KotlinParser {
             (import) @import_node
         "#;
 
-        let query = Query::new(&tree_sitter_kotlin::LANGUAGE.into(), query_source).into_diagnostic()?;
+        let query =
+            Query::new(&tree_sitter_kotlin::LANGUAGE.into(), query_source).into_diagnostic()?;
 
         let mut cursor = QueryCursor::new();
         let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
@@ -105,10 +106,7 @@ impl ArchitectParser for KotlinParser {
                         file_path: file_path.to_path_buf(),
                         file_content: source_code.to_string(),
                         offensive_import: import.raw_statement.clone(),
-                        rule: ForbiddenRule {
-                            from: rule.from.clone(),
-                            to: rule.to.clone(),
-                        },
+                        rule: rule.clone(),
                         line_number: import.line_number,
                     });
                 }

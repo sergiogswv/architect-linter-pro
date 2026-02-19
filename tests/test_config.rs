@@ -12,11 +12,6 @@ fn create_config_file(project: &TestProject, content: &str) -> PathBuf {
     project.create_file("architect.json", content)
 }
 
-/// Helper to create AI config file
-fn create_ai_config_file(project: &TestProject, content: &str) -> PathBuf {
-    project.create_file(".architect.ai.json", content)
-}
-
 // ============================================================================
 // Tests for load_config() - Success cases
 // ============================================================================
@@ -39,7 +34,10 @@ fn test_load_valid_minimal_config() {
 
     let ctx = result.unwrap();
     assert_eq!(ctx.max_lines, 50);
-    assert!(matches!(ctx.pattern, architect_linter_pro::config::ArchPattern::MVC));
+    assert!(matches!(
+        ctx.pattern,
+        architect_linter_pro::config::ArchPattern::MVC
+    ));
     assert!(ctx.forbidden_imports.is_empty());
 }
 

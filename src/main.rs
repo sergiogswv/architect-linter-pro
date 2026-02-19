@@ -123,7 +123,7 @@ fn main() -> Result<()> {
 
     // 2. Initialize structured logging
     logging::init(cli_args.debug_mode);
-    
+
     // 3. Set up panic handler for better error messages
     std::panic::set_hook(Box::new(|panic_info| {
         tracing::error!("💥 PANIC: {}", panic_info);
@@ -284,6 +284,9 @@ fn run_normal_mode(
         },
     )?;
 
+    // Apply minimum severity filter from CLI
+    analysis_result.filter_by_severity(cli_args.min_severity);
+
     // Save cache to disk
     if use_cache {
         if let Err(e) = analysis_cache.save(project_root) {
@@ -406,6 +409,27 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
     println!("📊 Analizando {} archivos...\n", files.len());
 
+    // Capturar errores de build preexistentes (baseline) para no culpar al fix por errores anteriores
+    let baseline_errors: Vec<String> = if let Some(build_cmd) = &ctx.build_command {
+        println!("🔍 Capturando estado del build antes de aplicar fixes...");
+        match autofix::capture_build_output(build_cmd, project_root) {
+            Ok(output) => {
+                let errors = autofix::extract_build_errors(&output);
+                if !errors.is_empty() {
+                    println!(
+                        "⚠️  El proyecto tiene {} error(es) de build preexistentes.",
+                        errors.len()
+                    );
+                    println!("   Los fixes solo serán revertidos si introducen NUEVOS errores.\n");
+                }
+                errors
+            }
+            Err(_) => Vec::new(),
+        }
+    } else {
+        Vec::new()
+    };
+
     let cm = Arc::new(SourceMap::default());
     let mut all_violations = Vec::new();
 
@@ -450,7 +474,7 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         if let Ok(current_content) = std::fs::read_to_string(&violation.file_path) {
             violation.file_content = current_content;
         }
-        
+
         // Guardar el estado inicial antes de intentar arreglar ESTA violación
         let pre_violation_content = violation.file_content.clone();
 
@@ -460,14 +484,19 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
         loop {
             if build_attempts > 0 {
-                println!("🔄 Reintentando fix basándose en el error de build (intento {}/{})...", build_attempts, ctx.ai_fix_retries);
+                println!(
+                    "🔄 Reintentando fix basándose en el error de build (intento {}/{})...",
+                    build_attempts, ctx.ai_fix_retries
+                );
             }
 
             println!("🤖 Consultando sugerencia de fix...");
             let pb = ProgressBar::new_spinner();
-            pb.set_style(ProgressStyle::default_spinner()
-                .template("{spinner:.green} {msg}")
-                .into_diagnostic()?);
+            pb.set_style(
+                ProgressStyle::default_spinner()
+                    .template("{spinner:.green} {msg}")
+                    .into_diagnostic()?,
+            );
             pb.set_message("Analizando código y consultando modelos de IA...");
             pb.enable_steady_tick(std::time::Duration::from_millis(120));
 
@@ -481,15 +510,15 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                 Ok(s) => {
                     pb.finish_and_clear();
                     s
-                },
+                }
                 Err(e) => {
                     pb.finish_with_message("❌ Error obteniendo sugerencia");
                     eprintln!("❌ Error: {}", e);
-                    
+
                     if let Some(error_str) = last_error.as_deref() {
                         ui::print_manual_fix_advice("No se pudo obtener una sugerencia válida para corregir el error de build.", error_str);
                     }
-                    
+
                     println!("⏭️  Saltando esta violación...\n");
                     skipped_count += 1;
                     break;
@@ -506,9 +535,16 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
             // Record this suggestion in case the build fails
             last_suggestion_desc = Some(match &suggestion.fix_type {
-                autofix::FixType::Refactor { new_code, .. } => format!("Cambiar código a: '{}'", new_code),
+                autofix::FixType::Refactor { new_code, .. } => {
+                    format!("Cambiar código a: '{}'", new_code)
+                }
                 autofix::FixType::MoveFile { to, .. } => format!("Mover archivo a: '{}'", to),
-                autofix::FixType::CreateInterface { interface_path, .. } => format!("Crear interfaz en: '{}'", interface_path),
+                autofix::FixType::CreateFile { path, .. } => {
+                    format!("Crear archivo en: '{}'", path)
+                }
+                autofix::FixType::CreateInterface { interface_path, .. } => {
+                    format!("Crear interfaz en: '{}'", interface_path)
+                }
             });
 
             match &suggestion.fix_type {
@@ -519,10 +555,27 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                     println!("Por:");
                     println!("  ✅ {}", new_code);
                 }
-                autofix::FixType::MoveFile { from, to } => {
+                autofix::FixType::MoveFile {
+                    from,
+                    to,
+                    updated_import,
+                } => {
                     println!("📦 Tipo: Mover archivo");
                     println!("  De: {}", from);
                     println!("  A:  {}", to);
+                    if let Some(imp) = updated_import {
+                        println!("  Nuevo import: {}", imp);
+                    }
+                }
+                autofix::FixType::CreateFile {
+                    path,
+                    content,
+                    updated_import,
+                } => {
+                    println!("📄 Tipo: Crear archivo");
+                    println!("  Nuevo archivo: {}", path);
+                    println!("  Código: {} líneas", content.lines().count());
+                    println!("  Nuevo import: {}", updated_import);
                 }
                 autofix::FixType::CreateInterface {
                     interface_path,
@@ -551,9 +604,11 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
 
             if should_apply {
                 let apply_pb = ProgressBar::new_spinner();
-                apply_pb.set_style(ProgressStyle::default_spinner()
-                    .template("{spinner:.cyan} {msg}")
-                    .into_diagnostic()?);
+                apply_pb.set_style(
+                    ProgressStyle::default_spinner()
+                        .template("{spinner:.cyan} {msg}")
+                        .into_diagnostic()?,
+                );
                 apply_pb.set_message("Aplicando cambios y validando integridad...");
                 apply_pb.enable_steady_tick(std::time::Duration::from_millis(80));
 
@@ -564,34 +619,89 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
                         // Si hay comando de build, validarlo
                         if let Some(build_cmd) = &ctx.build_command {
                             apply_pb.set_message(format!("Ejecutando build: {}...", build_cmd));
-                            
-                            match autofix::run_build_command(build_cmd, project_root) {
-                                Ok(_) => {
-                                    apply_pb.finish_with_message("✅ Cambios aplicados y build exitoso");
-                                    println!("✨ {}", message);
+
+                            match autofix::capture_build_output(build_cmd, project_root) {
+                                Ok(post_output) => {
+                                    let post_errors = autofix::extract_build_errors(&post_output);
+
+                                    // Calcular errores NUEVOS (que no estaban antes del fix)
+                                    let new_errors: Vec<&String> = post_errors
+                                        .iter()
+                                        .filter(|e| !baseline_errors.contains(e))
+                                        .collect();
+
+                                    if new_errors.is_empty() {
+                                        // No hay errores nuevos — el fix no rompió nada
+                                        if !post_errors.is_empty()
+                                            && post_output.status.success() == false
+                                        {
+                                            apply_pb.finish_with_message(
+                                                "✅ Fix aplicado (errores preexistentes no afectados)",
+                                            );
+                                            println!("✨ {}", message);
+                                            println!("ℹ️  El build tiene errores preexistentes que no fueron causados por este fix.");
+                                        } else {
+                                            apply_pb.finish_with_message(
+                                                "✅ Cambios aplicados y build exitoso",
+                                            );
+                                            println!("✨ {}", message);
+                                        }
+                                        fixed_count += 1;
+                                        break;
+                                    } else {
+                                        // El fix introdujo NUEVOS errores
+                                        apply_pb.finish_with_message(
+                                            "⚠️  El fix introdujo nuevos errores de build",
+                                        );
+                                        eprintln!(
+                                            "❌ El fix introdujo {} error(es) nuevo(s):",
+                                            new_errors.len()
+                                        );
+                                        for (i, err) in new_errors.iter().take(5).enumerate() {
+                                            eprintln!("   {}. {}", i + 1, err);
+                                        }
+                                        if new_errors.len() > 5 {
+                                            eprintln!("   ... y {} más", new_errors.len() - 5);
+                                        }
+
+                                        // Revertir cambios al estado inicial
+                                        let _ = std::fs::write(
+                                            &violation.file_path,
+                                            &pre_violation_content,
+                                        );
+
+                                        build_attempts += 1;
+                                        if build_attempts <= ctx.ai_fix_retries {
+                                            println!("🔄 Iniciando ciclo de auto-corrección ({} de {})...", build_attempts, ctx.ai_fix_retries);
+                                            let combined = new_errors
+                                                .iter()
+                                                .take(3)
+                                                .map(|e| e.as_str())
+                                                .collect::<Vec<_>>()
+                                                .join("\n");
+                                            last_error = Some(combined);
+                                            continue;
+                                        } else {
+                                            println!("❌ Se alcanzó el máximo de reintentos. Saltando violación.");
+                                            if let Some(error) = &last_error {
+                                                ui::print_manual_fix_advice(
+                                                    &suggestion.explanation,
+                                                    error,
+                                                );
+                                            }
+                                            skipped_count += 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    // Error ejecutando el build propiamente (no errores de compilación)
+                                    apply_pb
+                                        .finish_with_message("⚠️  No se pudo ejecutar el build");
+                                    eprintln!("⚠️  Error ejecutando build: {}", e);
+                                    println!("ℹ️  El fix fue aplicado pero no se pudo verificar el build.");
                                     fixed_count += 1;
                                     break;
-                                }
-                                Err(build_err) => {
-                                    apply_pb.finish_with_message("⚠️  El build falló tras el fix");
-                                    eprintln!("❌ Error de Build: {}", build_err);
-
-                                    // Revertir cambios al estado inicial de esta violación
-                                    let _ = std::fs::write(&violation.file_path, &pre_violation_content);
-                                    
-                                    build_attempts += 1;
-                                    if build_attempts <= ctx.ai_fix_retries {
-                                        println!("🔄 Iniciando ciclo de auto-corrección de build ({} de {})...", build_attempts, ctx.ai_fix_retries);
-                                        last_error = Some(build_err.to_string());
-                                        continue;
-                                    } else {
-                                        println!("❌ Se alcanzó el máximo de reintentos de build. Saltando violación.");
-                                        if let Some(error) = &last_error {
-                                            ui::print_manual_fix_advice(&suggestion.explanation, error);
-                                        }
-                                        skipped_count += 1;
-                                        break;
-                                    }
                                 }
                             }
                         } else {
@@ -827,7 +937,12 @@ fn run_watch_mode(
             match cmd {
                 watch::WatchCommand::Fix => {
                     println!("\n🔧 Ejecutando auto-fix con IA...\n");
-                    run_fix_flow(project_root, &ctx)?;
+                    // Pause the stdin reader so dialoguer prompts can read user input
+                    watch::pause_stdin_reader();
+                    let fix_result = run_fix_flow(project_root, &ctx);
+                    // Resume the stdin reader for watch commands
+                    watch::resume_stdin_reader();
+                    fix_result?;
                 }
                 watch::WatchCommand::ReportJson => {
                     println!("\n📄 Generando reporte JSON...\n");

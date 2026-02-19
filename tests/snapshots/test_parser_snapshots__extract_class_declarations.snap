@@ -1,7 +1,8 @@
 ---
 source: tests/test_parser_snapshots.rs
+assertion_line: 66
 expression: function_count
 ---
 Ok(
-    0,
+    2,
 )

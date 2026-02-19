@@ -49,19 +49,87 @@ impl Framework {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum ArchPattern {
     Hexagonal,
     Clean,
     MVC,
     #[default]
     Ninguno,
+    Custom(String),
+}
+
+impl serde::Serialize for ArchPattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ArchPattern::Hexagonal => serializer.serialize_str("Hexagonal"),
+            ArchPattern::Clean => serializer.serialize_str("Clean"),
+            ArchPattern::MVC => serializer.serialize_str("MVC"),
+            ArchPattern::Ninguno => serializer.serialize_str("Ninguno"),
+            ArchPattern::Custom(s) => serializer.serialize_str(s),
+        }
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for ArchPattern {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match s.to_lowercase().as_str() {
+            "hexagonal" => Ok(ArchPattern::Hexagonal),
+            "clean" => Ok(ArchPattern::Clean),
+            "mvc" => Ok(ArchPattern::MVC),
+            "ninguno" | "none" => Ok(ArchPattern::Ninguno),
+            _ => Ok(ArchPattern::Custom(s)),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Copy)]
+pub enum Severity {
+    #[serde(rename = "error")]
+    #[default]
+    Error,
+    #[serde(rename = "warning")]
+    Warning,
+    #[serde(rename = "info")]
+    Info,
+}
+
+impl Severity {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Severity::Error => "error",
+            Severity::Warning => "warning",
+            Severity::Info => "info",
+        }
+    }
+
+    pub fn emoji(&self) -> &str {
+        match self {
+            Severity::Error => "❌",
+            Severity::Warning => "⚠️",
+            Severity::Info => "ℹ️",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ForbiddenRule {
     pub from: String,
     pub to: String,
+    pub severity: Option<Severity>,
+}
+
+impl ForbiddenRule {
+    pub fn get_severity(&self) -> Severity {
+        self.severity.unwrap_or(Severity::Error)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

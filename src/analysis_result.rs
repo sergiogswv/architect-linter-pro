@@ -151,13 +151,38 @@ impl AnalysisResult {
         self.blocked_count() > 0 || !self.circular_dependencies.is_empty()
     }
 
+    /// Filter violations by minimum severity
+    pub fn filter_by_severity(&mut self, min_severity: crate::config::Severity) {
+        let min_category = match min_severity {
+            crate::config::Severity::Error => ViolationCategory::Blocked,
+            crate::config::Severity::Warning => ViolationCategory::Warning,
+            crate::config::Severity::Info => ViolationCategory::Info,
+        };
+
+        let min_rank = match min_category {
+            ViolationCategory::Blocked => 3,
+            ViolationCategory::Warning => 2,
+            ViolationCategory::Info => 1,
+        };
+
+        self.violations.retain(|v| {
+            let rank = match v.category {
+                ViolationCategory::Blocked => 3,
+                ViolationCategory::Warning => 2,
+                ViolationCategory::Info => 1,
+            };
+            rank >= min_rank
+        });
+    }
+
     /// Get pattern as display string
     pub fn pattern_display(&self) -> &str {
-        match self.pattern {
+        match &self.pattern {
             ArchPattern::Hexagonal => "Hexagonal Architecture",
             ArchPattern::Clean => "Clean Architecture",
             ArchPattern::MVC => "MVC Pattern",
             ArchPattern::Ninguno => "No Pattern",
+            ArchPattern::Custom(s) => s.as_str(),
         }
     }
 }

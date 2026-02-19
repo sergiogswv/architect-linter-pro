@@ -8,6 +8,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub enum ReportFormat {
     Json,
     Markdown,
+    CodeClimate,
 }
 
 impl ReportFormat {
@@ -15,6 +16,7 @@ impl ReportFormat {
         match s.to_lowercase().as_str() {
             "json" => Some(ReportFormat::Json),
             "markdown" | "md" => Some(ReportFormat::Markdown),
+            "codeclimate" | "gitlab" => Some(ReportFormat::CodeClimate),
             _ => None,
         }
     }
@@ -45,6 +47,8 @@ pub struct CliArgs {
     pub debug_mode: bool,
     /// Only validate configuration and exit
     pub check_mode: bool,
+    /// Minimum severity to report (error, warning, info)
+    pub min_severity: crate::config::Severity,
 }
 
 impl Default for CliArgs {
@@ -61,6 +65,7 @@ impl Default for CliArgs {
             daemon_mode: false,
             debug_mode: false,
             check_mode: false,
+            min_severity: crate::config::Severity::Info,
         }
     }
 }
@@ -90,6 +95,7 @@ pub fn print_help() {
     println!("  --no-cache           Disable analysis cache");
     println!("  --debug              Enable debug logging (verbose output)");
     println!("  --check              Solo validar configuración y salir");
+    println!("  --severity <LEVEL>   Nivel mínimo de severidad: error, warning, info");
     println!();
     println!("EJEMPLOS:");
     println!("  architect-linter-pro                         # Modo interactivo");
@@ -148,6 +154,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut check_mode = false;
     let mut report_format: Option<ReportFormat> = None;
     let mut output_path: Option<String> = None;
+    let mut min_severity = crate::config::Severity::Info;
     let mut project_path: Option<String> = None;
 
     // Procesar argumentos
@@ -194,7 +201,7 @@ pub fn process_args() -> Option<CliArgs> {
                         report_format = Some(fmt);
                     } else {
                         eprintln!(
-                            "Error: Formato de reporte inválido '{}'. Usa 'json' o 'markdown'.",
+                            "Error: Formato de reporte inválido '{}'. Usa 'json', 'markdown' o 'codeclimate'.",
                             args[i]
                         );
                         return None;
@@ -211,6 +218,26 @@ pub fn process_args() -> Option<CliArgs> {
                     output_path = Some(args[i].clone());
                 } else {
                     eprintln!("Error: --output requiere una ruta de archivo");
+                    return None;
+                }
+            }
+            "--severity" => {
+                if i + 1 < args.len() {
+                    i += 1;
+                    match args[i].to_lowercase().as_str() {
+                        "error" => min_severity = crate::config::Severity::Error,
+                        "warning" => min_severity = crate::config::Severity::Warning,
+                        "info" => min_severity = crate::config::Severity::Info,
+                        _ => {
+                            eprintln!(
+                                "Error: Severidad inválida '{}'. Usa 'error', 'warning' o 'info'.",
+                                args[i]
+                            );
+                            return None;
+                        }
+                    }
+                } else {
+                    eprintln!("Error: --severity requiere un nivel (error, warning, info)");
                     return None;
                 }
             }
@@ -236,5 +263,6 @@ pub fn process_args() -> Option<CliArgs> {
         check_mode,
         report_format,
         output_path,
+        min_severity,
     })
 }

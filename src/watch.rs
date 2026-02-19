@@ -2,8 +2,26 @@ use miette::{IntoDiagnostic, Result};
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender};
 use std::time::{Duration, Instant};
+
+/// Global flag to pause stdin reader during interactive commands (like AI fix prompts).
+/// When true, the stdin reader thread will sleep instead of reading input,
+/// allowing dialoguer/other interactive prompts to read stdin directly.
+static STDIN_PAUSED: AtomicBool = AtomicBool::new(false);
+
+/// Pause the stdin reader so interactive prompts (dialoguer) can use stdin
+pub fn pause_stdin_reader() {
+    STDIN_PAUSED.store(true, Ordering::SeqCst);
+    // Small delay to let the reader thread enter its sleep loop
+    std::thread::sleep(Duration::from_millis(50));
+}
+
+/// Resume the stdin reader after interactive prompts are done
+pub fn resume_stdin_reader() {
+    STDIN_PAUSED.store(false, Ordering::SeqCst);
+}
 
 /// Commands available in interactive watch mode
 #[derive(Debug, Clone)]
@@ -61,15 +79,24 @@ enum InternalEvent {
 }
 
 /// Spawn a thread that reads lines from stdin and sends parsed commands.
-/// Uses `read_line` per iteration instead of holding a persistent `stdin.lock()`
-/// to avoid blocking stdin on Windows.
+/// Respects the STDIN_PAUSED flag to yield stdin to interactive prompts.
 fn spawn_stdin_reader(tx: Sender<InternalEvent>) {
     std::thread::spawn(move || {
         loop {
+            // If stdin is paused (interactive prompt active), sleep and retry
+            if STDIN_PAUSED.load(Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_millis(100));
+                continue;
+            }
+
             let mut input = String::new();
             match std::io::stdin().read_line(&mut input) {
                 Ok(0) => break, // EOF — stdin closed
                 Ok(_) => {
+                    // Double-check pause flag after read (prompt may have started during read)
+                    if STDIN_PAUSED.load(Ordering::SeqCst) {
+                        continue; // Discard input captured during pause transition
+                    }
                     if let Some(cmd) = parse_command(&input) {
                         if tx.send(InternalEvent::UserInput(cmd)).is_err() {
                             break; // Channel closed, main loop exited

@@ -2,19 +2,10 @@
 
 use crate::analysis_result::LongFunction;
 use miette::{IntoDiagnostic, Result};
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use swc_common::SourceMap;
 use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser, StringInput, Syntax, TsConfig};
-use swc_ecma_visit::{Visit, VisitWith};
-
-/// Minimal representation of a function call for analysis
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionCall {
-    pub name: String,
-    pub line: usize,
-}
 
 /// Count imports in a file
 pub fn count_imports(path: &Path) -> Result<usize> {
@@ -89,30 +80,60 @@ pub fn count_functions(cm: &SourceMap, path: &Path) -> Result<usize> {
     let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
     let mut parser = Parser::new_from(lexer);
 
-    let module = match parser.parse_module() {
-        Ok(m) => m,
-        Err(_) => return Ok(0),
-    };
+    let module = parser
+        .parse_module()
+        .map_err(|e| miette::miette!("Parse error in {}: {:?}", path.display(), e))?;
 
     let mut count = 0usize;
-
     for item in &module.body {
-        if let swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(
-            swc_ecma_ast::Decl::Class(c),
-        )) = item
-        {
-            for member in &c.class.body {
-                if let swc_ecma_ast::ClassMember::Method(_) = member {
-                    count += 1;
+        match item {
+            // Normal class declaration
+            swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(
+                swc_ecma_ast::Decl::Class(c),
+            )) => {
+                for member in &c.class.body {
+                    if let swc_ecma_ast::ClassMember::Method(_) = member {
+                        count += 1;
+                    }
                 }
             }
-        }
-        // Count standalone functions
-        else if let swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(
-            swc_ecma_ast::Decl::Fn(_),
-        )) = item
-        {
-            count += 1;
+            // Exported declaration (Class or Fn)
+            swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::ExportDecl(ed)) => {
+                match &ed.decl {
+                    swc_ecma_ast::Decl::Class(c) => {
+                        for member in &c.class.body {
+                            if let swc_ecma_ast::ClassMember::Method(_) = member {
+                                count += 1;
+                            }
+                        }
+                    }
+                    swc_ecma_ast::Decl::Fn(_) => {
+                        count += 1;
+                    }
+                    _ => {}
+                }
+            }
+            // Export default declaration
+            swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::ExportDefaultDecl(
+                edd,
+            )) => match &edd.decl {
+                swc_ecma_ast::DefaultDecl::Class(c) => {
+                    for member in &c.class.body {
+                        if let swc_ecma_ast::ClassMember::Method(_) = member {
+                            count += 1;
+                        }
+                    }
+                }
+                swc_ecma_ast::DefaultDecl::Fn(_) => {
+                    count += 1;
+                }
+                _ => {}
+            },
+            // Standalone function
+            swc_ecma_ast::ModuleItem::Stmt(swc_ecma_ast::Stmt::Decl(swc_ecma_ast::Decl::Fn(_))) => {
+                count += 1;
+            }
+            _ => {}
         }
     }
 
@@ -266,71 +287,4 @@ pub fn find_long_functions(
     }
 
     Ok(long_functions)
-}
-
-/// Extract function calls from a file
-pub fn extract_function_calls(cm: &SourceMap, path: &Path) -> Result<Vec<FunctionCall>> {
-    let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-    if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {
-        return Ok(Vec::new());
-    }
-
-    let fm = cm.load_file(path).into_diagnostic()?;
-    let syntax = match extension {
-        "ts" | "tsx" => Syntax::Typescript(TsConfig {
-            decorators: true,
-            tsx: extension == "tsx",
-            ..Default::default()
-        }),
-        _ => Syntax::Es(EsConfig {
-            decorators: true,
-            jsx: extension == "jsx",
-            ..Default::default()
-        }),
-    };
-
-    let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
-    let mut parser = Parser::new_from(lexer);
-    let module = match parser.parse_module() {
-        Ok(m) => m,
-        Err(_) => return Ok(Vec::new()),
-    };
-
-    let mut visitor = CallVisitor {
-        cm,
-        calls: Vec::new(),
-    };
-    module.visit_with(&mut visitor);
-
-    Ok(visitor.calls)
-}
-
-struct CallVisitor<'a> {
-    cm: &'a SourceMap,
-    calls: Vec<FunctionCall>,
-}
-
-impl<'a> Visit for CallVisitor<'a> {
-    fn visit_call_expr(&mut self, n: &swc_ecma_ast::CallExpr) {
-        let name = match &n.callee {
-            swc_ecma_ast::Callee::Expr(e) => match &**e {
-                swc_ecma_ast::Expr::Ident(i) => i.sym.to_string(),
-                swc_ecma_ast::Expr::Member(m) => {
-                    let obj = if let swc_ecma_ast::MemberProp::Ident(id) = &m.prop {
-                        id.sym.to_string()
-                    } else {
-                        "unknown".to_string()
-                    };
-                    format!("{}.{}", "obj", obj) // Simplified for now
-                }
-                _ => "anonymous".to_string(),
-            },
-            _ => "import".to_string(),
-        };
-
-        let lo = self.cm.lookup_char_pos(n.span.lo).line;
-        self.calls.push(FunctionCall { name, line: lo });
-
-        n.visit_children_with(self);
-    }
 }

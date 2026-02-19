@@ -7,8 +7,8 @@ use crate::autofix::Violation;
 use crate::config::{ForbiddenRule, LinterContext};
 use miette::IntoDiagnostic;
 use std::path::Path;
-use tree_sitter::{Query, QueryCursor, Tree};
 use streaming_iterator::StreamingIterator;
+use tree_sitter::{Query, QueryCursor, Tree};
 
 /// Represents an import statement extracted from source code
 #[derive(Debug, Clone, PartialEq)]
@@ -47,8 +47,11 @@ pub fn extract_imports_from_tree(tree: &Tree, source_code: &str) -> miette::Resu
           source: (string (string_fragment) @import_path))
     "#;
 
-    let query = Query::new(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(), query_source)
-        .into_diagnostic()?;
+    let query = Query::new(
+        &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        query_source,
+    )
+    .into_diagnostic()?;
 
     let mut cursor = QueryCursor::new();
     let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
@@ -264,6 +267,7 @@ pub fn matches_pattern(path: &str, pattern: &str) -> bool {
 /// let rule = ForbiddenRule {
 ///     from: "src/controller/".to_string(),
 ///     to: "src/repository/".to_string(),
+///     severity: None,
 /// };
 ///
 /// // Violation: controller importing from repository
@@ -408,6 +412,7 @@ pub fn find_violations_in_imports(
                 ForbiddenRule {
                     from: "controller".to_string(),
                     to: ".repository".to_string(),
+                    severity: Some(crate::config::Severity::Error),
                 },
             ));
         }
@@ -596,6 +601,7 @@ mod tests {
         let rule = ForbiddenRule {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
+            severity: None,
         };
 
         assert!(matches_forbidden_rule(
@@ -616,6 +622,7 @@ mod tests {
         let rule = ForbiddenRule {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
+            severity: None,
         };
 
         assert!(!matches_forbidden_rule(
@@ -630,6 +637,7 @@ mod tests {
         let rule = ForbiddenRule {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
+            severity: None,
         };
 
         assert!(!matches_forbidden_rule(
@@ -698,6 +706,7 @@ mod tests {
             forbidden_imports: vec![ForbiddenRule {
                 from: "src/controller/".to_string(),
                 to: "src/repository/".to_string(),
+                severity: None,
             }],
             ignored_paths: vec![],
             ai_configs: vec![],
@@ -732,6 +741,7 @@ mod tests {
             forbidden_imports: vec![ForbiddenRule {
                 from: "src/controller/".to_string(),
                 to: "src/repository/".to_string(),
+                severity: None,
             }],
             ignored_paths: vec![],
             ai_configs: vec![],

@@ -7,16 +7,17 @@
 //! - Edge cases with decorators and violations combined
 
 use architect_linter_pro::analyzer::collect_violations_from_file;
-use architect_linter_pro::analyzer::{
-    count_functions, count_imports, extract_function_calls, find_long_functions,
+use architect_linter_pro::analyzer::metrics::{
+    count_functions, count_imports, find_long_functions,
 };
-use architect_linter_pro::config::{ArchPattern, ForbiddenRule, Framework, LinterContext};
+use architect_linter_pro::config::{ForbiddenRule, LinterContext};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
 
 /// Helper function to create a LinterContext for testing
 fn create_test_context() -> LinterContext {
     LinterContext {
+        max_lines: 30,
         ai_configs: vec![],
         ..Default::default()
     }
@@ -25,6 +26,7 @@ fn create_test_context() -> LinterContext {
 /// Helper function to create a context with forbidden imports
 fn create_context_with_rules(rules: Vec<ForbiddenRule>) -> LinterContext {
     LinterContext {
+        max_lines: 30,
         forbidden_imports: rules,
         ai_configs: vec![],
         ..Default::default()
@@ -76,11 +78,6 @@ export class UserController {
     let import_count = count_imports(&file_path);
     assert!(import_count.is_ok());
     assert_eq!(import_count.unwrap(), 2);
-
-    // Note: extract_function_calls doesn't handle ModuleDecl (exported classes) currently
-    // We verify it parses without error
-    let function_calls = extract_function_calls(&cm, &file_path);
-    assert!(function_calls.is_ok());
 }
 
 #[test]
@@ -352,6 +349,7 @@ export class DomainService {
     let rules = vec![ForbiddenRule {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
+        severity: None,
     }];
     let ctx = create_context_with_rules(rules);
 
@@ -444,6 +442,7 @@ class CombinedViolations {
     let rules = vec![ForbiddenRule {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
+        severity: None,
     }];
     let ctx = create_context_with_rules(rules);
 
@@ -534,6 +533,7 @@ export class ViolatingService {
     let rules = vec![ForbiddenRule {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
+        severity: None,
     }];
     let ctx = create_context_with_rules(rules);
 
@@ -575,8 +575,6 @@ export class EmptyService {
     let file_path = temp_dir.path().join("empty.service.ts");
 
     std::fs::write(&file_path, code).unwrap();
-
-    let ctx = create_test_context();
 
     // Should handle empty class gracefully
     let function_count = count_functions(&cm, &file_path);
@@ -627,8 +625,4 @@ export class ExtendedService extends BaseService {
     let import_count = count_imports(&file_path);
     assert!(import_count.is_ok());
     assert_eq!(import_count.unwrap(), 2);
-
-    // Note: extract_function_calls doesn't handle ModuleDecl (exported classes) currently
-    let function_calls = extract_function_calls(&cm, &file_path);
-    assert!(function_calls.is_ok());
 }

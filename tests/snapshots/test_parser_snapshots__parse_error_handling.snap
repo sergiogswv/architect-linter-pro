@@ -1,7 +1,9 @@
 ---
 source: tests/test_parser_snapshots.rs
-expression: result
+assertion_line: 250
+expression: normalized_result
 ---
-Ok(
-    0,
-)
+  [31m×[0m Parse error in [TEST_PATH]: Error { error:
+  [31m│[0m (125..126#0, WithLabel { inner: Error { error: (125..126#0,
+  [31m│[0m TS1109) }, span: 116..118#0, note: "Tried to parse the condition
+  [31m│[0m for an if statement" }) }

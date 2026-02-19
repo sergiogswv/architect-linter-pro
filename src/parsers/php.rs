@@ -6,8 +6,8 @@ use crate::config::{ForbiddenRule, LinterContext};
 use miette::{IntoDiagnostic, Result};
 use std::path::Path;
 use std::sync::Mutex;
-use tree_sitter::{Parser, Query, QueryCursor};
 use streaming_iterator::StreamingIterator;
+use tree_sitter::{Parser, Query, QueryCursor};
 
 pub struct PhpParser {
     parser: Mutex<Parser>,
@@ -87,7 +87,8 @@ impl ArchitectParser for PhpParser {
             ]
         "#;
 
-        let query = Query::new(&tree_sitter_php::LANGUAGE_PHP.into(), query_source).into_diagnostic()?;
+        let query =
+            Query::new(&tree_sitter_php::LANGUAGE_PHP.into(), query_source).into_diagnostic()?;
 
         let mut cursor = QueryCursor::new();
         let mut matches = cursor.matches(&query, tree.root_node(), source_code.as_bytes());
@@ -155,10 +156,7 @@ impl ArchitectParser for PhpParser {
                         file_path: file_path.to_path_buf(),
                         file_content: source_code.to_string(),
                         offensive_import: import.raw_statement.clone(),
-                        rule: ForbiddenRule {
-                            from: rule.from.clone(),
-                            to: rule.to.clone(),
-                        },
+                        rule: rule.clone(),
                         line_number: import.line_number,
                     });
                 }
@@ -176,6 +174,7 @@ impl ArchitectParser for PhpParser {
                     rule: ForbiddenRule {
                         from: "controller".to_string(),
                         to: "model".to_string(),
+                        severity: Some(crate::config::Severity::Error),
                     },
                     line_number: import.line_number,
                 });

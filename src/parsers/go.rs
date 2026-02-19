@@ -6,8 +6,8 @@ use crate::config::{ForbiddenRule, LinterContext};
 use miette::{IntoDiagnostic, Result};
 use std::path::Path;
 use std::sync::Mutex;
-use tree_sitter::{Parser, Query, QueryCursor};
 use streaming_iterator::StreamingIterator;
+use tree_sitter::{Parser, Query, QueryCursor};
 
 pub struct GoParser {
     parser: Mutex<Parser>,
@@ -137,10 +137,7 @@ impl ArchitectParser for GoParser {
                         file_path: file_path.to_path_buf(),
                         file_content: source_code.to_string(),
                         offensive_import: import.raw_statement.clone(),
-                        rule: ForbiddenRule {
-                            from: rule.from.clone(),
-                            to: rule.to.clone(),
-                        },
+                        rule: rule.clone(),
                         line_number: import.line_number,
                     });
                 }
@@ -156,6 +153,7 @@ impl ArchitectParser for GoParser {
                     rule: ForbiddenRule {
                         from: "handlers".to_string(),
                         to: "database".to_string(),
+                        severity: Some(crate::config::Severity::Error),
                     },
                     line_number: import.line_number,
                 });

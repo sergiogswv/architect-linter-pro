@@ -72,6 +72,7 @@ fn setup_linter_context() -> LinterContext {
         forbidden_imports: vec![ForbiddenRule {
             from: "*".to_string(),
             to: "app/components".to_string(),
+            severity: None,
         }],
         ignored_paths: vec![],
         ai_configs: vec![],
@@ -121,11 +122,7 @@ fn bench_sequential_vs_parallel(c: &mut Criterion) {
 /// Benchmark cache performance - hit vs miss
 fn bench_cache_performance(c: &mut Criterion) {
     let temp_dir = create_test_files(50, 20);
-    let files: Vec<PathBuf> = (0..50)
-        .map(|i| temp_dir.path().join(format!("file_{}.ts", i)))
-        .collect();
 
-    let ctx = setup_linter_context();
     let project_root = temp_dir.path();
 
     // Create and populate cache

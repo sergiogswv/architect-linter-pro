@@ -6,7 +6,9 @@
 //!
 //! Using insta for snapshot testing to avoid constant updates when AST structures change.
 
-use architect_linter_pro::analyzer::{count_functions, count_imports, find_long_functions};
+use architect_linter_pro::analyzer::metrics::{
+    count_functions, count_imports, find_long_functions,
+};
 use architect_linter_pro::config::{ArchPattern, Framework};
 use swc_common::sync::Lrc;
 use swc_common::SourceMap;
@@ -162,10 +164,19 @@ class Service {
     let _ctx = create_test_context();
 
     // Extract long functions from the parsed AST
-    let long_functions = find_long_functions(&cm, &file_path, _ctx.max_lines);
+    let result = find_long_functions(&cm, &file_path, _ctx.max_lines);
+
+    // Normalize paths for cross-platform snapshots
+    let normalized_result = result.map(|mut funcs| {
+        for f in &mut funcs {
+            f.file_path =
+                std::path::PathBuf::from(f.file_path.to_string_lossy().replace("\\", "/"));
+        }
+        funcs
+    });
 
     // Snapshot the long functions result
-    insta::assert_debug_snapshot!(long_functions);
+    insta::assert_debug_snapshot!(normalized_result);
 
     // Clean up
     let _ = std::fs::remove_file(&file_path);
@@ -203,17 +214,15 @@ export class Broken {
     }
 
     brokenMethod() {
-        // Missing closing brace will cause parse error
-        if (true) {
-            console.log("this is valid");
-        }
+        if (
     }
 }
 "#;
 
     let cm = Lrc::new(SourceMap::default());
-    let temp_dir = tempfile::tempdir().unwrap();
-    let file_path = temp_dir.path().join("test.ts");
+    let test_dir = std::path::PathBuf::from("tests/test_data");
+    let _ = std::fs::create_dir_all(&test_dir);
+    let file_path = test_dir.join("broken_test.ts");
 
     // Write directly to the .ts path
     std::fs::write(&file_path, code).unwrap();
@@ -223,8 +232,22 @@ export class Broken {
     // Try to parse and extract functions
     let result = count_functions(&cm, &file_path);
 
-    // Snapshot the result (should handle errors gracefully)
-    insta::assert_debug_snapshot!(result);
+    // Normalize result for stable snapshots
+    let normalized_result = match &result {
+        Ok(n) => format!("Ok({})", n),
+        Err(e) => {
+            // Take the debug output and normalize paths
+            let err_debug = format!("{:?}", e);
+            let path_str = file_path.to_string_lossy().to_string();
+            let normalized_path = path_str.replace("\\", "/");
+            err_debug
+                .replace("\\", "/")
+                .replace(&normalized_path, "[TEST_PATH]")
+        }
+    };
+
+    // Snapshot the result
+    insta::assert_snapshot!(normalized_result);
 
     // temp_dir will be cleaned up when it goes out of scope
 }
@@ -352,10 +375,6 @@ export class UserController {
     let function_count = count_functions(&cm, &file_path);
     let function_calls = count_functions(&cm, &file_path);
 
-    // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
-
     // Snapshot both results
     insta::assert_debug_snapshot!((
         "function_count",
@@ -429,10 +448,6 @@ export class UserComponent {
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
-
-    // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
 
     // Extract function count
     let function_count = count_functions(&cm, &file_path);
@@ -551,10 +566,6 @@ async function fetchUser(): ApiResponse<User> {
     std::fs::write(&file_path, code).unwrap();
 
     let _ctx = create_test_context();
-
-    // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
 
     // Extract function count
     let function_count = count_functions(&cm, &file_path);

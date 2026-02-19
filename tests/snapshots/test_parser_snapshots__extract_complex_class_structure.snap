@@ -1,11 +1,12 @@
 ---
 source: tests/test_parser_snapshots.rs
+assertion_line: 307
 expression: "(\"function_count\", function_count, \"import_count\", import_count)"
 ---
 (
     "function_count",
     Ok(
-        0,
+        5,
     ),
     "import_count",
     Ok(

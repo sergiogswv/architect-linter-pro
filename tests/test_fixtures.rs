@@ -5,7 +5,6 @@
 ///
 /// Fixtures are located in tests/fixtures/
 use assert_cmd::Command;
-use predicates::prelude::*;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
@@ -24,8 +23,7 @@ fn analyze_fixture_json(name: &str) -> serde_json::Value {
     let report_path = temp_dir.path().join("report.json");
 
     // Run analysis with JSON report
-    Command::cargo_bin("architect-linter-pro")
-        .unwrap()
+    let _ = Command::new(env!("CARGO_BIN_EXE_architect-linter-pro"))
         .current_dir(&fixture_dir)
         .arg("--report")
         .arg("json")
@@ -73,8 +71,7 @@ fn test_fixture_perfect_project_exit_code() {
     let fixture_dir = fixture_path("perfect_project");
 
     // Perfect project should exit with success (0)
-    Command::cargo_bin("architect-linter-pro")
-        .unwrap()
+    Command::new(env!("CARGO_BIN_EXE_architect-linter-pro"))
         .current_dir(&fixture_dir)
         .arg(".")
         .assert()
@@ -128,8 +125,7 @@ fn test_fixture_circular_deps_exit_code() {
     let fixture_dir = fixture_path("circular_deps");
 
     // Project with cycles should exit with failure (non-zero)
-    Command::cargo_bin("architect-linter-pro")
-        .unwrap()
+    Command::new(env!("CARGO_BIN_EXE_architect-linter-pro"))
         .current_dir(&fixture_dir)
         .arg(".")
         .assert()
@@ -236,8 +232,7 @@ fn test_fixture_forbidden_imports_exit_code() {
     let fixture_dir = fixture_path("forbidden_imports");
 
     // Project with violations should exit with failure
-    Command::cargo_bin("architect-linter-pro")
-        .unwrap()
+    Command::new(env!("CARGO_BIN_EXE_architect-linter-pro"))
         .current_dir(&fixture_dir)
         .arg(".")
         .assert()
