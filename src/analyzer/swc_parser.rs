@@ -296,7 +296,14 @@ pub fn collect_violations_from_file(
     // Try to use multi-language parser first
     if let Some(parser) = parsers::get_parser_for_file(path) {
         let source_code = fs::read_to_string(path).into_diagnostic()?;
-        return parser.find_violations(&source_code, path, ctx);
+        let mut violations = parser.find_violations(&source_code, path, ctx)?;
+
+        // Auditoría de seguridad (Tier Pro)
+        if let Ok(mut security_violations) = parser.audit_security(&source_code, path, ctx) {
+            violations.append(&mut security_violations);
+        }
+
+        return Ok(violations);
     }
 
     // Fallback: return empty violations for unsupported files

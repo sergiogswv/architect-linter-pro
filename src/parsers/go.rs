@@ -162,4 +162,24 @@ impl ArchitectParser for GoParser {
 
         Ok(violations)
     }
+
+    fn audit_security(
+        &self,
+        source_code: &str,
+        file_path: &Path,
+        _context: &LinterContext,
+    ) -> Result<Vec<Violation>> {
+        let tree = self
+            .parser
+            .lock()
+            .unwrap()
+            .parse(source_code, None)
+            .ok_or_else(|| miette::miette!("Failed to parse Go for security audit"))?;
+
+        let cfg = crate::security::cfg::CFG::from_tree(&tree, source_code);
+        let engine = crate::security::data_flow::TaintEngine::new();
+        let violations = engine.analyze(&cfg, file_path, source_code);
+
+        Ok(violations)
+    }
 }

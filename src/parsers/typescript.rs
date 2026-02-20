@@ -86,4 +86,28 @@ impl ArchitectParser for TypeScriptParser {
 
         Ok(violations)
     }
+
+    fn audit_security(
+        &self,
+        source_code: &str,
+        file_path: &Path,
+        _context: &LinterContext,
+    ) -> Result<Vec<Violation>> {
+        // Parsear para obtener el árbol si no lo tenemos (aquí podríamos optimizar guardando el árbol del paso anterior)
+        let tree = self
+            .parser
+            .lock()
+            .unwrap()
+            .parse(source_code, None)
+            .ok_or_else(|| miette::miette!("Failed to parse TypeScript for security audit"))?;
+
+        // 1. Construir CFG usando la lógica pura
+        let cfg = typescript_pure::build_cfg_from_tree(&tree, source_code);
+
+        // 2. Ejecutar motor de flujo de datos (Taint Analysis)
+        let engine = crate::security::data_flow::TaintEngine::new();
+        let violations = engine.analyze(&cfg, file_path, source_code);
+
+        Ok(violations)
+    }
 }

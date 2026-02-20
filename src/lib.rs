@@ -18,6 +18,7 @@ pub mod discovery;
 pub mod git;
 pub mod git_changes;
 pub mod logging;
+pub mod security;
 
 pub mod metrics;
 pub mod notification;

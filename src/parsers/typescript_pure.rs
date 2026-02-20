@@ -5,6 +5,7 @@
 
 use crate::autofix::Violation;
 use crate::config::{ForbiddenRule, LinterContext};
+use crate::security::cfg::{CFG, NodeType};
 use miette::IntoDiagnostic;
 use std::path::Path;
 use streaming_iterator::StreamingIterator;
@@ -757,4 +758,54 @@ mod tests {
 
         assert_eq!(violations.len(), 0);
     }
+}
+
+/// Construye un CFG básico para TypeScript buscando fuentes de entrada y sumideros
+pub fn build_cfg_from_tree(tree: &Tree, source_code: &str) -> CFG {
+    let mut cfg = CFG::new();
+    let root = tree.root_node();
+    let start_node = cfg.add_node(NodeType::Entry, "START".to_string(), 1);
+
+    // Query para detectar llamadas a funciones (posibles sinks) y accesos a objetos (posibles sources)
+    let query_source = r#"
+        (call_expression
+          function: (identifier) @func_name)
+        (call_expression
+          function: (member_expression
+            property: (property_identifier) @method_name))
+        (member_expression
+          object: (identifier) @obj_name
+          property: (property_identifier) @prop_name)
+    "#;
+
+    let query = Query::new(
+        &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        query_source,
+    ).expect("Failed to create TS Security Query");
+
+    let mut cursor = QueryCursor::new();
+    let mut matches = cursor.matches(&query, root, source_code.as_bytes());
+
+    let mut last_node_id = start_node;
+
+    while let Some(match_) = matches.next() {
+        for capture in match_.captures {
+            let node = capture.node;
+            let name = node.utf8_text(source_code.as_bytes()).unwrap_or("unknown");
+            let line = node.start_position().row + 1;
+
+            let node_type = match name {
+                "query" | "execute" | "eval" | "exec" | "spawn" => NodeType::Sink,
+                "body" | "params" | "query_params" => NodeType::Source,
+                _ => NodeType::Call,
+            };
+
+            let current_node_id = cfg.add_node(node_type, name.to_string(), line);
+            cfg.add_edge(last_node_id, current_node_id);
+            last_node_id = current_node_id;
+        }
+    }
+
+    cfg.add_node(NodeType::Exit, "END".to_string(), root.end_position().row + 1);
+    cfg
 }

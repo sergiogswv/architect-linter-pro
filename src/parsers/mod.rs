@@ -98,6 +98,16 @@ pub trait ArchitectParser: Send + Sync {
         file_path: &Path,
         context: &LinterContext,
     ) -> Result<Vec<Violation>>;
+
+    /// Audit file for security vulnerabilities (Pro feature)
+    fn audit_security(
+        &self,
+        _source_code: &str,
+        _file_path: &Path,
+        _context: &LinterContext,
+    ) -> Result<Vec<Violation>> {
+        Ok(Vec::new())
+    }
 }
 
 /// Factory function to get appropriate parser for a file
