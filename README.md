@@ -98,7 +98,7 @@ All languages share the same rule engine, allowing you to define architectural c
 |----------|---------|
 | **Cargo** | `cargo install architect-linter-pro` |
 | **Homebrew** (macOS/Linux) | `brew tap sergiogswv/architect-linter-pro && brew install architect-linter-pro` |
-| **npm** | `npm install -g @architect-linter/cli` *(coming soon)* |
+| **npm** (any platform) | `npm install -g @architect-linter/cli` |
 | **Scoop** (Windows) | `scoop bucket add architect https://github.com/sergiogswv/scoop-architect-linter-pro && scoop install architect-linter-pro` *(coming soon)* |
 
 

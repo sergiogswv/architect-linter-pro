@@ -1,0 +1,25 @@
+{
+  "name": "@architect-linter/cli",
+  "version": "4.3.0",
+  "description": "Architecture linter with AI-powered auto-fix — npm binary wrapper for architect-linter-pro",
+  "main": "run.js",
+  "bin": {
+    "architect-linter-pro": "run.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sergiogswv/architect-linter-pro"
+  },
+  "bugs": {
+    "url": "https://github.com/sergiogswv/architect-linter-pro/issues"
+  },
+  "homepage": "https://github.com/sergiogswv/architect-linter-pro#readme",
+  "keywords": ["architecture", "linter", "hexagonal", "clean-architecture", "import-boundaries"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}
