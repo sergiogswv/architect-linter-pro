@@ -777,14 +777,37 @@ fn run_watch_mode(
     dep_analyzer.build_graph(&files)?;
 
     // Análisis inicial de violaciones
+    let severity_rank = |s: config::Severity| match s {
+        config::Severity::Error => 3,
+        config::Severity::Warning => 2,
+        config::Severity::Info => 1,
+    };
+    let min_rank = severity_rank(min_severity);
     let mut error_count = 0;
     for file_path in &files {
-        if let Err(e) = analyzer::analyze_file(file_path, &ctx) {
-            error_count += 1;
-            let mut out = String::new();
-            let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-            println!("\n📌 Violación en: {}", file_path.display());
-            println!("{}", out);
+        match analyzer::collect_violations_from_file(file_path, &ctx) {
+            Ok(violations) => {
+                let filtered: Vec<_> = violations
+                    .into_iter()
+                    .filter(|v| severity_rank(v.rule.get_severity()) >= min_rank)
+                    .collect();
+                if !filtered.is_empty() {
+                    error_count += 1;
+                    if let Ok(src) = std::fs::read_to_string(file_path) {
+                        for v in &filtered {
+                            let report = analyzer::swc_parser::create_error_from_source(&src, v);
+                            let mut out = String::new();
+                            let _ = GraphicalReportHandler::new()
+                                .render_report(&mut out, report.as_ref());
+                            println!("\n📌 Violación en: {}", file_path.display());
+                            println!("{}", out);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e);
+            }
         }
     }
 
@@ -853,14 +876,38 @@ fn run_watch_mode(
                 }
             }
 
+            let severity_rank_fn = |s: config::Severity| match s {
+                config::Severity::Error => 3,
+                config::Severity::Warning => 2,
+                config::Severity::Info => 1,
+            };
+            let min_rank_watch = severity_rank_fn(min_severity);
             let mut error_count = 0;
             for file_path in changed_files {
-                if let Err(e) = analyzer::analyze_file(file_path, &ctx) {
-                    error_count += 1;
-                    let mut out = String::new();
-                    let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-                    println!("\n📌 Violación en: {}", file_path.display());
-                    println!("{}", out);
+                match analyzer::collect_violations_from_file(file_path, &ctx) {
+                    Ok(violations) => {
+                        let filtered: Vec<_> = violations
+                            .into_iter()
+                            .filter(|v| severity_rank_fn(v.rule.get_severity()) >= min_rank_watch)
+                            .collect();
+                        if !filtered.is_empty() {
+                            error_count += 1;
+                            if let Ok(src) = std::fs::read_to_string(file_path) {
+                                for v in &filtered {
+                                    let report =
+                                        analyzer::swc_parser::create_error_from_source(&src, v);
+                                    let mut out = String::new();
+                                    let _ = GraphicalReportHandler::new()
+                                        .render_report(&mut out, report.as_ref());
+                                    println!("\n📌 Violación en: {}", file_path.display());
+                                    println!("{}", out);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e);
+                    }
                 }
 
                 let mut dep_analyzer = dep_analyzer.lock().expect("Failed to lock mutex");
