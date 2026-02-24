@@ -2,6 +2,15 @@
 
 This directory contains the Scoop manifest for Windows distribution.
 
+## About the Hash Placeholder
+
+The `hash` field in `architect-linter-pro.json` is initialized to all zeros
+(`0000000000000000000000000000000000000000000000000000000000000000`) and is
+automatically updated by the `update-scoop.yml` workflow when a GitHub Release
+is published. Do not attempt to install from the manifest before the first
+release tag is pushed — the zero hash will cause Scoop to reject the download
+as expected, signalling that the release artifact does not yet exist.
+
 ## Setup Instructions
 
 ### 1. Create the Scoop bucket repository

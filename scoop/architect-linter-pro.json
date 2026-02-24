@@ -6,7 +6,7 @@
   "architecture": {
     "64bit": {
       "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v4.3.0/architect-linter-pro-windows-x86_64.exe",
-      "hash": "PLACEHOLDER_WIN_SHA256",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
       "bin": [["architect-linter-pro-windows-x86_64.exe", "architect-linter-pro"]]
     }
   },
@@ -16,7 +16,10 @@
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v$version/architect-linter-pro-windows-x86_64.exe"
+        "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v$version/architect-linter-pro-windows-x86_64.exe",
+        "hash": {
+          "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v$version/architect-linter-pro-windows-x86_64.exe.sha256"
+        }
       }
     }
   }

@@ -102,6 +102,14 @@ jobs:
           echo "=== Checksums ==="
           cat SHA256SUMS.txt
 
+      - name: Generate per-binary .sha256 sidecar files
+        run: |
+          cd artifacts
+          for f in architect-linter-pro-*; do
+            [ -f "$f" ] && sha256sum "$f" | cut -d' ' -f1 > "${f}.sha256"
+          done
+          ls *.sha256
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631  # v2.2.1
         with:
