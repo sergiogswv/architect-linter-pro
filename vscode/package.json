@@ -1,0 +1,51 @@
+{
+  "name": "architect-linter-pro",
+  "displayName": "Architect Linter Pro",
+  "description": "Architecture health score and violation highlighting for architect-linter-pro",
+  "version": "0.1.0",
+  "publisher": "sergiogswv",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Linters"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sergiogswv/architect-linter-pro"
+  },
+  "activationEvents": ["workspaceContains:architect.json"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "architect.analyze",
+        "title": "Architect: Analyze Project"
+      }
+    ],
+    "configuration": {
+      "title": "Architect Linter Pro",
+      "properties": {
+        "architectLinter.binaryPath": {
+          "type": "string",
+          "default": "architect-linter-pro",
+          "description": "Path to the architect-linter-pro binary"
+        },
+        "architectLinter.runOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run analysis automatically when a file is saved"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npx @vscode/vsce package --no-dependencies",
+    "lint": "echo 'no lint configured'"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "20.x",
+    "typescript": "^5.3.2",
+    "@vscode/vsce": "^2.22.0"
+  }
+}
