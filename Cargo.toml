@@ -11,21 +11,8 @@ categories = ["development-tools"]
 readme = "README.md"
 
 [dependencies]
-# serde 1.0.219 is the last version with serde::__private (needed by swc_common 0.33.x)
-# NOTE: When upgrading SWC ecosystem to v18+, we can use latest serde
-serde = { version = "=1.0.219", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.101"
-
-# time 0.3.44 has RUSTSEC-2026-0009 (DoS vulnerability)
-# This is ignored in CI via --ignore flag until we can upgrade SWC ecosystem
-# time 0.3.45+ requires serde >=1.0.220, but swc_common 0.33.x requires <1.0.220
-time = "0.3.44"
-
-# SWC ecosystem - locked to 0.33.x/0.110.x/0.141.x for compatibility with serde 1.0.219
-# When upgrading to SWC v18+, we can use latest serde and fix time vulnerability
-swc_common = { version = "0.33", features = ["concurrent"] }
-swc_ecma_ast = "0.110"
-swc_ecma_parser = "0.141"
 
 walkdir = "2.5.0"
 miette = { version = "7.2.0", features = ["fancy"] }
@@ -71,7 +58,6 @@ lru = "0.13"
 
 # OS integration (v4.1.0-beta)
 notify-rust = "4.12"
-swc_ecma_visit = "0.96"
 md5 = "0.8.0"
 
 [target.'cfg(unix)'.dependencies]
