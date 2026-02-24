@@ -28,6 +28,7 @@ pub mod parsers;
 pub mod report;
 pub mod scoring;
 pub mod ui;
+pub mod init;
 pub mod watch;
 
 // Re-export commonly used types for convenience

@@ -25,6 +25,7 @@ mod report;
 mod scoring;
 mod security;
 mod source_span;
+mod init;
 mod ui;
 mod watch;
 

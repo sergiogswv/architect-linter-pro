@@ -21,6 +21,7 @@ pub use types::{
 
 // Re-export funciones de loader
 pub use loader::load_config;
+pub use loader::ConfigFile;
 
 // Re-export funciones de wizard
 pub use wizard::setup_or_load_config;
