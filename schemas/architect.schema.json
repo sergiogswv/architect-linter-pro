@@ -32,6 +32,16 @@
                     "to": {
                         "type": "string",
                         "description": "Target path or pattern that should not be imported from 'from'"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "enum": ["error", "warning", "info"],
+                        "description": "Severity level for this rule. 'error' blocks commits (default), 'warning' notifies only, 'info' is informational.",
+                        "default": "error"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Human-readable explanation for why this import is forbidden"
                     }
                 },
                 "required": [
