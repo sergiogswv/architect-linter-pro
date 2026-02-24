@@ -158,6 +158,18 @@ fn main() -> Result<()> {
 
     ui::print_banner();
 
+    // Handle init mode before loading config (init creates the config)
+    if cli_args.init_mode {
+        let root = if let Some(ref p) = cli_args.init_path {
+            std::path::PathBuf::from(p)
+        } else if let Some(ref p) = cli_args.project_path {
+            std::path::PathBuf::from(p)
+        } else {
+            std::env::current_dir().into_diagnostic()?
+        };
+        return init::run_init(&root, cli_args.init_force);
+    }
+
     // 4. Obtener la ruta del proyecto
     tracing::debug!("Resolving project path...");
     let project_root = if let Some(ref path) = cli_args.project_path {
