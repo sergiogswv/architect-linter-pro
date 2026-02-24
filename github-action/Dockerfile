@@ -26,6 +26,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from builder

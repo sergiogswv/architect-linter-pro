@@ -1,5 +1,5 @@
 name: 'Architect Linter'
-description: 'Architecture linting with Health Score - Enforce clean architecture patterns'
+description: 'Architecture linting with Health Score - Enforce clean architecture patterns and emit inline PR annotations'
 author: 'Sergio Guadarrama'
 branding:
   icon: 'check-circle'

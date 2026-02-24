@@ -63,6 +63,30 @@ set -e
 # Print output
 echo "$OUTPUT"
 
+# If running inside GitHub Actions, emit inline annotations from JSON report
+if [ -n "${GITHUB_ACTIONS}" ]; then
+  TEMP_REPORT=$(mktemp /tmp/architect-report-XXXXXX.json)
+
+  # Re-run with JSON report to get structured output
+  architect-linter-pro . $ARGS --report json --output "$TEMP_REPORT" 2>/dev/null || true
+
+  if [ -f "$TEMP_REPORT" ] && [ -s "$TEMP_REPORT" ] && command -v jq &>/dev/null; then
+    # Emit error annotations for blocked violations
+    jq -r '
+      .violations[] | select(.category == "blocked") |
+      "::error file=\(.file),line=\(.line),col=1,title=Architecture Violation::\(.rule.from | ltrimstr("/") | rtrimstr("/")) -> \(.rule.to | ltrimstr("/") | rtrimstr("/")): found import \(.import)"
+    ' "$TEMP_REPORT" 2>/dev/null || true
+
+    # Emit warning annotations for warning-severity violations
+    jq -r '
+      .violations[] | select(.category == "warning") |
+      "::warning file=\(.file),line=\(.line),col=1,title=Architecture Warning::\(.rule.from | ltrimstr("/") | rtrimstr("/")) -> \(.rule.to | ltrimstr("/") | rtrimstr("/")): found import \(.import)"
+    ' "$TEMP_REPORT" 2>/dev/null || true
+  fi
+
+  rm -f "$TEMP_REPORT"
+fi
+
 # Extract score from output (if available)
 SCORE=$(echo "$OUTPUT" | grep -oP 'Score: \K\d+' || echo "")
 GRADE=$(echo "$OUTPUT" | grep -oP 'Grade: \K[A-F]' || echo "")
