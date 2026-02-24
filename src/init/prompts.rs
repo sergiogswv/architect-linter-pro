@@ -66,5 +66,8 @@ pub fn confirm_write() -> bool {
         .with_prompt("¿Crear architect.json?")
         .default(true)
         .interact()
-        .unwrap_or(false)
+        .unwrap_or_else(|e| {
+            eprintln!("Warning: could not read confirmation ({}), defaulting to no.", e);
+            false
+        })
 }
