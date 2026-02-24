@@ -201,7 +201,7 @@ fn main() -> Result<()> {
         run_fix_mode(&project_root, Arc::clone(&ctx))?;
     } else if cli_args.watch_mode {
         tracing::info!("👁️  Running in WATCH mode");
-        run_watch_mode(&project_root, Arc::clone(&ctx), no_cache)?;
+        run_watch_mode(&project_root, Arc::clone(&ctx), no_cache, cli_args.min_severity)?;
     } else if cli_args.incremental_mode {
         tracing::info!("⚡ Running in INCREMENTAL mode");
         run_incremental_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
@@ -355,6 +355,7 @@ fn run_full_analysis(
     project_root: &Path,
     ctx: &config::LinterContext,
     analysis_cache: Option<&mut cache::AnalysisCache>,
+    min_severity: config::Severity,
 ) -> Result<analysis_result::AnalysisResult> {
     let files = discovery::collect_files(project_root, &ctx.ignored_paths);
 
@@ -365,6 +366,9 @@ fn run_full_analysis(
         ctx,
         analysis_cache,
     )?;
+
+    // Apply minimum severity filter from CLI
+    analysis_result.filter_by_severity(min_severity);
 
     // Circular dependencies
     match circular::analyze_circular_dependencies(&files, project_root) {
@@ -743,6 +747,7 @@ fn run_watch_mode(
     project_root: &Path,
     ctx: Arc<config::LinterContext>,
     no_cache: bool,
+    min_severity: config::Severity,
 ) -> Result<()> {
     let project_name_notification = Arc::new(
         project_root
@@ -915,6 +920,7 @@ fn run_watch_mode(
                     project_root,
                     &ctx,
                     guard.as_mut(),
+                    min_severity,
                 )?;
                 // Save cache after analysis
                 if let Some(ref c) = *guard {
@@ -1098,6 +1104,9 @@ fn run_incremental_mode(
         &linter_context,
         None,
     )?;
+
+    // Apply minimum severity filter from CLI
+    analysis_result.filter_by_severity(cli_args.min_severity);
 
     // Handle circular dependencies
     if !analysis_result.circular_dependencies.is_empty() {
