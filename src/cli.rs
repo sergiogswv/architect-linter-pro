@@ -49,6 +49,12 @@ pub struct CliArgs {
     pub check_mode: bool,
     /// Minimum severity to report (error, warning, info)
     pub min_severity: crate::config::Severity,
+    /// Run init wizard to generate architect.json
+    pub init_mode: bool,
+    /// Overwrite existing architect.json (used with init)
+    pub init_force: bool,
+    /// Target directory for init (default: current dir)
+    pub init_path: Option<String>,
 }
 
 impl Default for CliArgs {
@@ -66,6 +72,9 @@ impl Default for CliArgs {
             debug_mode: false,
             check_mode: false,
             min_severity: crate::config::Severity::Info,
+            init_mode: false,
+            init_force: false,
+            init_path: None,
         }
     }
 }
@@ -96,6 +105,9 @@ pub fn print_help() {
     println!("  --debug              Enable debug logging (verbose output)");
     println!("  --check              Solo validar configuración y salir");
     println!("  --severity <LEVEL>   Nivel mínimo de severidad: error, warning, info");
+    println!("  init                 Genera architect.json para tu proyecto");
+    println!("    --force            Sobreescribe architect.json si ya existe");
+    println!("    --path <DIR>       Directorio destino (default: directorio actual)");
     println!();
     println!("EJEMPLOS:");
     println!("  architect-linter-pro                         # Modo interactivo");
@@ -109,6 +121,9 @@ pub fn print_help() {
     println!(
         "  architect-linter-pro -r md -o report.md .    # Exportar reporte Markdown a archivo"
     );
+    println!("  architect-linter-pro init                  # Wizard en directorio actual");
+    println!("  architect-linter-pro init --force          # Sobreescribir config existente");
+    println!("  architect-linter-pro init --path ./backend # Init en subdirectorio");
     println!();
     println!("INTERACTIVE WATCH MODE:");
     println!("  When running with --watch, type a command + Enter:");
@@ -156,6 +171,9 @@ pub fn process_args() -> Option<CliArgs> {
     let mut output_path: Option<String> = None;
     let mut min_severity = crate::config::Severity::Info;
     let mut project_path: Option<String> = None;
+    let mut init_mode = false;
+    let mut init_force = false;
+    let mut init_path: Option<String> = None;
 
     // Procesar argumentos
     let mut i = 1;
@@ -241,6 +259,21 @@ pub fn process_args() -> Option<CliArgs> {
                     return None;
                 }
             }
+            "init" => {
+                init_mode = true;
+            }
+            "--force" => {
+                init_force = true;
+            }
+            "--path" => {
+                if i + 1 < args.len() {
+                    i += 1;
+                    init_path = Some(args[i].clone());
+                } else {
+                    eprintln!("Error: --path requiere una ruta de directorio");
+                    return None;
+                }
+            }
             _ => {
                 // Si no es un flag, asumimos que es la ruta del proyecto
                 if !args[i].starts_with('-') {
@@ -264,5 +297,8 @@ pub fn process_args() -> Option<CliArgs> {
         report_format,
         output_path,
         min_severity,
+        init_mode,
+        init_force,
+        init_path,
     })
 }
