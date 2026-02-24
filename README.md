@@ -92,6 +92,16 @@ All languages share the same rule engine, allowing you to define architectural c
 
 ## Quick Start
 
+### Package Managers
+
+| Platform | Command |
+|----------|---------|
+| **Cargo** | `cargo install architect-linter-pro` |
+| **Homebrew** (macOS/Linux) | `brew tap sergiogswv/architect-linter-pro && brew install architect-linter-pro` |
+| **npm** | `npm install -g @architect-linter/cli` *(coming soon)* |
+| **Scoop** (Windows) | `scoop bucket add architect https://github.com/sergiogswv/scoop-architect-linter-pro && scoop install architect-linter-pro` *(coming soon)* |
+
+
 ### Option 0: Via Cargo (Rust)
 ```bash
 cargo install architect-linter-pro
