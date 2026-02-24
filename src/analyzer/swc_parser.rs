@@ -101,12 +101,11 @@ pub fn validate_method_length_ts(content: &str, max_lines: usize) -> Result<()> 
         .parse(content, None)
         .ok_or_else(|| miette::miette!("Failed to parse TypeScript content"))?;
 
-    check_methods_recursive(tree.root_node(), content, max_lines)
+    check_methods_recursive(tree.root_node(), max_lines)
 }
 
 fn check_methods_recursive(
     node: tree_sitter::Node,
-    content: &str,
     max_lines: usize,
 ) -> Result<()> {
     if node.kind() == "method_definition" || node.kind() == "function_declaration" {
@@ -124,7 +123,7 @@ fn check_methods_recursive(
     }
     for i in 0..node.child_count() {
         if let Some(child) = node.child(i) {
-            check_methods_recursive(child, content, max_lines)?;
+            check_methods_recursive(child, max_lines)?;
         }
     }
     Ok(())
