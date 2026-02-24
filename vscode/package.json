@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/sergiogswv/architect-linter-pro"
   },
-  "activationEvents": ["workspaceContains:architect.json"],
+  "activationEvents": ["workspaceContains:architect.json", "onCommand:architect.analyze"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
