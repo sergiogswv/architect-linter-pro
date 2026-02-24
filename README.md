@@ -432,6 +432,47 @@ A forbidden rule defines a **Source (from)** → **Target (to)** relationship:
 - **`forbidden_imports`** (array): List of rules with:
   - **`from`**: Folder/file pattern where the restriction applies
   - **`to`**: Forbidden folder/file pattern to import
+  - **`severity`** *(optional)*: `"error"` (default), `"warning"`, or `"info"` — controls how the violation is reported
+  - **`reason`** *(optional)*: Human-readable explanation for why this import is forbidden
+
+#### Per-Rule Severity
+
+Each rule can have a `severity` field that controls how violations are reported and whether they block the workflow:
+
+| Severity | Effect | Exit Code |
+|----------|--------|-----------|
+| `error` (default) | Violation blocks commit and CI | `1` (fail) |
+| `warning` | Shown in output and annotations, does not block | `0` (pass) |
+| `info` | Informational only | `0` (pass) |
+
+```json
+{
+  "forbidden_imports": [
+    {
+      "from": "/domain/",
+      "to": "/infrastructure/",
+      "severity": "error",
+      "reason": "Domain must never depend on infrastructure"
+    },
+    {
+      "from": "/presentation/",
+      "to": "/domain/",
+      "severity": "warning",
+      "reason": "Prefer going through application layer"
+    }
+  ]
+}
+```
+
+Use `--severity error` to only report and fail on errors (ignore warnings and info):
+```bash
+architect-linter-pro --severity error .
+```
+
+Use `--severity warning` to report and fail on warnings and errors:
+```bash
+architect-linter-pro --severity warning .
+```
 
 #### Security
 
@@ -617,6 +658,7 @@ architect-linter-pro [OPTIONS] [PATH]
 - `-o, --output <FILE>`: Output file path for the report
 - `--debug`: Debug mode - enables verbose logging with timestamps, thread IDs, and detailed execution flow
 - `--check`: Configuration check - only validates `architect.json` against the schema and exits
+- `--severity <LEVEL>`: Minimum severity to report and fail on (`error` | `warning` | `info`). Default: `error`. Only violations at or above this level are shown and counted.
 - **No arguments**: Interactive mode, shows menu of available projects
 - **With path**: `architect-linter-pro /project/path` - Analyzes the specified project
 
