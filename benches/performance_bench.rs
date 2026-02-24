@@ -73,6 +73,7 @@ fn setup_linter_context() -> LinterContext {
             from: "*".to_string(),
             to: "app/components".to_string(),
             severity: None,
+            reason: None,
         }],
         ignored_paths: vec![],
         ai_configs: vec![],
