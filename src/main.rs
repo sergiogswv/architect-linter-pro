@@ -24,6 +24,8 @@ mod output;
 mod parsers;
 mod report;
 mod scoring;
+mod security;
+mod source_span;
 mod ui;
 mod watch;
 
@@ -245,7 +247,7 @@ fn run_normal_mode(
     }
 
     if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        println!("✅ No se encontraron archivos para analizar (TS, JS, y beta: Py, Go, PHP, Java, C#, Rb, Kt, Rs).");
         return Ok(());
     }
 
@@ -768,7 +770,7 @@ fn run_watch_mode(
     }
 
     if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        println!("✅ No se encontraron archivos para analizar (TS, JS, y beta: Py, Go, PHP, Java, C#, Rb, Kt, Rs).");
         return Ok(());
     }
 
