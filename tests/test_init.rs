@@ -1,11 +1,6 @@
 use std::fs;
 use tempfile::TempDir;
 
-fn make_nestjs_project(dir: &TempDir) {
-    let pkg = r#"{"dependencies": {"@nestjs/core": "^10.0.0"}}"#;
-    fs::write(dir.path().join("package.json"), pkg).unwrap();
-}
-
 #[test]
 fn test_init_fails_if_config_exists_without_force() {
     let dir = TempDir::new().unwrap();
@@ -38,8 +33,3 @@ fn test_write_config_creates_valid_json() {
     assert!(!parsed["forbidden_imports"].as_array().unwrap().is_empty());
 }
 
-// Suppress unused warning for the helper
-#[allow(dead_code)]
-fn _use_make_nestjs_project(dir: &TempDir) {
-    make_nestjs_project(dir);
-}
