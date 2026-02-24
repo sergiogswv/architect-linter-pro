@@ -11,14 +11,16 @@
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/language-Rust-red.svg" alt="Language">
   <img src="https://img.shields.io/badge/powered_by-Tree--sitter-green.svg" alt="Tree-sitter">
+  <img src="https://img.shields.io/crates/v/architect-linter-pro.svg" alt="Crates.io Version">
+  <img src="https://img.shields.io/crates/d/architect-linter-pro.svg" alt="Crates.io Downloads">
 </p>
 
-A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **10 languages (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust)** using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.
+A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **10 languages (TypeScript, JavaScript, and 8 others in beta: Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust)** using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.
 
 ## Features
 
 ### Core Analysis
-- **🌐 Multi-Language Support**: 10 languages (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust) with Tree-sitter parsing
+- **🌐 Multi-Language Support**: 10 languages (TS, JS, and Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust in [beta])
 - **🔧 Dynamic Rule Engine**: Define custom constraints between layers via `architect.json`
 - **🔍 Circular Dependency Detection**: Analyzes the dependency graph and automatically detects cycles
 - **📦 Import Validation**: Detects and blocks imports that violate the defined architecture across all supported languages
@@ -52,28 +54,27 @@ A multi-language software architecture linter written in Rust that validates arc
 - **🎨 Interactive Mode**: Guided configuration on first run with enhanced visual banner
 - **🧩 Configuration Schema**: Full JSON Schema validation for `architect.json` with IDE autocompletion
 - **🪝 Git Hooks Integration**: Automatic Husky and pre-commit hook configuration
-- **🐙 GitHub Action**: Official action for CI/CD pipeline integration
+- **🐙 GitHub Action & GitLab CI**: Official integration for CI/CD pipelines
 - **🔍 Debug Mode**: Structured logging with `--debug` flag for troubleshooting and observability
 - **✅ Config Validation**: Instant schema validation with the `--check` flag
 - **🧪 Enhanced Stability**: (New in v4.3.0) Robust initialization with `Default` trait implementations and cleaned-up codebase for reliable CI/CD execution.
-- **📊 Advanced Metrics Utilities**: (New in v4.3.0) Inter-file function call tracking using high-performance SWC analysis.
 
 ## Supported Languages
 
-Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsing. The following languages are fully supported:
+Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsing. TypeScript and JavaScript are fully supported; other languages are currently in **beta**:
 
 | Language | Extensions | Import Syntax | Example |
 |----------|-----------|---------------|---------|
 | **TypeScript** | `.ts`, `.tsx` | `import X from 'path'` | `import { UserService } from './services/user'` |
 | **JavaScript** | `.js`, `.jsx` | `import X from 'path'` | `import UserController from '../controllers/user'` |
-| **Python** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
-| **Go** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
-| **PHP** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
-| **Java** | `.java` | `import package.Class` | `import com.example.models.User;` |
-| **C#** | `.cs` | `using X` | `using System.Collections.Generic;` |
-| **Ruby** | `.rb` | `require 'X'` | `require 'json'` |
-| **Kotlin** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
-| **Rust** | `.rs` | `use X` | `use std::collections::HashMap;` |
+| **Python [beta]** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
+| **Go [beta]** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
+| **PHP [beta]** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
+| **Java [beta]** | `.java` | `import package.Class` | `import com.example.models.User;` |
+| **C# [beta]** | `.cs` | `using X` | `using System.Collections.Generic;` |
+| **Ruby [beta]** | `.rb` | `require 'X'` | `require 'json'` |
+| **Kotlin [beta]** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
+| **Rust [beta]** | `.rs` | `use X` | `use std::collections::HashMap;` |
 
 ### Language-Specific Features
 
@@ -90,6 +91,11 @@ Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsi
 All languages share the same rule engine, allowing you to define architectural constraints consistently across polyglot projects.
 
 ## Quick Start
+
+### Option 0: Via Cargo (Rust)
+```bash
+cargo install architect-linter-pro
+```
 
 ### Option 1: Global Installation (Recommended)
 
@@ -902,14 +908,13 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 - [x] **Git Integration (v4.0.0)**: Analyze only staged files with --staged flag
 
 ### Coming Soon 🚧
+- [ ] **Security Analysis Module** (Data flow analysis, secrets detection) [IN DEVELOPMENT]
 - [ ] Web dashboard to visualize historical violations and trends
-- [ ] Support for more languages (Rust, C#, Ruby, Kotlin)
 - [ ] HTML report export with interactive visualizations
 - [ ] LSP (Language Server Protocol) integration for IDE support
 
 ### Future 🔮
 - [ ] Custom rules via Rust/WASM plugins
-- [ ] GitLab CI and other CI/CD platform integrations
 - [ ] Severity configuration per rule (error, warning, info)
 - [ ] Language-specific rule templates
 - [ ] Historical trend analysis and regression detection
@@ -958,7 +963,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
 ### v3.1.0 (2026-02-06) - Multi-Language Support: PHP & Java
 - 🌐 **PHP Parser**: Full Tree-sitter integration with support for use/require/include statements
 - ☕ **Java Parser**: Complete Tree-sitter grammar support with import analysis
-- 📚 **6 Languages Total**: TypeScript, JavaScript, Python, Go, PHP, Java now fully supported
+- 📚 **10 Languages Total**: Full support for TS/JS and 8 additional languages in beta
 - 🎨 **Professional Banner**: New project banner in documentation
 - 📖 **Enhanced Documentation**: Multi-language support table in English and Spanish
 - 🔧 **Improved Setup Scripts**: Better error handling and PATH configuration
