@@ -29,24 +29,27 @@ echo -e "${BLUE}📁 Analyzing: $(pwd)${NC}"
 echo ""
 
 # Build command arguments
-ARGS=""
+ARGS=()
+# BASE_ARGS holds only non-report flags for the annotation re-run
+BASE_ARGS=()
 
 # Check for staged-only mode
 if [ "${STAGED_ONLY}" = "true" ]; then
     echo -e "${YELLOW}🔍 Staged-only mode enabled${NC}"
-    ARGS="$ARGS --staged"
+    ARGS+=(--staged)
+    BASE_ARGS+=(--staged)
 fi
 
 # Check for report format
 if [ -n "${REPORT_FORMAT}" ]; then
     echo -e "${YELLOW}📊 Report format: ${REPORT_FORMAT}${NC}"
-    ARGS="$ARGS --report ${REPORT_FORMAT}"
+    ARGS+=(--report "${REPORT_FORMAT}")
 
     # Set output path
     if [ -n "${REPORT_OUTPUT}" ]; then
-        ARGS="$ARGS --output ${REPORT_OUTPUT}"
+        ARGS+=(--output "${REPORT_OUTPUT}")
     else
-        ARGS="$ARGS --output architect-report.${REPORT_FORMAT}"
+        ARGS+=(--output "architect-report.${REPORT_FORMAT}")
     fi
 fi
 
@@ -56,7 +59,7 @@ echo -e "${BLUE}Running architect-linter-pro...${NC}"
 
 # Capture output and exit code
 set +e
-OUTPUT=$(architect-linter-pro . $ARGS 2>&1)
+OUTPUT=$(architect-linter-pro . "${ARGS[@]}" 2>&1)
 EXIT_CODE=$?
 set -e
 
@@ -67,8 +70,9 @@ echo "$OUTPUT"
 if [ -n "${GITHUB_ACTIONS}" ]; then
   TEMP_REPORT=$(mktemp /tmp/architect-report-XXXXXX.json)
 
-  # Re-run with JSON report to get structured output
-  architect-linter-pro . $ARGS --report json --output "$TEMP_REPORT" 2>/dev/null || true
+  # Re-run with JSON report to get structured output.
+  # Use BASE_ARGS (non-report flags only) to avoid duplicate --report/--output flags.
+  architect-linter-pro . "${BASE_ARGS[@]}" --report json --output "$TEMP_REPORT" 2>/dev/null || true
 
   if [ -f "$TEMP_REPORT" ] && [ -s "$TEMP_REPORT" ] && command -v jq &>/dev/null; then
     # Emit error annotations for blocked violations
