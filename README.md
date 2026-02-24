@@ -201,6 +201,22 @@ architect-linter-pro
 7. Automatically updates `.gitignore` to exclude `.architect.ai.json`
 8. Automatically configures Husky and the pre-commit hook
 
+### Inicialización rápida (recomendado)
+
+```bash
+architect-linter-pro init
+```
+
+El comando detecta tu framework automáticamente, te pregunta el patrón arquitectónico y genera `architect.json` listo para usar en menos de 2 minutos.
+
+**Frameworks soportados:** Next.js, NestJS, Express, Django, Spring Boot
+
+```bash
+# Opciones disponibles
+architect-linter-pro init --force          # Sobreescribir config existente
+architect-linter-pro init --path ./backend # Inicializar un subdirectorio
+```
+
 ## Update
 
 If you already have architect-linter-pro installed and want to update to the latest version, use the **same installation script**:
