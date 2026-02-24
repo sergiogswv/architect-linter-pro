@@ -128,6 +128,7 @@ fn test_rollback_on_syntax_error() {
             from: "test.ts".into(),
             to: "b".into(),
             severity: None,
+            reason: None,
         },
         line_number: 1,
     };

@@ -347,6 +347,7 @@ fn test_violations_component_few() {
             from: "domain".to_string(),
             to: "infrastructure".to_string(),
             severity: None,
+            reason: None,
         },
         line_number: 10,
     };
@@ -376,6 +377,7 @@ fn test_violations_component_many() {
                 from: "domain".to_string(),
                 to: "infrastructure".to_string(),
                 severity: None,
+                reason: None,
             },
             line_number: i * 10,
         };

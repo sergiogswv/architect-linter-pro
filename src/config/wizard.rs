@@ -119,6 +119,7 @@ pub fn save_config_from_wizard(
             from: r.from,
             to: r.to,
             severity: None,
+            reason: None,
         })
         .collect();
 

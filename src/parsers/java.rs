@@ -163,6 +163,7 @@ impl ArchitectParser for JavaParser {
                         from: "controller".to_string(),
                         to: "repository".to_string(),
                         severity: Some(crate::config::Severity::Error),
+                        reason: None,
                     },
                     line_number: import.line_number,
                 });

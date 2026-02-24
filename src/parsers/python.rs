@@ -160,6 +160,7 @@ impl ArchitectParser for PythonParser {
                         from: "views".to_string(),
                         to: "models".to_string(),
                         severity: Some(crate::config::Severity::Error),
+                        reason: None,
                     },
                     line_number: import.line_number,
                 });

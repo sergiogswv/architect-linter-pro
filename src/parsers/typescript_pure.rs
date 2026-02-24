@@ -269,6 +269,7 @@ pub fn matches_pattern(path: &str, pattern: &str) -> bool {
 ///     from: "src/controller/".to_string(),
 ///     to: "src/repository/".to_string(),
 ///     severity: None,
+///     reason: None,
 /// };
 ///
 /// // Violation: controller importing from repository
@@ -414,6 +415,7 @@ pub fn find_violations_in_imports(
                     from: "controller".to_string(),
                     to: ".repository".to_string(),
                     severity: Some(crate::config::Severity::Error),
+                    reason: None,
                 },
             ));
         }
@@ -603,6 +605,7 @@ mod tests {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
             severity: None,
+            reason: None,
         };
 
         assert!(matches_forbidden_rule(
@@ -624,6 +627,7 @@ mod tests {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
             severity: None,
+            reason: None,
         };
 
         assert!(!matches_forbidden_rule(
@@ -639,6 +643,7 @@ mod tests {
             from: "src/controller/".to_string(),
             to: "src/repository/".to_string(),
             severity: None,
+            reason: None,
         };
 
         assert!(!matches_forbidden_rule(
@@ -708,6 +713,7 @@ mod tests {
                 from: "src/controller/".to_string(),
                 to: "src/repository/".to_string(),
                 severity: None,
+                reason: None,
             }],
             ignored_paths: vec![],
             ai_configs: vec![],
@@ -743,6 +749,7 @@ mod tests {
                 from: "src/controller/".to_string(),
                 to: "src/repository/".to_string(),
                 severity: None,
+                reason: None,
             }],
             ignored_paths: vec![],
             ai_configs: vec![],

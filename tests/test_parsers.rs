@@ -33,6 +33,7 @@ fn forbidden_rule(from: &str, to: &str) -> ForbiddenRule {
         from: from.to_string(),
         to: to.to_string(),
         severity: None,
+        reason: None,
     }
 }
 

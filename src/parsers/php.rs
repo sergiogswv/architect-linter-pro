@@ -175,6 +175,7 @@ impl ArchitectParser for PhpParser {
                         from: "controller".to_string(),
                         to: "model".to_string(),
                         severity: Some(crate::config::Severity::Error),
+                        reason: None,
                     },
                     line_number: import.line_number,
                 });

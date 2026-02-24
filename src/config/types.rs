@@ -123,7 +123,10 @@ impl Severity {
 pub struct ForbiddenRule {
     pub from: String,
     pub to: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub severity: Option<Severity>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 impl ForbiddenRule {

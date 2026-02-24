@@ -348,6 +348,7 @@ export class DomainService {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
         severity: None,
+        reason: None,
     }];
     let ctx = create_context_with_rules(rules);
 
@@ -441,6 +442,7 @@ class CombinedViolations {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
         severity: None,
+        reason: None,
     }];
     let ctx = create_context_with_rules(rules);
 
@@ -532,6 +534,7 @@ export class ViolatingService {
         from: "/domain/".to_string(),
         to: "/infrastructure/".to_string(),
         severity: None,
+        reason: None,
     }];
     let ctx = create_context_with_rules(rules);
 

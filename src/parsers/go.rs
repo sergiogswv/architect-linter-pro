@@ -154,6 +154,7 @@ impl ArchitectParser for GoParser {
                         from: "handlers".to_string(),
                         to: "database".to_string(),
                         severity: Some(crate::config::Severity::Error),
+                        reason: None,
                     },
                     line_number: import.line_number,
                 });

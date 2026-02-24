@@ -141,6 +141,7 @@ pub fn create_security_violation(
             from: "SecurityModule".to_string(),
             to: "InsecureSink".to_string(),
             severity: Some(crate::config::Severity::Error),
+            reason: None,
         },
         line_number: line,
     }
