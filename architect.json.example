@@ -5,15 +5,21 @@
   "forbidden_imports": [
     {
       "from": "src/**/.controller.ts",
-      "to": "src/**/.repository.ts"
+      "to": "src/**/.repository.ts",
+      "severity": "error",
+      "reason": "Controllers must not access repositories directly; use services"
     },
     {
       "from": "src/**/.service.ts",
-      "to": "src/**/.controller.ts"
+      "to": "src/**/.controller.ts",
+      "severity": "error",
+      "reason": "Services must not import controllers to avoid circular dependencies"
     },
     {
       "from": "src/components/**/*.tsx",
-      "to": "src/repositories/**/*.ts"
+      "to": "src/repositories/**/*.ts",
+      "severity": "warning",
+      "reason": "Prefer going through a service layer instead of accessing repositories directly"
     }
   ],
   "ignored_paths": [

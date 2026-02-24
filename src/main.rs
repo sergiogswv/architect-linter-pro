@@ -2,7 +2,6 @@ use indicatif::{ProgressBar, ProgressStyle};
 use miette::{GraphicalReportHandler, IntoDiagnostic, Result};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use swc_common::SourceMap;
 
 mod ai;
 mod analysis_result;
@@ -24,6 +23,8 @@ mod output;
 mod parsers;
 mod report;
 mod scoring;
+mod security;
+mod source_span;
 mod ui;
 mod watch;
 
@@ -101,7 +102,6 @@ pub fn analyze_changed_files(
         .map_err(|e| miette::miette!("Failed to load config: {}", e))?;
 
     let linter_context: config::LinterContext = config;
-    let cm = Arc::new(SourceMap::default());
 
     // Analyze only changed files
     analyzer::analyze_all_files(
@@ -109,7 +109,6 @@ pub fn analyze_changed_files(
         project_root,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         analysis_cache,
     )
 }
@@ -202,7 +201,7 @@ fn main() -> Result<()> {
         run_fix_mode(&project_root, Arc::clone(&ctx))?;
     } else if cli_args.watch_mode {
         tracing::info!("👁️  Running in WATCH mode");
-        run_watch_mode(&project_root, Arc::clone(&ctx), no_cache)?;
+        run_watch_mode(&project_root, Arc::clone(&ctx), no_cache, cli_args.min_severity)?;
     } else if cli_args.incremental_mode {
         tracing::info!("⚡ Running in INCREMENTAL mode");
         run_incremental_mode(&project_root, Arc::clone(&ctx), &cli_args)?;
@@ -245,7 +244,7 @@ fn run_normal_mode(
     }
 
     if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        println!("✅ No se encontraron archivos para analizar (TS, JS, y beta: Py, Go, PHP, Java, C#, Rb, Kt, Rs).");
         return Ok(());
     }
 
@@ -257,8 +256,6 @@ fn run_normal_mode(
             .into_diagnostic()?,
     );
     pb.set_message("Analyzing...");
-
-    let cm = Arc::new(SourceMap::default());
 
     // Load or create analysis cache
     let use_cache = !cli_args.no_cache;
@@ -276,7 +273,6 @@ fn run_normal_mode(
         project_root,
         ctx.pattern.clone(),
         &ctx,
-        &cm,
         if use_cache {
             Some(&mut analysis_cache)
         } else {
@@ -296,7 +292,7 @@ fn run_normal_mode(
 
     // Análisis de Dependencias Cíclicas
     pb.set_message("Checking circular deps...");
-    let cycles = circular::analyze_circular_dependencies(&files, project_root, &cm);
+    let cycles = circular::analyze_circular_dependencies(&files, project_root);
 
     match cycles {
         Ok(detected_cycles) => {
@@ -359,21 +355,23 @@ fn run_full_analysis(
     project_root: &Path,
     ctx: &config::LinterContext,
     analysis_cache: Option<&mut cache::AnalysisCache>,
+    min_severity: config::Severity,
 ) -> Result<analysis_result::AnalysisResult> {
     let files = discovery::collect_files(project_root, &ctx.ignored_paths);
-    let cm = Arc::new(SourceMap::default());
 
     let mut analysis_result = analyzer::analyze_all_files(
         &files,
         project_root,
         ctx.pattern.clone(),
         ctx,
-        &cm,
         analysis_cache,
     )?;
 
+    // Apply minimum severity filter from CLI
+    analysis_result.filter_by_severity(min_severity);
+
     // Circular dependencies
-    match circular::analyze_circular_dependencies(&files, project_root, &cm) {
+    match circular::analyze_circular_dependencies(&files, project_root) {
         Ok(detected_cycles) => {
             for cycle in &detected_cycles {
                 analysis_result.add_circular_dependency(cycle.clone());
@@ -430,11 +428,10 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         Vec::new()
     };
 
-    let cm = Arc::new(SourceMap::default());
     let mut all_violations = Vec::new();
 
     for file_path in &files {
-        match analyzer::collect_violations_from_file(&cm, file_path, ctx) {
+        match analyzer::collect_violations_from_file(file_path, ctx) {
             Ok(violations) => all_violations.extend(violations),
             Err(e) => eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e),
         }
@@ -750,6 +747,7 @@ fn run_watch_mode(
     project_root: &Path,
     ctx: Arc<config::LinterContext>,
     no_cache: bool,
+    min_severity: config::Severity,
 ) -> Result<()> {
     let project_name_notification = Arc::new(
         project_root
@@ -768,26 +766,48 @@ fn run_watch_mode(
     }
 
     if files.is_empty() {
-        println!("✅ No se encontraron archivos para analizar (TypeScript, JavaScript, Python, Go, PHP, Java).");
+        println!("✅ No se encontraron archivos para analizar (TS, JS, y beta: Py, Go, PHP, Java, C#, Rb, Kt, Rs).");
         return Ok(());
     }
 
     println!("📊 Análisis inicial de {} archivos...", files.len());
-    let cm = Arc::new(SourceMap::default());
 
     // Construir grafo de dependencias inicial
     let mut dep_analyzer = circular::CircularDependencyAnalyzer::new(project_root);
-    dep_analyzer.build_graph(&files, &cm)?;
+    dep_analyzer.build_graph(&files)?;
 
     // Análisis inicial de violaciones
+    let severity_rank = |s: config::Severity| match s {
+        config::Severity::Error => 3,
+        config::Severity::Warning => 2,
+        config::Severity::Info => 1,
+    };
+    let min_rank = severity_rank(min_severity);
     let mut error_count = 0;
     for file_path in &files {
-        if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
-            error_count += 1;
-            let mut out = String::new();
-            let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-            println!("\n📌 Violación en: {}", file_path.display());
-            println!("{}", out);
+        match analyzer::collect_violations_from_file(file_path, &ctx) {
+            Ok(violations) => {
+                let filtered: Vec<_> = violations
+                    .into_iter()
+                    .filter(|v| severity_rank(v.rule.get_severity()) >= min_rank)
+                    .collect();
+                if !filtered.is_empty() {
+                    error_count += 1;
+                    if let Ok(src) = std::fs::read_to_string(file_path) {
+                        for v in &filtered {
+                            let report = analyzer::swc_parser::create_error_from_source(&src, v);
+                            let mut out = String::new();
+                            let _ = GraphicalReportHandler::new()
+                                .render_report(&mut out, report.as_ref());
+                            println!("\n📌 Violación en: {}", file_path.display());
+                            println!("{}", out);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e);
+            }
         }
     }
 
@@ -841,7 +861,6 @@ fn run_watch_mode(
         |changed_files| {
             let dep_analyzer = Arc::clone(&dep_analyzer);
             let ctx = Arc::clone(&ctx);
-            let cm = Arc::clone(&cm);
             let project_root = Arc::clone(&project_root_arc);
             let change_cache = Arc::clone(&change_cache);
             let project_name_notification = Arc::clone(&project_name_notification);
@@ -857,18 +876,42 @@ fn run_watch_mode(
                 }
             }
 
+            let severity_rank_fn = |s: config::Severity| match s {
+                config::Severity::Error => 3,
+                config::Severity::Warning => 2,
+                config::Severity::Info => 1,
+            };
+            let min_rank_watch = severity_rank_fn(min_severity);
             let mut error_count = 0;
             for file_path in changed_files {
-                if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
-                    error_count += 1;
-                    let mut out = String::new();
-                    let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
-                    println!("\n📌 Violación en: {}", file_path.display());
-                    println!("{}", out);
+                match analyzer::collect_violations_from_file(file_path, &ctx) {
+                    Ok(violations) => {
+                        let filtered: Vec<_> = violations
+                            .into_iter()
+                            .filter(|v| severity_rank_fn(v.rule.get_severity()) >= min_rank_watch)
+                            .collect();
+                        if !filtered.is_empty() {
+                            error_count += 1;
+                            if let Ok(src) = std::fs::read_to_string(file_path) {
+                                for v in &filtered {
+                                    let report =
+                                        analyzer::swc_parser::create_error_from_source(&src, v);
+                                    let mut out = String::new();
+                                    let _ = GraphicalReportHandler::new()
+                                        .render_report(&mut out, report.as_ref());
+                                    println!("\n📌 Violación en: {}", file_path.display());
+                                    println!("{}", out);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e);
+                    }
                 }
 
                 let mut dep_analyzer = dep_analyzer.lock().expect("Failed to lock mutex");
-                if let Err(e) = dep_analyzer.update_file(file_path, &cm) {
+                if let Err(e) = dep_analyzer.update_file(file_path) {
                     eprintln!("⚠️  Error actualizando grafo: {}", e);
                     continue;
                 }
@@ -924,6 +967,7 @@ fn run_watch_mode(
                     project_root,
                     &ctx,
                     guard.as_mut(),
+                    min_severity,
                 )?;
                 // Save cache after analysis
                 if let Some(ref c) = *guard {
@@ -1100,15 +1144,16 @@ fn run_incremental_mode(
     let linter_context: config::LinterContext = config;
 
     // Analyze only changed files
-    let cm = Arc::new(SourceMap::default());
     let mut analysis_result = analyzer::analyze_all_files(
         &changed_files,
         project_root,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         None,
     )?;
+
+    // Apply minimum severity filter from CLI
+    analysis_result.filter_by_severity(cli_args.min_severity);
 
     // Handle circular dependencies
     if !analysis_result.circular_dependencies.is_empty() {

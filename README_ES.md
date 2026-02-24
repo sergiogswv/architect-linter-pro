@@ -13,12 +13,12 @@
   <img src="https://img.shields.io/badge/powered_by-Tree--sitter-green.svg" alt="Tree-sitter">
 </p>
 
-Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida reglas arquitectónicas mediante un motor de reglas dinámicas. Soporta **10 lenguajes (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin y Rust)** usando Tree-sitter para análisis rápido y preciso. Asegura que el diseño del software (Hexagonal, Clean, MVC, etc.) se respete sin importar quién escriba el código.
+Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida reglas arquitectónicas mediante un motor de reglas dinámicas. Soporta **10 lenguajes (TypeScript, JavaScript, y otros 8 en beta: Python, Go, PHP, Java, C#, Ruby, Kotlin y Rust)** usando Tree-sitter para análisis rápido y preciso. Asegura que el diseño del software (Hexagonal, Clean, MVC, etc.) se respete sin importar quién escriba el código.
 
 ## Características
 
 ### Análisis Principal
-- **🌐 Soporte Multi-Lenguaje**: 10 lenguajes (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin y Rust) con análisis Tree-sitter
+- **🌐 Soporte Multi-Lenguaje**: 10 lenguajes (TS, JS, y Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust en [beta])
 - **🔧 Motor de Reglas Dinámicas**: Define restricciones personalizadas entre capas mediante `architect.json`
 - **🔍 Detección de Dependencias Cíclicas**: Analiza el grafo de dependencias y detecta ciclos automáticamente
 - **📦 Validación de Importaciones**: Detecta y bloquea importaciones que violan la arquitectura definida en todos los lenguajes soportados
@@ -51,28 +51,27 @@ Un linter de arquitectura de software multi-lenguaje escrito en Rust que valida 
 - **🎨 Modo Interactivo**: Configuración guiada en primera ejecución con banner visual mejorado
 - **🧩 Esquema de Configuración**: Validación completa con JSON Schema para `architect.json` con autocompletado en IDEs
 - **🪝 Integración con Git Hooks**: Configuración automática de Husky y pre-commit hooks
-- **🐙 GitHub Action**: Action oficial para integración en pipelines CI/CD
+- **🐙 GitHub Action y GitLab CI**: Integración oficial para pipelines CI/CD
 - **🔍 Modo Debug**: Logging estructurado con flag `--debug` para troubleshooting y observabilidad
 - **✅ Validación de Config**: Validación instantánea del esquema con el flag `--check`
 - **🧪 Estabilidad Mejorada**: (Nuevo en v4.3.0) Inicialización robusta con implementaciones del rasgo `Default` y base de código limpia para ejecución confiable en CI/CD.
-- **📊 Utilidades de Métricas Avanzadas**: (Nuevo en v4.3.0) Rastreo de llamadas a funciones inter-archivo mediante análisis SWC de alto rendimiento.
 
 ## Lenguajes Soportados
 
-Architect Linter utiliza **Tree-sitter** para análisis multi-lenguaje rápido y preciso. Los siguientes lenguajes están completamente soportados:
+Architect Linter utiliza **Tree-sitter** para análisis multi-lenguaje rápido y preciso. TypeScript y JavaScript están completamente soportados; el resto de lenguajes se encuentran actualmente en **beta**:
 
 | Lenguaje | Extensiones | Sintaxis de Imports | Ejemplo |
 |----------|-------------|---------------------|---------|
 | **TypeScript** | `.ts`, `.tsx` | `import X from 'path'` | `import { UserService } from './services/user'` |
 | **JavaScript** | `.js`, `.jsx` | `import X from 'path'` | `import UserController from '../controllers/user'` |
-| **Python** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
-| **Go** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
-| **PHP** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
-| **Java** | `.java` | `import package.Class` | `import com.example.models.User;` |
-| **C#** | `.cs` | `using X` | `using System.Collections.Generic;` |
-| **Ruby** | `.rb` | `require 'X'` | `require 'json'` |
-| **Kotlin** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
-| **Rust** | `.rs` | `use X` | `use std::collections::HashMap;` |
+| **Python [beta]** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
+| **Go [beta]** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
+| **PHP [beta]** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
+| **Java [beta]** | `.java` | `import package.Class` | `import com.example.models.User;` |
+| **C# [beta]** | `.cs` | `using X` | `using System.Collections.Generic;` |
+| **Ruby [beta]** | `.rb` | `require 'X'` | `require 'json'` |
+| **Kotlin [beta]** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
+| **Rust [beta]** | `.rs` | `use X` | `use std::collections::HashMap;` |
 
 ### Características Específicas por Lenguaje
 
@@ -808,10 +807,10 @@ Prohibición hardcoded: archivos que contienen `"controller"` no pueden importar
 - [ ] Dashboard web para visualizar violaciones históricas
 
 ### Futuro 🔮
-- [ ] Reglas personalizadas mediante plugins en Rust/WASM
-- [ ] Integración nativa con CI/CD (GitHub Actions, GitLab CI)
+- [ ] Reglas personalizadas vía plugins Rust/WASM
 - [ ] Configuración de severidad por regla (error, warning, info)
 - [ ] Plantillas de reglas específicas por lenguaje
+- [ ] Análisis de tendencias históricas y detección de regresiones
 
 ## Contribuir
 

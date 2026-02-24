@@ -26,8 +26,10 @@ jobs:
         with:
           path: '.'
           fail-on-violations: 'true'
-          report-format: 'markdown'
-          report-output: 'architecture-report.md'
+          # Use json format to enable inline PR annotations (::error / ::warning lines)
+          # that appear as red/yellow comments directly in the PR diff view.
+          report-format: 'json'
+          report-output: 'architecture-report.json'
           min-score: '70'
 
       - name: Display Results
@@ -42,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: architecture-report
-          path: architecture-report.md
+          path: architecture-report.json
 
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()

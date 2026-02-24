@@ -1,0 +1,60 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    name: Update Homebrew tap formula
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read  # only reads this repo
+    steps:
+      - name: Compute SHA256 checksums for macOS and Linux binaries
+        id: sums
+        run: |
+          TAG="${{ github.ref_name }}"
+          BASE="https://github.com/sergiogswv/architect-linter-pro/releases/download/${TAG}"
+
+          get_sha() {
+            curl -fsSL "${BASE}/$1" | sha256sum | cut -d' ' -f1
+          }
+
+          echo "macos_aarch64=$(get_sha architect-linter-pro-macos-aarch64)" >> "$GITHUB_OUTPUT"
+          echo "macos_x86_64=$(get_sha architect-linter-pro-macos-x86_64)"   >> "$GITHUB_OUTPUT"
+          echo "linux_aarch64=$(get_sha architect-linter-pro-linux-aarch64)" >> "$GITHUB_OUTPUT"
+          echo "linux_x86_64=$(get_sha architect-linter-pro-linux-x86_64)"   >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          repository: sergiogswv/homebrew-architect-linter-pro
+          token: ${{ secrets.TAP_REPO_TOKEN }}
+          path: tap
+
+      - name: Update formula version and SHA256 hashes
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # strip leading 'v'
+
+          FORMULA="tap/Formula/architect-linter-pro.rb"
+
+          # Update version
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" "$FORMULA"
+
+          # Update SHA256 placeholders or previous values
+          sed -i "s|sha256 \".*\" # macos-aarch64|sha256 \"${{ steps.sums.outputs.macos_aarch64 }}\" # macos-aarch64|" "$FORMULA"
+          sed -i "s|sha256 \".*\" # macos-x86_64|sha256 \"${{ steps.sums.outputs.macos_x86_64 }}\" # macos-x86_64|" "$FORMULA"
+          sed -i "s|sha256 \".*\" # linux-aarch64|sha256 \"${{ steps.sums.outputs.linux_aarch64 }}\" # linux-aarch64|" "$FORMULA"
+          sed -i "s|sha256 \".*\" # linux-x86_64|sha256 \"${{ steps.sums.outputs.linux_x86_64 }}\" # linux-x86_64|" "$FORMULA"
+
+      - name: Commit and push updated formula
+        run: |
+          cd tap
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/architect-linter-pro.rb
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update formula to ${{ github.ref_name }}"
+          git push

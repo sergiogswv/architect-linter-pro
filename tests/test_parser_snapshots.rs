@@ -10,8 +10,6 @@ use architect_linter_pro::analyzer::metrics::{
     count_functions, count_imports, find_long_functions,
 };
 use architect_linter_pro::config::{ArchPattern, Framework};
-use swc_common::sync::Lrc;
-use swc_common::SourceMap;
 
 /// Helper function to create a LinterContext for testing
 fn create_test_context() -> architect_linter_pro::config::LinterContext {
@@ -50,7 +48,7 @@ export class User {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -60,7 +58,7 @@ export class User {
     let _ctx = create_test_context();
 
     // Extract functions from the parsed AST
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
 
     // Snapshot the function count result
     insta::assert_debug_snapshot!(function_count);
@@ -83,7 +81,7 @@ class Service {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -91,7 +89,7 @@ class Service {
     std::fs::write(&file_path, code).unwrap();
 
     // Let's just count functions for now as extract_function_calls is removed
-    let function_calls = count_functions(&cm, &file_path);
+    let function_calls = count_functions(&file_path);
 
     // Snapshot the function calls result
     insta::assert_debug_snapshot!(function_calls);
@@ -151,7 +149,7 @@ class Service {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
 
     // Use a fixed test directory instead of tempdir for stable snapshots
     let test_dir = std::path::PathBuf::from("tests/test_data");
@@ -164,7 +162,7 @@ class Service {
     let _ctx = create_test_context();
 
     // Extract long functions from the parsed AST
-    let result = find_long_functions(&cm, &file_path, _ctx.max_lines);
+    let result = find_long_functions(&file_path, _ctx.max_lines);
 
     // Normalize paths for cross-platform snapshots
     let normalized_result = result.map(|mut funcs| {
@@ -219,7 +217,7 @@ export class Broken {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let test_dir = std::path::PathBuf::from("tests/test_data");
     let _ = std::fs::create_dir_all(&test_dir);
     let file_path = test_dir.join("broken_test.ts");
@@ -230,7 +228,7 @@ export class Broken {
     let _ctx = create_test_context();
 
     // Try to parse and extract functions
-    let result = count_functions(&cm, &file_path);
+    let result = count_functions(&file_path);
 
     // Normalize result for stable snapshots
     let normalized_result = match &result {
@@ -289,7 +287,7 @@ export class UserService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -299,7 +297,7 @@ export class UserService {
     let _ctx = create_test_context();
 
     // Extract function count
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
 
     // Extract import count
     let import_count = count_imports(&file_path);
@@ -363,7 +361,7 @@ export class UserController {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -372,8 +370,8 @@ export class UserController {
     let _ctx = create_test_context();
 
     // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
+    let function_calls = count_functions(&file_path);
 
     // Snapshot both results
     insta::assert_debug_snapshot!((
@@ -441,7 +439,7 @@ export class UserComponent {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -450,8 +448,8 @@ export class UserComponent {
     let _ctx = create_test_context();
 
     // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
+    let function_calls = count_functions(&file_path);
 
     // Extract imports (decorators are imported)
     let import_count = count_imports(&file_path);
@@ -559,7 +557,7 @@ async function fetchUser(): ApiResponse<User> {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("test.ts");
 
@@ -568,8 +566,8 @@ async function fetchUser(): ApiResponse<User> {
     let _ctx = create_test_context();
 
     // Extract function count
-    let function_count = count_functions(&cm, &file_path);
-    let function_calls = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
+    let function_calls = count_functions(&file_path);
 
     // Snapshot both results
     insta::assert_debug_snapshot!((

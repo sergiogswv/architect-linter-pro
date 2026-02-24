@@ -1,10 +1,11 @@
+#![allow(dead_code)]
 pub mod cfg;
 pub mod data_flow;
 
-use crate::config::LinterContext;
 use crate::autofix::Violation;
-use std::path::Path;
+use crate::config::LinterContext;
 use miette::Result;
+use std::path::Path;
 
 /// Trait que deben implementar los parsers que soporten auditoría de seguridad
 pub trait SecurityAuditor: Send + Sync {

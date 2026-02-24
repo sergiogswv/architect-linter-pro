@@ -11,8 +11,6 @@ use architect_linter_pro::analyzer::metrics::{
     count_functions, count_imports, find_long_functions,
 };
 use architect_linter_pro::config::{ForbiddenRule, LinterContext};
-use swc_common::sync::Lrc;
-use swc_common::SourceMap;
 
 /// Helper function to create a LinterContext for testing
 fn create_test_context() -> LinterContext {
@@ -60,7 +58,7 @@ export class UserController {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("user.controller.ts");
 
@@ -71,7 +69,7 @@ export class UserController {
     // Note: count_functions currently doesn't count methods in exported classes
     // This is a known limitation - it only counts Stmt::Decl(Decl::Class), not ModuleDecl::ExportDecl
     // We still verify it parses without errors
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
 
     // Count imports
@@ -117,7 +115,7 @@ export class UserService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("user.service.ts");
 
@@ -126,7 +124,7 @@ export class UserService {
     let ctx = create_test_context();
 
     // Note: count_functions doesn't count methods in exported classes currently
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
 
     // Count imports
@@ -135,7 +133,7 @@ export class UserService {
     assert_eq!(import_count.unwrap(), 3);
 
     // Check for long functions (none should be too long)
-    let long_functions = find_long_functions(&cm, &file_path, ctx.max_lines);
+    let long_functions = find_long_functions(&file_path, ctx.max_lines);
     assert!(long_functions.is_ok());
     let long_funcs = long_functions.unwrap();
     assert_eq!(long_funcs.len(), 0);
@@ -177,14 +175,14 @@ export class PostService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("post.controller.ts");
 
     std::fs::write(&file_path, code).unwrap();
 
     // Note: count_functions doesn't count methods in exported classes currently
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
 
     // Count imports
@@ -279,7 +277,7 @@ class ProblematicService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("domain/problematic.service.ts");
 
@@ -295,13 +293,13 @@ class ProblematicService {
     assert_eq!(import_count.unwrap(), 4);
 
     // Test 2: Find long functions (should detect both long methods)
-    let long_functions = find_long_functions(&cm, &file_path, ctx.max_lines);
+    let long_functions = find_long_functions(&file_path, ctx.max_lines);
     assert!(long_functions.is_ok());
     let long_funcs = long_functions.unwrap();
     assert_eq!(long_funcs.len(), 2, "Should detect 2 long functions");
 
     // Test 3: Count functions (should be 2)
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
     assert_eq!(function_count.unwrap(), 2);
 }
@@ -337,7 +335,7 @@ export class DomainService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("domain/service.ts");
 
@@ -354,7 +352,7 @@ export class DomainService {
     let ctx = create_context_with_rules(rules);
 
     // Collect violations (should find 4 forbidden imports)
-    let violations = collect_violations_from_file(&cm, &file_path, &ctx);
+    let violations = collect_violations_from_file(&file_path, &ctx);
     assert!(violations.is_ok());
     let viols = violations.unwrap();
     assert_eq!(
@@ -430,7 +428,7 @@ class CombinedViolations {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("domain/services/combined.service.ts");
 
@@ -447,19 +445,19 @@ class CombinedViolations {
     let ctx = create_context_with_rules(rules);
 
     // Test 1: Check for forbidden import violations
-    let violations = collect_violations_from_file(&cm, &file_path, &ctx);
+    let violations = collect_violations_from_file(&file_path, &ctx);
     assert!(violations.is_ok());
     let viols = violations.unwrap();
     assert_eq!(viols.len(), 2, "Should detect 2 forbidden imports");
 
     // Test 2: Check for long functions
-    let long_functions = find_long_functions(&cm, &file_path, ctx.max_lines);
+    let long_functions = find_long_functions(&file_path, ctx.max_lines);
     assert!(long_functions.is_ok());
     let long_funcs = long_functions.unwrap();
     assert_eq!(long_funcs.len(), 1, "Should detect 1 long function");
 
     // Test 3: Count functions (count_functions only counts methods, not constructors)
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
     assert_eq!(function_count.unwrap(), 1); // only processData (constructor is not counted)
 }
@@ -521,7 +519,7 @@ export class ViolatingService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("domain/violating.service.ts");
 
@@ -539,17 +537,17 @@ export class ViolatingService {
 
     // Test 1: Verify it parses decorated class correctly
     // Note: count_functions doesn't count exported class methods currently
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
 
     // Test 2: Check for forbidden imports (2 infrastructure imports)
-    let violations = collect_violations_from_file(&cm, &file_path, &ctx);
+    let violations = collect_violations_from_file(&file_path, &ctx);
     assert!(violations.is_ok());
     let viols = violations.unwrap();
     assert_eq!(viols.len(), 2);
 
     // Test 3: Check for long functions
-    let long_functions = find_long_functions(&cm, &file_path, ctx.max_lines);
+    let long_functions = find_long_functions(&file_path, ctx.max_lines);
     assert!(long_functions.is_ok());
     let long_funcs = long_functions.unwrap();
     assert_eq!(long_funcs.len(), 1);
@@ -570,14 +568,14 @@ export class EmptyService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("empty.service.ts");
 
     std::fs::write(&file_path, code).unwrap();
 
     // Should handle empty class gracefully
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
     assert_eq!(function_count.unwrap(), 0);
 
@@ -609,7 +607,7 @@ export class ExtendedService extends BaseService {
 }
 "#;
 
-    let cm = Lrc::new(SourceMap::default());
+
     let temp_dir = tempfile::tempdir().unwrap();
     let file_path = temp_dir.path().join("extended.service.ts");
 
@@ -618,7 +616,7 @@ export class ExtendedService extends BaseService {
     let _ctx = create_test_context();
 
     // Note: count_functions doesn't count exported class methods currently
-    let function_count = count_functions(&cm, &file_path);
+    let function_count = count_functions(&file_path);
     assert!(function_count.is_ok());
 
     // Count imports

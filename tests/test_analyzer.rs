@@ -12,10 +12,6 @@ fn test_parallel_analysis_produces_same_results() {
     let project_root = PathBuf::from("tests/fixtures/perfect_mvc_project");
     let config = architect_linter_pro::config::load_config(&project_root).unwrap();
 
-    use swc_common::sync::Lrc;
-    use swc_common::SourceMap;
-
-    let cm = Lrc::new(SourceMap::default());
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     let result = analyze_all_files(
@@ -23,7 +19,6 @@ fn test_parallel_analysis_produces_same_results() {
         &project_root,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         None,
     )
     .unwrap();

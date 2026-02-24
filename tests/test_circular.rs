@@ -4,7 +4,6 @@
 //! using DFS (Depth-First Search).
 
 use std::path::PathBuf;
-use swc_common::SourceMap;
 
 mod common;
 use common::TestProject;
@@ -26,8 +25,7 @@ fn analyze_circular_deps(project: &TestProject) -> Result<Vec<architect_linter_p
         .filter(|p| p.extension() == Some(OsStr::new("ts")) || p.extension() == Some(OsStr::new("tsx")) || p.extension() == Some(OsStr::new("js")) || p.extension() == Some(OsStr::new("jsx")))
         .collect();
 
-    let cm = SourceMap::default();
-    analyze_circular_dependencies(&files, project.path(), &cm).map_err(|e| e.into())
+    analyze_circular_dependencies(&files, project.path()).map_err(|e| e.into())
 }
 
 #[test]
@@ -505,6 +503,44 @@ fn test_cycle_description_formatting() {
     assert!(description.contains("Dependencia cíclica"), "Description should mention cycle");
     assert!(description.contains("→"), "Description should show arrows");
     assert!(description.contains("⚠️"), "Description should have warning emoji");
+}
+
+#[test]
+fn test_cycle_paths_are_relative_not_absolute() {
+    // Regression test: on Windows, canonicalize() adds \\?\ prefix to paths.
+    // If normalize_file_path doesn't strip this prefix, cycle nodes are stored
+    // as absolute UNC paths (//?/c:/users/...) instead of relative paths (src/a.ts).
+    // This causes the self-loop guard to fail and produces false positive cycles.
+    let project = TestProject::new();
+
+    create_file_with_imports(
+        &project,
+        "src/a.ts",
+        r#"import { b } from './b'; export const a = () => b();"#,
+    );
+    create_file_with_imports(
+        &project,
+        "src/b.ts",
+        r#"import { a } from './a'; export const b = () => a();"#,
+    );
+
+    let cycles = analyze_circular_deps(&project).expect("Analysis should succeed");
+
+    assert_eq!(cycles.len(), 1);
+
+    // Cycle nodes must be relative paths (e.g. "src/a.ts"), not absolute UNC paths
+    for node in &cycles[0].cycle {
+        assert!(
+            !node.starts_with("//?/"),
+            "Cycle node should be a relative path, not a UNC absolute path. Got: {}",
+            node
+        );
+        assert!(
+            !node.contains(":\\"),
+            "Cycle node should be a relative path, not a Windows absolute path. Got: {}",
+            node
+        );
+    }
 }
 
 #[test]

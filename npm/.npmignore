@@ -1,0 +1,4 @@
+# Exclude downloaded binary — it's fetched at postinstall time
+bin/
+node_modules/
+*.log

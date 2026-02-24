@@ -1,5 +1,5 @@
 name: 'Architect Linter'
-description: 'Architecture linting with Health Score - Enforce clean architecture patterns'
+description: 'Architecture linting with Health Score - Enforce clean architecture patterns and emit inline PR annotations'
 author: 'Sergio Guadarrama'
 branding:
   icon: 'check-circle'
@@ -30,6 +30,10 @@ inputs:
     description: 'Minimum health score required (0-100)'
     required: false
     default: '0'
+  min-severity:
+    description: 'Minimum severity to report and fail on (error, warning, info)'
+    required: false
+    default: 'error'
 
 outputs:
   score:
@@ -54,3 +58,4 @@ runs:
     REPORT_FORMAT: ${{ inputs.report-format }}
     REPORT_OUTPUT: ${{ inputs.report-output }}
     MIN_SCORE: ${{ inputs.min-score }}
+    MIN_SEVERITY: ${{ inputs.min-severity }}

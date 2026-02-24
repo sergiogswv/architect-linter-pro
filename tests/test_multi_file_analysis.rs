@@ -5,8 +5,6 @@
 //! - Scoring works correctly with real parsed violations
 //! - The integration between parser and scoring engine is seamless
 
-use swc_common::sync::Lrc;
-use swc_common::SourceMap;
 use tempfile::TempDir;
 
 use architect_linter_pro::analyzer::analyze_all_files;
@@ -112,13 +110,11 @@ export class Model {
     let files = vec![file1, file2, file3];
 
     // Run real analysis with the parser
-    let cm = Lrc::new(SourceMap::default());
     let analysis_result = analyze_all_files(
         &files,
         temp_dir.path(),
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         None,
     )
     .expect("Failed to analyze files");

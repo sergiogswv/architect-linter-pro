@@ -25,7 +25,7 @@ impl TaintEngine {
                 "request.form".to_string(), // Python Flask/Django
                 "request.args".to_string(),
                 "request.json".to_string(),
-                "input(".to_string(),      // Python built-in input
+                "input(".to_string(), // Python built-in input
             ],
             sinks: vec![
                 "query".to_string(),
@@ -34,8 +34,8 @@ impl TaintEngine {
                 "dangerouslySetInnerHTML".to_string(),
                 "exec".to_string(),
                 "spawn".to_string(),
-                "subprocess".to_string(),  // Python subprocess
-                "system".to_string(),      // os.system
+                "subprocess".to_string(), // Python subprocess
+                "system".to_string(),     // os.system
             ],
             sanitizers: vec![
                 "escape".to_string(),
@@ -50,11 +50,15 @@ impl TaintEngine {
         let mut violations = Vec::new();
 
         // Identificar nodos que son Sources y Sinks
-        let source_nodes: Vec<_> = cfg.nodes.iter()
+        let source_nodes: Vec<_> = cfg
+            .nodes
+            .iter()
             .filter(|n| n.node_type == super::cfg::NodeType::Source || self.is_source(&n.label))
             .collect();
 
-        let sink_nodes: Vec<_> = cfg.nodes.iter()
+        let sink_nodes: Vec<_> = cfg
+            .nodes
+            .iter()
             .filter(|n| n.node_type == super::cfg::NodeType::Sink || self.is_sink(&n.label))
             .collect();
 
@@ -126,7 +130,7 @@ pub fn create_security_violation(
     file_path: &Path,
     source_code: &str,
     offensive_code: &str,
-    message: &str,
+    _message: &str,
     line: usize,
 ) -> Violation {
     Violation {

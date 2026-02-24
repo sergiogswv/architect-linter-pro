@@ -10,8 +10,6 @@ use rayon::prelude::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use swc_common::sync::Lrc;
-use swc_common::SourceMap;
 
 use super::metrics::{count_functions, count_imports, find_long_functions};
 use super::swc_parser::collect_violations_from_file;
@@ -31,7 +29,6 @@ pub fn analyze_all_files(
     project_root: &Path,
     pattern: ArchPattern,
     ctx: &LinterContext,
-    _cm: &SourceMap,
     mut analysis_cache: Option<&mut AnalysisCache>,
 ) -> Result<AnalysisResult> {
     tracing::info!("Starting file analysis for {} files", files.len());
@@ -115,11 +112,9 @@ pub fn analyze_all_files(
                 }
             }
 
-            // Cache miss — run full analysis with thread-local SourceMap
-            let cm = Lrc::new(SourceMap::default());
-
+            // Cache miss — run full analysis
             let mut file_violations = Vec::new();
-            if let Ok(violations) = collect_violations_from_file(&cm, file_path, ctx) {
+            if let Ok(violations) = collect_violations_from_file(file_path, ctx) {
                 for violation in violations {
                     let category = match violation.rule.get_severity() {
                         crate::config::Severity::Error => ViolationCategory::Blocked,
@@ -132,12 +127,12 @@ pub fn analyze_all_files(
             }
 
             let mut file_long_functions = Vec::new();
-            if let Ok(long_funcs) = find_long_functions(&cm, file_path, ctx.max_lines) {
+            if let Ok(long_funcs) = find_long_functions(file_path, ctx.max_lines) {
                 file_long_functions = long_funcs;
             }
 
             let import_count = count_imports(file_path).unwrap_or(0);
-            let function_count = count_functions(&cm, file_path).unwrap_or(0);
+            let function_count = count_functions(file_path).unwrap_or(0);
 
             let analysis = FileAnalysis {
                 violations: file_violations.clone(),

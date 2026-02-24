@@ -1,7 +1,7 @@
 # Script unificado de instalación/actualización para Windows
 # Detecta automáticamente si es instalación inicial o actualización
 
-Write-Host "===========================================  ARCHITECT-LINTER PRO v4.0.0 SETUP" -ForegroundColor Cyan
+Write-Host "===========================================  ARCHITECT-LINTER PRO v4.3.0 SETUP" -ForegroundColor Cyan
 Write-Host ""
 
 # Detectar si ya está instalado
@@ -62,21 +62,58 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Compilacion exitosa." -ForegroundColor Green
     Write-Host ""
 
-    # Crear carpeta bin si no existe
+    # Recolectar todas las ubicaciones donde instalar
+    $destinos = @()
+
+    # 1. ~/bin (instalación propia del script)
     $destPath = "$env:USERPROFILE\bin"
     if (!(Test-Path $destPath)) {
         Write-Host "Creando carpeta $destPath..." -ForegroundColor Yellow
         New-Item -ItemType Directory -Path $destPath | Out-Null
     }
+    $destinos += "$destPath\architect-linter-pro.exe"
 
-    # Copiar el binario
-    if ($isUpdate) {
-        Write-Host "Actualizando binario en $destPath..." -ForegroundColor Cyan
-    } else {
-        Write-Host "Instalando binario en $destPath..." -ForegroundColor Cyan
+    # 2. ~/.cargo/bin (si existe una versión instalada con cargo install)
+    $cargoBin = "$env:USERPROFILE\.cargo\bin\architect-linter-pro.exe"
+    if (Test-Path $cargoBin) {
+        $destinos += $cargoBin
     }
 
-    Copy-Item "target\release\architect-linter-pro.exe" -Destination "$destPath\architect-linter-pro.exe" -Force
+    # Copiar a cada destino
+    $copiasFallidas = @()
+    foreach ($destino in $destinos) {
+        $timestampAntes = $null
+        if (Test-Path $destino) {
+            $timestampAntes = (Get-Item $destino).LastWriteTime
+        }
+
+        Write-Host "Instalando en: $destino..." -ForegroundColor Cyan
+        try {
+            Copy-Item "target\release\architect-linter-pro.exe" -Destination $destino -Force -ErrorAction Stop
+
+            # Verificar que la copia realmente cambió el archivo
+            $timestampDespues = (Get-Item $destino).LastWriteTime
+            if ($timestampAntes -and $timestampAntes -eq $timestampDespues) {
+                Write-Host "  ADVERTENCIA: El archivo no cambio (mismo timestamp). Puede estar bloqueado." -ForegroundColor Yellow
+                $copiasFallidas += $destino
+            } else {
+                Write-Host "  OK" -ForegroundColor Green
+            }
+        } catch {
+            Write-Host "  ERROR: $_" -ForegroundColor Red
+            Write-Host "  El archivo puede estar en uso. Cierra todas las terminales y reintenta." -ForegroundColor Yellow
+            $copiasFallidas += $destino
+        }
+    }
+
+    if ($copiasFallidas.Count -gt 0) {
+        Write-Host ""
+        Write-Host "No se pudieron actualizar los siguientes binarios:" -ForegroundColor Red
+        $copiasFallidas | ForEach-Object { Write-Host "  $_" -ForegroundColor White }
+        Write-Host "Cierra todas las terminales abiertas y vuelve a ejecutar el script." -ForegroundColor Yellow
+        Write-Host ""
+        exit 1
+    }
 
     Write-Host ""
     if ($isUpdate) {
@@ -91,8 +128,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
 
     if ($isUpdate) {
-        Write-Host "La nueva version ya esta disponible." -ForegroundColor Green
-        Write-Host "Cierra y vuelve a abrir tu terminal para usarla." -ForegroundColor Yellow
+        Write-Host "Abre una nueva terminal para usar la version actualizada." -ForegroundColor Yellow
     } else {
         # Verificar si está en el PATH solo en instalación
         $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -119,7 +155,7 @@ if ($LASTEXITCODE -eq 0) {
         } else {
             Write-Host "Ahora puedes usar 'architect-linter-pro' en cualquier carpeta." -ForegroundColor Green
             Write-Host ""
-            Write-Host "Ejemplos de uso (v4.0.0):" -ForegroundColor Cyan
+            Write-Host "Ejemplos de uso (v4.3.0):" -ForegroundColor Cyan
             Write-Host "  architect-linter-pro                    # Analisis basico" -ForegroundColor White
             Write-Host "  architect-linter-pro --watch            # Modo observacion" -ForegroundColor White
             Write-Host "  architect-linter-pro --report json -o report.json" -ForegroundColor White
