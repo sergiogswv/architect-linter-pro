@@ -24,4 +24,5 @@ Thumbs.db
 
 # Architect Linter - Analysis Cache
 .architect-cache/
-docs/
+# docs/ — plans and design docs are tracked
+# docs/
