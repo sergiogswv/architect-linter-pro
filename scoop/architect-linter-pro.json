@@ -1,0 +1,23 @@
+{
+  "version": "4.3.0",
+  "description": "Multi-language architecture linter with AI-powered auto-fix (Hexagonal, Clean Architecture, MVC)",
+  "homepage": "https://github.com/sergiogswv/architect-linter-pro",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v4.3.0/architect-linter-pro-windows-x86_64.exe",
+      "hash": "PLACEHOLDER_WIN_SHA256",
+      "bin": [["architect-linter-pro-windows-x86_64.exe", "architect-linter-pro"]]
+    }
+  },
+  "checkver": {
+    "github": "https://github.com/sergiogswv/architect-linter-pro"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/sergiogswv/architect-linter-pro/releases/download/v$version/architect-linter-pro-windows-x86_64.exe"
+      }
+    }
+  }
+}
