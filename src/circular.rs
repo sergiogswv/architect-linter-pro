@@ -2,8 +2,6 @@ use miette::{IntoDiagnostic, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use swc_common::SourceMap;
-use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser, StringInput, Syntax, TsConfig};
 
 /// Representa una dependencia cíclica detectada
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,18 +25,21 @@ pub struct CircularDependencyAnalyzer {
 impl CircularDependencyAnalyzer {
     /// Crea un nuevo analizador de dependencias cíclicas
     pub fn new(project_root: &Path) -> Self {
+        let canonical_root = project_root
+            .canonicalize()
+            .unwrap_or_else(|_| project_root.to_path_buf());
         Self {
             graph: HashMap::new(),
-            project_root: project_root.to_path_buf(),
+            project_root: canonical_root,
             reverse_graph: HashMap::new(),
         }
     }
 
     /// Analiza todos los archivos y construye el grafo de dependencias
-    pub fn build_graph(&mut self, files: &[PathBuf], cm: &SourceMap) -> Result<()> {
+    pub fn build_graph(&mut self, files: &[PathBuf]) -> Result<()> {
         for file_path in files {
             // Extraer imports del archivo
-            let imports = self.extract_imports(file_path, cm)?;
+            let imports = self.extract_imports(file_path)?;
 
             // Normalizar la ruta del archivo actual
             let normalized_current = self.normalize_file_path(file_path);
@@ -56,6 +57,11 @@ impl CircularDependencyAnalyzer {
 
                     // Solo agregar dependencias internas del proyecto
                     if self.is_internal_dependency(&normalized_import) {
+                        // Evitar auto-importaciones (ciclos triviales de 1 nodo)
+                        if current_key == normalized_import {
+                            continue;
+                        }
+
                         self.graph
                             .entry(current_key.clone())
                             .or_insert_with(Vec::new)
@@ -125,47 +131,17 @@ impl CircularDependencyAnalyzer {
         rec_stack.remove(node);
     }
 
-    /// Extrae todos los imports de un archivo
-    fn extract_imports(&self, file_path: &Path, cm: &SourceMap) -> Result<Vec<String>> {
-        let mut imports = Vec::new();
-
-        // Parsear según la extensión
+    /// Extrae todos los imports de un archivo usando escaneo de líneas
+    fn extract_imports(&self, file_path: &Path) -> Result<Vec<String>> {
         let extension = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
         // Solo procesar archivos TypeScript/JavaScript
-        let syntax = match extension {
-            "ts" | "tsx" => Syntax::Typescript(TsConfig {
-                decorators: true,
-                tsx: extension == "tsx",
-                ..Default::default()
-            }),
-            "js" | "jsx" => Syntax::Es(EsConfig {
-                decorators: true,
-                jsx: extension == "jsx",
-                ..Default::default()
-            }),
-            // Para otros tipos de archivos, retornar vacío en lugar de intentar parsear
-            _ => return Ok(Vec::new()),
-        };
-
-        let fm = cm.load_file(file_path).into_diagnostic()?;
-        let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
-        let mut parser = Parser::new_from(lexer);
-
-        let module = parser
-            .parse_module()
-            .map_err(|e| miette::miette!("Error parsing {}: {:?}", file_path.display(), e))?;
-
-        // Extraer imports estáticos
-        for item in &module.body {
-            if let swc_ecma_ast::ModuleItem::ModuleDecl(swc_ecma_ast::ModuleDecl::Import(import)) =
-                item
-            {
-                imports.push(import.src.value.to_string());
-            }
+        if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {
+            return Ok(Vec::new());
         }
 
-        Ok(imports)
+        let content = std::fs::read_to_string(file_path).into_diagnostic()?;
+        Ok(extract_imports_from_content(&content))
     }
 
     /// Resuelve un path de import a una ruta de archivo real
@@ -184,7 +160,12 @@ impl CircularDependencyAnalyzer {
         let current_dir = current_file.parent()?;
         let resolved = current_dir.join(import_path);
 
-        // Intentar diferentes extensiones
+        // 1. Intentar el archivo exacto si existe (import './App.css')
+        if resolved.exists() && resolved.is_file() {
+            return Some(resolved);
+        }
+
+        // 2. Intentar diferentes extensiones si el archivo exacto no existe
         let extensions = ["ts", "tsx", "js", "jsx"];
         for ext in &extensions {
             let with_ext = resolved.with_extension(ext);
@@ -193,47 +174,39 @@ impl CircularDependencyAnalyzer {
             }
         }
 
-        // Intentar index.ts/js en directorios
-        let index_ts = resolved.join("index.ts");
-        let index_js = resolved.join("index.js");
+        // 3. Intentar index.ts/js en directorios
+        if resolved.is_dir() {
+            let index_ts = resolved.join("index.ts");
+            let index_js = resolved.join("index.js");
 
-        if index_ts.exists() {
-            return Some(index_ts);
-        }
-        if index_js.exists() {
-            return Some(index_js);
+            if index_ts.exists() {
+                return Some(index_ts);
+            }
+            if index_js.exists() {
+                return Some(index_js);
+            }
         }
 
-        // Si el archivo existe tal cual (sin cambiar extensión)
-        if resolved.exists() {
-            Some(resolved)
-        } else {
-            None
-        }
+        None
     }
 
     /// Normaliza una ruta de archivo a una representación canónica
     fn normalize_file_path(&self, path: &Path) -> String {
-        // Canonicalizar el path para limpiar ./ y ../
-        let canonical = if let Ok(canon) = path.canonicalize() {
-            canon
-        } else {
-            // Si falla la canonicalización, limpiar manualmente
-            let cleaned = path
-                .components()
-                .filter(|c| !matches!(c, std::path::Component::CurDir))
-                .collect::<PathBuf>();
-            cleaned
-        };
+        let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
 
-        // Obtener ruta relativa al directorio raíz del proyecto
-        if let Ok(relative) = canonical.strip_prefix(&self.project_root) {
-            relative.to_string_lossy().replace('\\', "/").to_lowercase()
+        let canon_str = normalize_path_str(&canonical.to_string_lossy());
+        let root_str = normalize_path_str(&self.project_root.to_string_lossy());
+
+        // Eliminar el prefijo de la raíz para obtener la ruta relativa
+        if canon_str.starts_with(&root_str) {
+            let relative = &canon_str[root_str.len()..];
+            let normalized = relative.trim_start_matches('/').to_string();
+            if normalized.is_empty() {
+                return ".".to_string();
+            }
+            normalized
         } else {
-            canonical
-                .to_string_lossy()
-                .replace('\\', "/")
-                .to_lowercase()
+            canon_str
         }
     }
 
@@ -263,14 +236,14 @@ impl CircularDependencyAnalyzer {
     }
 
     /// Actualiza un archivo específico en el grafo (para watch mode)
-    pub fn update_file(&mut self, file_path: &Path, cm: &SourceMap) -> Result<()> {
+    pub fn update_file(&mut self, file_path: &Path) -> Result<()> {
         let normalized_current = self.normalize_file_path(file_path);
 
         // Eliminar aristas antiguas del nodo
         self.invalidate_node(&normalized_current);
 
         // Re-extraer imports
-        let imports = self.extract_imports(file_path, cm)?;
+        let imports = self.extract_imports(file_path)?;
 
         // Reconstruir aristas
         self.graph
@@ -282,6 +255,11 @@ impl CircularDependencyAnalyzer {
                 let normalized_import = self.normalize_file_path(&resolved);
 
                 if self.is_internal_dependency(&normalized_import) {
+                    // Evitar auto-importaciones (ciclos triviales de 1 nodo)
+                    if normalized_current == normalized_import {
+                        continue;
+                    }
+
                     self.graph
                         .entry(normalized_current.clone())
                         .or_insert_with(Vec::new)
@@ -434,11 +412,110 @@ impl CircularDependencyAnalyzer {
 pub fn analyze_circular_dependencies(
     files: &[PathBuf],
     project_root: &Path,
-    cm: &SourceMap,
 ) -> Result<Vec<CircularDependency>> {
     let mut analyzer = CircularDependencyAnalyzer::new(project_root);
-    analyzer.build_graph(files, cm)?;
+    analyzer.build_graph(files)?;
     Ok(analyzer.detect_cycles())
+}
+
+/// Extrae todos los imports de un contenido de archivo usando escaneo de líneas
+fn extract_imports_from_content(content: &str) -> Vec<String> {
+    let mut imports = Vec::new();
+    for line in content.lines() {
+        let line = line.trim();
+        // ES import: import ... from '...'
+        if let Some(path) = extract_es_import_path(line) {
+            imports.push(path);
+        }
+        // CommonJS require: require('...')
+        if let Some(path) = extract_require_path(line) {
+            imports.push(path);
+        }
+    }
+    imports
+}
+
+fn extract_es_import_path(line: &str) -> Option<String> {
+    if !line.starts_with("import") {
+        return None;
+    }
+    // Find from '...' or from "..."
+    let from_idx = line.rfind(" from ")?;
+    let after_from = line[from_idx + 6..].trim();
+    let quote = after_from.chars().next()?;
+    if quote != '\'' && quote != '"' {
+        return None;
+    }
+    let end = after_from[1..].find(quote)?;
+    Some(after_from[1..=end].to_string())
+}
+
+fn extract_require_path(line: &str) -> Option<String> {
+    let req_idx = line.find("require(")?;
+    let after = &line[req_idx + 8..];
+    let quote = after.chars().next()?;
+    if quote != '\'' && quote != '"' {
+        return None;
+    }
+    let end = after[1..].find(quote)?;
+    Some(after[1..=end].to_string())
+}
+
+/// Normaliza un string de ruta para comparación cross-platform:
+/// - Reemplaza backslashes por forward slashes
+/// - Convierte a minúsculas (case-insensitive en Windows)
+/// - Elimina el prefijo extendido de Windows `\\?\` (aparece como `//?/` tras el reemplazo)
+///
+/// Este prefijo lo añade `canonicalize()` en Windows y puede causar que `starts_with`
+/// falle al comparar `project_root` con rutas de archivo, generando falsos positivos.
+fn normalize_path_str(path: &str) -> String {
+    let s = path.replace('\\', "/").to_lowercase();
+    // Strip the Windows extended-length path prefix \\?\ (becomes //?/ after backslash replacement)
+    s.strip_prefix("//?/").map(str::to_string).unwrap_or(s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_path_str_strips_windows_unc_prefix() {
+        // On Windows, canonicalize() returns paths with \\?\ prefix.
+        // After replacing backslashes, \\?\ becomes //?/
+        let unc_path = "//?/c:/users/sergio/project/src/app.tsx";
+        let result = normalize_path_str(unc_path);
+        assert_eq!(result, "c:/users/sergio/project/src/app.tsx");
+    }
+
+    #[test]
+    fn test_normalize_path_str_leaves_unix_paths_unchanged() {
+        let unix_path = "/home/user/project/src/app.tsx";
+        let result = normalize_path_str(unix_path);
+        assert_eq!(result, "/home/user/project/src/app.tsx");
+    }
+
+    #[test]
+    fn test_normalize_path_str_lowercases_windows_path() {
+        let path = "C:/Users/Sergio/project/src/App.tsx";
+        let result = normalize_path_str(path);
+        assert_eq!(result, "c:/users/sergio/project/src/app.tsx");
+    }
+
+    #[test]
+    fn test_normalize_path_str_unc_prefix_then_project_root_starts_with_works() {
+        // Simulates the core bug: project_root without //?/ but file path with //?/
+        // After stripping both, starts_with should succeed
+        let file_path = "//?/c:/users/sergio/terminal-core/src/app.tsx";
+        let root_path = "c:/users/sergio/terminal-core";
+
+        let file_normalized = normalize_path_str(file_path);
+        // file_normalized = "c:/users/sergio/terminal-core/src/app.tsx"
+        assert!(
+            file_normalized.starts_with(root_path),
+            "After stripping //?/, file path should start with root. Got: {}",
+            file_normalized
+        );
+    }
 }
 
 /// Imprime un reporte de dependencias cíclicas

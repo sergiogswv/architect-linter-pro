@@ -71,11 +71,10 @@ fn test_circular_dependency_skips_python() {
     project.create_file("script.py", py_content);
 
     let files = vec![project.path().join("script.py")];
-    let cm = std::sync::Arc::new(swc_common::SourceMap::default());
 
     // This should not panic or return error
     let result =
-        architect_linter_pro::circular::analyze_circular_dependencies(&files, project.path(), &cm);
+        architect_linter_pro::circular::analyze_circular_dependencies(&files, project.path());
     assert!(result.is_ok(), "Should skip non-JS/TS files without error");
     let cycles = result.unwrap();
     assert!(cycles.is_empty());

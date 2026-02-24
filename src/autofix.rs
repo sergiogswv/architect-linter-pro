@@ -4,9 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Arc;
-use swc_common::SourceMap;
-use swc_ecma_parser::{lexer::Lexer, EsConfig, Parser as SwcParser, StringInput, Syntax, TsConfig};
 
 /// Representa una violación arquitectónica detectada
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,24 +170,20 @@ No incluyas texto fuera del JSON."#,
     // Debug logging
     tracing::debug!("IA content response: {}", content);
 
-    // Buscar el primer '{' y el último '}' para extraer solo el JSON
-    let json_start = content.find('{').ok_or_else(|| {
-        miette::miette!("No se encontró JSON en la respuesta de la IA: {}", content)
-    })?;
-    let json_end = content.rfind('}').unwrap_or(content.len() - 1) + 1;
-    let clean_json = &content[json_start..json_end];
+    // Extraer JSON de forma robusta
+    let clean_json = crate::ai::extraer_json_flexible(&content)
+        .map_err(|e| miette::miette!("No se pudo extraer JSON de la respuesta: {}", e))?;
 
     // Parsear la respuesta JSON
-    let suggestion: FixSuggestion =
-        serde_json::from_str(clean_json)
-            .into_diagnostic()
-            .map_err(|e| {
-                miette::miette!(
-                    "Error parseando respuesta de IA: {}. \nContenido extraído: {}",
-                    e,
-                    clean_json
-                )
-            })?;
+    let suggestion: FixSuggestion = serde_json::from_str(&clean_json)
+        .into_diagnostic()
+        .map_err(|e| {
+            miette::miette!(
+                "Error parseando respuesta de IA: {}. \nContenido extraído: {}",
+                e,
+                clean_json
+            )
+        })?;
 
     Ok(suggestion)
 }
@@ -382,7 +375,7 @@ pub fn apply_fix(
     }
 }
 
-/// Valida que una cadena de código sea sintácticamente válida
+/// Validates that a string of code is syntactically valid (TS/JS only).
 pub fn validate_syntax_str(content: &str, file_path_hint: &Path) -> Result<()> {
     let extension = file_path_hint
         .extension()
@@ -393,31 +386,29 @@ pub fn validate_syntax_str(content: &str, file_path_hint: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let cm = Arc::new(SourceMap::default());
-    let syntax = match extension {
-        "ts" | "tsx" => Syntax::Typescript(TsConfig {
-            decorators: true,
-            tsx: extension == "tsx",
-            ..Default::default()
-        }),
-        "js" | "jsx" => Syntax::Es(EsConfig {
-            decorators: true,
-            jsx: extension == "jsx",
-            ..Default::default()
-        }),
+    use tree_sitter::Parser;
+    let mut parser = Parser::new();
+
+    let language = match extension {
+        "ts" | "tsx" => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        "js" | "jsx" => tree_sitter_typescript::LANGUAGE_TSX.into(),
         _ => return Ok(()),
     };
 
-    let fm = cm.new_source_file(
-        swc_common::FileName::Custom(file_path_hint.to_string_lossy().to_string()),
-        content.to_string(),
-    );
-    let lexer = Lexer::new(syntax, Default::default(), StringInput::from(&*fm), None);
-    let mut parser = SwcParser::new_from(lexer);
-
     parser
-        .parse_module()
-        .map_err(|e| miette::miette!("Error de sintaxis: {:?}", e))?;
+        .set_language(&language)
+        .map_err(|e| miette::miette!("Tree-sitter init error: {}", e))?;
+
+    let tree = parser
+        .parse(content, None)
+        .ok_or_else(|| miette::miette!("Failed to parse content"))?;
+
+    if tree.root_node().has_error() {
+        return Err(miette::miette!(
+            "Syntax error detected in {}",
+            file_path_hint.display()
+        ));
+    }
 
     Ok(())
 }

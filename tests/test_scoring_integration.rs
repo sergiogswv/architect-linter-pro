@@ -161,7 +161,7 @@ fn analyze_fixture(path: &PathBuf) -> AnalysisResult {
 
     // Add circular dependency analysis
     if let Ok(cycles) =
-        architect_linter_pro::circular::analyze_circular_dependencies(&files, path, &cm)
+        architect_linter_pro::circular::analyze_circular_dependencies(&files, path)
     {
         for cycle in cycles {
             result.add_circular_dependency(cycle);
