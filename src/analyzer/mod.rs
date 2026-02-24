@@ -1,7 +1,7 @@
 //! Analyzer module for Architect Linter Pro
 //!
 //! This module contains all file analysis logic:
-//! - SWC-based parser for TypeScript/JavaScript
+//! - Tree-sitter parser for TypeScript/JavaScript
 //! - Pattern matching utilities
 //! - Metrics collection (imports, functions)
 //! - File collection with caching

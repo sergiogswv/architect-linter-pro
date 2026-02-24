@@ -1,5 +1,5 @@
 //! Analysis using Tree-sitter for TypeScript/JavaScript files.
-//! SWC has been removed — all parsing now uses Tree-sitter.
+//! SWC has been fully removed — all parsing now uses Tree-sitter.
 
 use crate::autofix::Violation;
 use crate::config::{ArchError, LinterContext};
@@ -12,11 +12,7 @@ use std::path::PathBuf;
 use super::pattern_matcher::{matches_pattern, normalize_pattern};
 
 /// Analyze a single file for architecture violations.
-///
-/// The `_cm` parameter is kept for API compatibility with callers in main.rs
-/// that still pass a `swc_common::SourceMap`. It is not used; removal is
-/// deferred to Task 2.5.
-pub fn analyze_file<C>(_cm: &C, path: &PathBuf, ctx: &LinterContext) -> Result<()> {
+pub fn analyze_file(path: &PathBuf, ctx: &LinterContext) -> Result<()> {
     let source_code = fs::read_to_string(path).into_diagnostic()?;
 
     // Try to use multi-language parser first
@@ -154,16 +150,7 @@ pub fn create_error_from_source(src: &str, violation: &Violation) -> miette::Rep
 }
 
 /// Validate method length for a file, using Tree-sitter internally.
-///
-/// This wrapper accepts the generic `_cm` parameter for API compatibility
-/// with existing callers (e.g., `test_memory_optimization.rs`) that pass a
-/// `swc_common::SourceMap`. The parameter is ignored; all parsing is done
-/// with Tree-sitter. Removal is deferred to Task 2.5.
-pub fn validate_method_length<C>(
-    _cm: &C,
-    path: &PathBuf,
-    ctx: &LinterContext,
-) -> Result<()> {
+pub fn validate_method_length(path: &PathBuf, ctx: &LinterContext) -> Result<()> {
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
     if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {
         return Ok(());
@@ -174,15 +161,7 @@ pub fn validate_method_length<C>(
 
 /// Collect violations from a file without failing.
 /// Useful for --fix mode where we want to process all violations.
-///
-/// The `_cm` parameter is kept for API compatibility with callers in main.rs
-/// that still pass a `swc_common::SourceMap`. It is not used; removal is
-/// deferred to Task 2.5.
-pub fn collect_violations_from_file<C>(
-    _cm: &C,
-    path: &PathBuf,
-    ctx: &LinterContext,
-) -> Result<Vec<Violation>> {
+pub fn collect_violations_from_file(path: &PathBuf, ctx: &LinterContext) -> Result<Vec<Violation>> {
     // Try to use multi-language parser first
     if let Some(parser) = parsers::get_parser_for_file(path) {
         let source_code = fs::read_to_string(path).into_diagnostic()?;

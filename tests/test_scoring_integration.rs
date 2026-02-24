@@ -125,8 +125,6 @@ fn test_scoring_with_circular_dependencies() {
 fn analyze_fixture(path: &PathBuf) -> AnalysisResult {
     use architect_linter_pro::analyzer::analyze_all_files;
     use architect_linter_pro::config::load_config;
-    use swc_common::sync::Lrc;
-    use swc_common::SourceMap;
     use walkdir::WalkDir;
 
     let config = load_config(path).expect("Failed to load config");
@@ -145,8 +143,6 @@ fn analyze_fixture(path: &PathBuf) -> AnalysisResult {
         .map(|e| e.path().to_path_buf())
         .collect();
 
-    let cm = Lrc::new(SourceMap::default());
-
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     let mut result = analyze_all_files(
@@ -154,7 +150,6 @@ fn analyze_fixture(path: &PathBuf) -> AnalysisResult {
         path,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         None,
     )
     .expect("Failed to analyze files");

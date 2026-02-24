@@ -2,7 +2,6 @@ use indicatif::{ProgressBar, ProgressStyle};
 use miette::{GraphicalReportHandler, IntoDiagnostic, Result};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use swc_common::SourceMap;
 
 mod ai;
 mod analysis_result;
@@ -103,7 +102,6 @@ pub fn analyze_changed_files(
         .map_err(|e| miette::miette!("Failed to load config: {}", e))?;
 
     let linter_context: config::LinterContext = config;
-    let cm = Arc::new(SourceMap::default());
 
     // Analyze only changed files
     analyzer::analyze_all_files(
@@ -111,7 +109,6 @@ pub fn analyze_changed_files(
         project_root,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         analysis_cache,
     )
 }
@@ -260,8 +257,6 @@ fn run_normal_mode(
     );
     pb.set_message("Analyzing...");
 
-    let cm = Arc::new(SourceMap::default());
-
     // Load or create analysis cache
     let use_cache = !cli_args.no_cache;
     let config_hash = cache::hash_config(&ctx);
@@ -278,7 +273,6 @@ fn run_normal_mode(
         project_root,
         ctx.pattern.clone(),
         &ctx,
-        &cm,
         if use_cache {
             Some(&mut analysis_cache)
         } else {
@@ -298,7 +292,7 @@ fn run_normal_mode(
 
     // Análisis de Dependencias Cíclicas
     pb.set_message("Checking circular deps...");
-    let cycles = circular::analyze_circular_dependencies(&files, project_root, &cm);
+    let cycles = circular::analyze_circular_dependencies(&files, project_root);
 
     match cycles {
         Ok(detected_cycles) => {
@@ -363,19 +357,17 @@ fn run_full_analysis(
     analysis_cache: Option<&mut cache::AnalysisCache>,
 ) -> Result<analysis_result::AnalysisResult> {
     let files = discovery::collect_files(project_root, &ctx.ignored_paths);
-    let cm = Arc::new(SourceMap::default());
 
     let mut analysis_result = analyzer::analyze_all_files(
         &files,
         project_root,
         ctx.pattern.clone(),
         ctx,
-        &cm,
         analysis_cache,
     )?;
 
     // Circular dependencies
-    match circular::analyze_circular_dependencies(&files, project_root, &cm) {
+    match circular::analyze_circular_dependencies(&files, project_root) {
         Ok(detected_cycles) => {
             for cycle in &detected_cycles {
                 analysis_result.add_circular_dependency(cycle.clone());
@@ -432,11 +424,10 @@ fn run_fix_flow(project_root: &Path, ctx: &config::LinterContext) -> Result<()> 
         Vec::new()
     };
 
-    let cm = Arc::new(SourceMap::default());
     let mut all_violations = Vec::new();
 
     for file_path in &files {
-        match analyzer::collect_violations_from_file(&cm, file_path, ctx) {
+        match analyzer::collect_violations_from_file(file_path, ctx) {
             Ok(violations) => all_violations.extend(violations),
             Err(e) => eprintln!("⚠️  Error analizando {}: {}", file_path.display(), e),
         }
@@ -775,16 +766,15 @@ fn run_watch_mode(
     }
 
     println!("📊 Análisis inicial de {} archivos...", files.len());
-    let cm = Arc::new(SourceMap::default());
 
     // Construir grafo de dependencias inicial
     let mut dep_analyzer = circular::CircularDependencyAnalyzer::new(project_root);
-    dep_analyzer.build_graph(&files, &cm)?;
+    dep_analyzer.build_graph(&files)?;
 
     // Análisis inicial de violaciones
     let mut error_count = 0;
     for file_path in &files {
-        if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
+        if let Err(e) = analyzer::analyze_file(file_path, &ctx) {
             error_count += 1;
             let mut out = String::new();
             let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
@@ -843,7 +833,6 @@ fn run_watch_mode(
         |changed_files| {
             let dep_analyzer = Arc::clone(&dep_analyzer);
             let ctx = Arc::clone(&ctx);
-            let cm = Arc::clone(&cm);
             let project_root = Arc::clone(&project_root_arc);
             let change_cache = Arc::clone(&change_cache);
             let project_name_notification = Arc::clone(&project_name_notification);
@@ -861,7 +850,7 @@ fn run_watch_mode(
 
             let mut error_count = 0;
             for file_path in changed_files {
-                if let Err(e) = analyzer::analyze_file(&cm, file_path, &ctx) {
+                if let Err(e) = analyzer::analyze_file(file_path, &ctx) {
                     error_count += 1;
                     let mut out = String::new();
                     let _ = GraphicalReportHandler::new().render_report(&mut out, e.as_ref());
@@ -870,7 +859,7 @@ fn run_watch_mode(
                 }
 
                 let mut dep_analyzer = dep_analyzer.lock().expect("Failed to lock mutex");
-                if let Err(e) = dep_analyzer.update_file(file_path, &cm) {
+                if let Err(e) = dep_analyzer.update_file(file_path) {
                     eprintln!("⚠️  Error actualizando grafo: {}", e);
                     continue;
                 }
@@ -1102,13 +1091,11 @@ fn run_incremental_mode(
     let linter_context: config::LinterContext = config;
 
     // Analyze only changed files
-    let cm = Arc::new(SourceMap::default());
     let mut analysis_result = analyzer::analyze_all_files(
         &changed_files,
         project_root,
         linter_context.pattern.clone(),
         &linter_context,
-        &cm,
         None,
     )?;
 

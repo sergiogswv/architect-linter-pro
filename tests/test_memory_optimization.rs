@@ -5,15 +5,12 @@
 
 use architect_linter_pro::analyzer::swc_parser;
 use std::path::PathBuf;
-use swc_common::sync::Lrc;
-use swc_common::SourceMap;
-use tempfile::NamedTempFile;
 
 #[test]
 fn test_ast_scoped_analysis() {
-    // Create a temporary TypeScript file with imports and functions
-    let temp_file = NamedTempFile::new().unwrap();
-    let file_path = PathBuf::from(temp_file.path());
+    // Use a proper isolated temp directory to avoid polluting the system temp dir
+    let temp_dir = tempfile::tempdir().unwrap();
+    let temp_path = temp_dir.path();
 
     let ts_content = r#"
 import { UserService } from './service';
@@ -42,10 +39,8 @@ export class UserController {
 }
 "#;
 
+    let file_path = PathBuf::from(temp_path.join("user.ts"));
     std::fs::write(&file_path, ts_content).unwrap();
-
-    // Create SourceMap and LinterContext
-    let cm = Lrc::new(SourceMap::default());
 
     // Create a minimal config for testing
     let config_content = r#"
@@ -56,26 +51,22 @@ export class UserController {
 }
 "#;
 
-    let temp_config = NamedTempFile::new().unwrap();
-    std::fs::write(temp_config.path(), config_content).unwrap();
-
-    // Create the architect.json file in the correct location
-    let architect_config = temp_config.path().parent().unwrap().join("architect.json");
+    let architect_config = temp_path.join("architect.json");
     std::fs::write(&architect_config, config_content).unwrap();
 
-    let project_root = architect_config.parent().unwrap().to_path_buf();
+    let project_root = temp_path.to_path_buf();
     let config =
         architect_linter_pro::config::load_config(&project_root).expect("Failed to load config");
     let linter_context: architect_linter_pro::config::LinterContext = config.into();
 
     // Test 1: Verify the file can be analyzed without memory leaks
-    let result = swc_parser::analyze_file(&cm, &file_path, &linter_context);
+    let result = swc_parser::analyze_file(&file_path, &linter_context);
 
     assert!(result.is_ok(), "Analysis should succeed without panic");
 
     // Test 2: Verify functions were extracted (count by examining the analysis logic)
     // We'll call the method length validation separately to check it works
-    let method_result = swc_parser::validate_method_length(&cm, &file_path, &linter_context);
+    let method_result = swc_parser::validate_method_length(&file_path, &linter_context);
 
     assert!(
         method_result.is_ok(),
@@ -84,7 +75,7 @@ export class UserController {
 
     // Test 3: Verify the file doesn't contain forbidden imports
     // The test file has imports that should be allowed in a controller
-    let result = swc_parser::analyze_file(&cm, &file_path, &linter_context);
+    let result = swc_parser::analyze_file(&file_path, &linter_context);
 
     assert!(
         result.is_ok(),
@@ -94,15 +85,13 @@ export class UserController {
     // Test 4: Verify AST objects are properly scoped (no reference after analysis)
     // This is tested by ensuring no panic occurs after multiple analyses
     for _ in 0..10 {
-        let analysis_result = swc_parser::validate_method_length(&cm, &file_path, &linter_context);
+        let analysis_result = swc_parser::validate_method_length(&file_path, &linter_context);
         assert!(
             analysis_result.is_ok(),
             "Repeated analysis should not cause memory issues"
         );
     }
-
-    // Clean up
-    let _ = std::fs::remove_dir_all(project_root);
+    // temp_dir is automatically cleaned up when dropped here
 }
 
 #[test]
@@ -122,8 +111,6 @@ export class TestClass {
 }
 "#;
     std::fs::write(&file_path, ts_content).unwrap();
-
-    let cm = Lrc::new(SourceMap::default());
 
     // Create minimal config
     let config_content = r#"
@@ -179,12 +166,8 @@ export class TestClass {
             .expect("Failed to load config");
         let linter_context_iter: architect_linter_pro::config::LinterContext = config_iter;
 
-        // Create a new SourceMap for each iteration to avoid sync issues
-        let local_cm = Lrc::new(SourceMap::default());
-
         // The validate_method_length function should drop AST after extraction
-        let result =
-            swc_parser::validate_method_length(&local_cm, &file_path_iter, &linter_context_iter);
+        let result = swc_parser::validate_method_length(&file_path_iter, &linter_context_iter);
 
         // Show error details if analysis fails
         if let Err(ref e) = result {
@@ -197,6 +180,9 @@ export class TestClass {
             println!("Completed iteration {} successfully", i);
         }
     }
+
+    // Suppress unused variable warning
+    let _ = linter_context;
 }
 
 #[test]
@@ -226,8 +212,6 @@ export class TestClass{{
         file_paths.push(file_path);
     }
 
-    let _cm = Lrc::new(SourceMap::default());
-
     // Create minimal config
     let config_content = r#"
 {
@@ -249,9 +233,7 @@ export class TestClass{{
     // Test parallel analysis by processing files in sequence
     // (simulating parallel execution)
     for (i, file_path) in file_paths.iter().enumerate() {
-        // Create a new SourceMap for each file to simulate parallel execution
-        let local_cm = Lrc::new(SourceMap::default());
-        let result = swc_parser::validate_method_length(&local_cm, file_path, &linter_context);
+        let result = swc_parser::validate_method_length(file_path, &linter_context);
 
         assert!(result.is_ok(), "File {} analysis should succeed", i);
 
