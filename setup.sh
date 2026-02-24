@@ -83,7 +83,7 @@ if [ $? -eq 0 ]; then
         if [ "$MODE" = "instalación" ]; then
             echo "🚀 Ahora puedes usar 'architect-linter-pro' en cualquier carpeta."
             echo ""
-            echo "📚 Ejemplos de uso (v4.0.0):"
+            echo "📚 Ejemplos de uso (v4.3.0):"
             echo "  architect-linter-pro                    # Análisis básico"
             echo "  architect-linter-pro --watch            # Modo observación"
             echo "  architect-linter-pro --report json -o report.json"

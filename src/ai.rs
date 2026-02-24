@@ -179,14 +179,7 @@ pub async fn sugerir_arquitectura_inicial(
     // Obtener respuesta con fallback
     let response_text = consultar_ia_con_fallback(prompt, &ai_configs).await?;
 
-    // Limpiar el JSON de posibles textos adicionales de la IA
-    let json_start = response_text
-        .find('{')
-        .ok_or_else(|| anyhow::anyhow!("No se encontró JSON en la respuesta"))?;
-    let json_end = response_text
-        .rfind('}')
-        .ok_or_else(|| anyhow::anyhow!("No se encontró JSON en la respuesta"))?;
-    let clean_json = &response_text[json_start..=json_end];
+    let clean_json = extraer_json_flexible(&response_text)?;
 
     // Debug: Mostrar el JSON recibido
     eprintln!("\n🔍 DEBUG - JSON recibido de la IA:");
@@ -203,7 +196,7 @@ pub async fn sugerir_arquitectura_inicial(
     }
 
     // Intentar parsear con mejor manejo de errores
-    let suggestion: AISuggestionResponse = serde_json::from_str(clean_json)
+    let suggestion: AISuggestionResponse = serde_json::from_str(&clean_json)
         .map_err(|e| {
             anyhow::anyhow!(
                 "Error parseando JSON de la IA: {}\n\nJSON recibido:\n{}\n\nSugerencia: Revisa el JSON arriba. Si está incompleto, puede ser que el límite de tokens sea insuficiente.",
@@ -237,15 +230,9 @@ pub async fn sugerir_top_3_arquitecturas(
     );
 
     let response_text = consultar_ia_con_fallback(prompt, &ai_configs).await?;
-    let json_start = response_text
-        .find('{')
-        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
-    let json_end = response_text
-        .rfind('}')
-        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
-    let clean_json = &response_text[json_start..=json_end];
+    let clean_json = extraer_json_flexible(&response_text)?;
 
-    let response: Top3Response = serde_json::from_str(clean_json)?;
+    let response: Top3Response = serde_json::from_str(&clean_json)?;
     Ok(response.options)
 }
 
@@ -280,15 +267,9 @@ pub async fn sugerir_reglas_para_patron(
     );
 
     let response_text = consultar_ia_con_fallback(prompt, &ai_configs).await?;
-    let json_start = response_text
-        .find('{')
-        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
-    let json_end = response_text
-        .rfind('}')
-        .ok_or_else(|| anyhow::anyhow!("No JSON found"))?;
-    let clean_json = &response_text[json_start..=json_end];
+    let clean_json = extraer_json_flexible(&response_text)?;
 
-    let suggestion: AISuggestionResponse = serde_json::from_str(clean_json)?;
+    let suggestion: AISuggestionResponse = serde_json::from_str(&clean_json)?;
     Ok(suggestion)
 }
 
@@ -421,4 +402,49 @@ async fn procesar_respuesta(response: reqwest::Response) -> anyhow::Result<Strin
     }
 
     Ok(response_text)
+}
+
+/// Extrae un bloque JSON de una cadena de texto, manejando bloques de markdown y texto adicional.
+pub fn extraer_json_flexible(text: &str) -> anyhow::Result<String> {
+    // Si la IA respondió con un bloque de código markdown, intentamos extraer su contenido
+    let content = if text.contains("```json") {
+        text.split("```json")
+            .nth(1)
+            .and_then(|s| s.split("```").next())
+            .unwrap_or(text)
+            .trim()
+    } else if text.contains("```") {
+        text.split("```")
+            .nth(1)
+            .and_then(|s| s.split("```").next())
+            .unwrap_or(text)
+            .trim()
+    } else {
+        text.trim()
+    };
+
+    let start = content.find('{').ok_or_else(|| {
+        anyhow::anyhow!(
+            "No se encontró el inicio de un objeto JSON ('{{') en la respuesta.\n\nContenido recibido:\n{}",
+            content
+        )
+    })?;
+
+    let end = content.rfind('}').ok_or_else(|| {
+        anyhow::anyhow!(
+            "No se encontró el final de un objeto JSON ('}}') en la respuesta.\n\nContenido recibido:\n{}",
+            content
+        )
+    })?;
+
+    let json = &content[start..=end];
+
+    // Validación básica de completitud
+    if !json.ends_with('}') {
+        return Err(anyhow::anyhow!(
+            "El JSON parece estar truncado o incompleto."
+        ));
+    }
+
+    Ok(json.to_string())
 }

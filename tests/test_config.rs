@@ -205,19 +205,25 @@ fn test_load_config_invalid_architecture_pattern_type() {
 }
 
 #[test]
-fn test_load_config_invalid_architecture_pattern_value() {
+fn test_load_config_custom_architecture_pattern_value() {
     let project = TestProject::new();
 
     let config = r#"{
   "max_lines_per_function": 50,
-  "architecture_pattern": "InvalidPattern",
+  "architecture_pattern": "MyCustomPattern",
   "forbidden_imports": []
 }"#;
 
     create_config_file(&project, config);
 
     let result = architect_linter_pro::config::load_config(project.path());
-    assert!(result.is_err());
+    assert!(result.is_ok(), "Custom patterns should be allowed");
+
+    let ctx = result.unwrap();
+    assert!(matches!(
+        ctx.pattern,
+        architect_linter_pro::config::ArchPattern::Custom(_)
+    ));
 }
 
 #[test]

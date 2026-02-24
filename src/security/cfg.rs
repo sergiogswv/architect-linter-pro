@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Control Flow Graph (CFG) para análisis estático multi-lenguaje
 //!
 //! Este módulo construye un grafo de flujo de control genérico que puede ser
@@ -10,9 +11,9 @@ pub enum NodeType {
     Entry,
     Statement,
     Branch,
-    Sink,    // Punto de salida peligroso (SQLQuery, eval, etc.)
-    Source,  // Punto de entrada de usuario (req.body, params)
-    Call,    // Llamada a función
+    Sink,   // Punto de salida peligroso (SQLQuery, eval, etc.)
+    Source, // Punto de entrada de usuario (req.body, params)
+    Call,   // Llamada a función
     Exit,
 }
 
@@ -26,7 +27,7 @@ pub struct CFGNode {
 
 pub struct CFG {
     pub nodes: Vec<CFGNode>,
-    pub edges: Vec<(usize, usize)>, // (de_id, a_id)
+    pub edges: Vec<(usize, usize)>,      // (de_id, a_id)
     pub var_map: HashMap<String, usize>, // Rastreo de definiciones de variables
 }
 
@@ -66,7 +67,11 @@ impl CFG {
 
         Self::visit_nodes(&mut cursor, source_code, &mut cfg, &mut last_id);
 
-        cfg.add_node(NodeType::Exit, "END".to_string(), root.end_position().row + 1);
+        cfg.add_node(
+            NodeType::Exit,
+            "END".to_string(),
+            root.end_position().row + 1,
+        );
         cfg
     }
 
@@ -82,15 +87,16 @@ impl CFG {
 
         // Detección genérica basada en palabras clave en los nombres de los nodos
         // Esto es una simplificación; cada lenguaje podría tener sus propias palabras clave
-        let node_type = if name.contains("query") || name.contains("execute") || name.contains("eval") {
-            Some(NodeType::Sink)
-        } else if name.contains("body") || name.contains("params") || name.contains("input") {
-            Some(NodeType::Source)
-        } else if node.kind().contains("call") {
-            Some(NodeType::Call)
-        } else {
-            None
-        };
+        let node_type =
+            if name.contains("query") || name.contains("execute") || name.contains("eval") {
+                Some(NodeType::Sink)
+            } else if name.contains("body") || name.contains("params") || name.contains("input") {
+                Some(NodeType::Source)
+            } else if node.kind().contains("call") {
+                Some(NodeType::Call)
+            } else {
+                None
+            };
 
         if let Some(nt) = node_type {
             let current_id = cfg.add_node(nt, name.to_string(), line);

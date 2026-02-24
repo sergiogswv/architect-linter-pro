@@ -75,7 +75,7 @@ pub fn print_help() {
     println!("architect-linter-pro {}", VERSION);
     println!();
     println!("Linter de arquitectura de software con Architecture Health Score");
-    println!("Soporte multi-lenguaje: TypeScript, JavaScript, Python, Go, PHP, Java");
+    println!("Soporte multi-lenguaje: TypeScript, JavaScript, Python [beta], Go [beta], PHP [beta], Java [beta], C# [beta], Ruby [beta], Kotlin [beta], Rust [beta]");
     println!();
     println!("USO:");
     println!("  architect-linter-pro [OPCIONES] [RUTA]");
