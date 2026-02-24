@@ -40,6 +40,14 @@ if [ "${STAGED_ONLY}" = "true" ]; then
     BASE_ARGS+=(--staged)
 fi
 
+# Check for min-severity
+MIN_SEVERITY="${MIN_SEVERITY:-error}"
+if [ -n "${MIN_SEVERITY}" ] && [ "${MIN_SEVERITY}" != "error" ]; then
+    echo -e "${YELLOW}🎯 Min severity: ${MIN_SEVERITY}${NC}"
+    ARGS+=(--severity "${MIN_SEVERITY}")
+    BASE_ARGS+=(--severity "${MIN_SEVERITY}")
+fi
+
 # Check for report format
 if [ -n "${REPORT_FORMAT}" ]; then
     echo -e "${YELLOW}📊 Report format: ${REPORT_FORMAT}${NC}"
