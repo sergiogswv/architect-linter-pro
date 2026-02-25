@@ -1,0 +1,32 @@
+typescript_parsing/parse_typescript_user_service
+                        time:   [81.989 ns 83.313 ns 84.810 ns]
+                        change: [-4.6170% -2.0547% +0.4125%] (p = 0.13 > 0.05)
+                        No change in performance detected.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+
+python_parsing/parse_python_user_service
+                        time:   [55.325 ns 56.133 ns 57.024 ns]
+                        change: [-1.0544% +0.6490% +2.2398%] (p = 0.45 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+
+directory_scanning/scan_directory/nestjs-project
+                        time:   [30.970 µs 33.402 µs 36.283 µs]
+                        change: [+37.516% +53.081% +71.206%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+directory_scanning/scan_directory/django-project
+                        time:   [28.223 µs 29.078 µs 30.087 µs]
+                        change: [-10.210% -4.4754% +1.3045%] (p = 0.15 > 0.05)
+                        No change in performance detected.
+Found 12 outliers among 100 measurements (12.00%)
+  4 (4.00%) high mild
+  8 (8.00%) high severe
+
+large_project/analyze_large_project
+                        time:   [94.989 µs 95.980 µs 97.966 µs]
+                        change: [-7.1112% -0.9476% +4.4660%] (p = 0.79 > 0.05)
+                        No change in performance detected.
+
