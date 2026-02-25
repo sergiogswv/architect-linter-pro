@@ -11,10 +11,6 @@ use std::path::Path;
 pub mod php;
 pub mod python;
 pub mod typescript;
-pub mod typescript_pure;
-
-// Re-export pure functions for easier access in tests
-// (Temporarily empty to fix dead code warnings if not used by main)
 
 /// Represents an import statement extracted from source code
 #[derive(Debug, Clone)]
