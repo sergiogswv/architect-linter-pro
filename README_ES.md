@@ -1,7 +1,7 @@
 # Architect Linter Pro
 
 <p align="center">
-  <img src="./public/architect-linter-pro-banner.png" alt="Banner Architect Linter Pro" width="100%">
+  <img src="./public/architect-linter-banner.png" alt="Banner Architect Linter Pro" width="100%">
 </p>
 
 <p align="center">
