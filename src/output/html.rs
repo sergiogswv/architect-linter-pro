@@ -5,6 +5,30 @@
 
 use std::fs;
 
+/// Escapes HTML special characters to prevent XSS attacks
+///
+/// Converts HTML special characters to their entity equivalents:
+/// - `&` becomes `&amp;`
+/// - `<` becomes `&lt;`
+/// - `>` becomes `&gt;`
+/// - `"` becomes `&quot;`
+/// - `'` becomes `&#39;`
+///
+/// # Arguments
+///
+/// * `s` - The string to escape
+///
+/// # Returns
+///
+/// A new string with HTML special characters properly escaped
+fn escape_html(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
+}
+
 /// HTML report generator for displaying violations and architecture scores
 pub struct HtmlReporter;
 
@@ -44,7 +68,9 @@ impl HtmlReporter {
             .map(|(file, line, message)| {
                 format!(
                     "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
-                    file, line, message
+                    escape_html(file),
+                    escape_html(&line.to_string()),
+                    escape_html(message)
                 )
             })
             .collect::<Vec<_>>()

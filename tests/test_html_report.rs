@@ -203,9 +203,33 @@ fn test_html_special_characters_in_violations() {
     let content = fs::read_to_string(&report_path).expect("Failed to read report file");
 
     // Verify that the HTML was created successfully
-    // The content should contain the violations in some form
     assert!(!content.is_empty(), "Report file is empty");
     assert!(content.contains("<table>"), "Missing table");
+
+    // Verify that special characters are escaped to prevent XSS
+    // Less-than and greater-than signs must be escaped
+    assert!(
+        content.contains("&lt;") || !content.contains("<test>"),
+        "< character should be escaped as &lt; in file paths"
+    );
+
+    // Ampersands must be escaped
+    assert!(
+        content.contains("&amp;") || !content.contains("&special"),
+        "& character should be escaped as &amp; in messages"
+    );
+
+    // Double quotes must be escaped
+    assert!(
+        content.contains("&quot;") || !content.contains("\"quoted\""),
+        "\" character should be escaped as &quot; in file paths"
+    );
+
+    // Verify dangerous input is not present in raw form
+    assert!(
+        !content.contains("<test>"),
+        "Unescaped < > should not appear in HTML"
+    );
 }
 
 #[test]
