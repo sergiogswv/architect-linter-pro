@@ -451,3 +451,6 @@ pub fn extraer_json_flexible(text: &str) -> anyhow::Result<String> {
 
 pub mod suggestions;
 pub use suggestions::SmartSuggestions;
+
+pub mod pattern_detection;
+pub use pattern_detection::{ArchitecturePattern, PatternDetector};
