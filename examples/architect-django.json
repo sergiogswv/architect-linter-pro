@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "name": "Django MVT + Service Layer",
+  "description": "Example architect.json for Django with service layer",
+  "rules": [
+    {
+      "from": "myapp/models",
+      "to": ["myapp/views", "myapp/services"],
+      "message": "Models must not import views or services"
+    },
+    {
+      "from": "myapp/views",
+      "to": "myapp/services",
+      "message": "Views should use services for business logic"
+    },
+    {
+      "from": "myapp/services",
+      "to": "myapp/views",
+      "message": "Services must not import views"
+    }
+  ]
+}

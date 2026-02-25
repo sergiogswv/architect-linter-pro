@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "name": "React Feature-Based Architecture",
+  "description": "Example architect.json for React with feature isolation",
+  "rules": [
+    {
+      "from": ["src/features/auth", "src/features/dashboard", "src/features/profile"],
+      "to": ["src/features/auth", "src/features/dashboard", "src/features/profile"],
+      "message": "Features must not import from other features"
+    },
+    {
+      "from": "src/core",
+      "to": "src/features",
+      "message": "Core services must not depend on features"
+    },
+    {
+      "from": "src/features",
+      "to": "src/core",
+      "message": "Features can import from core utilities"
+    }
+  ]
+}

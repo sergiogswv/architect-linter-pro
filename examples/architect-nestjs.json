@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "name": "NestJS Hexagonal Architecture",
+  "description": "Example architect.json for NestJS using Hexagonal pattern",
+  "rules": [
+    {
+      "from": "src/domain",
+      "to": ["src/application", "src/infrastructure", "src/presentation"],
+      "message": "Domain layer must not depend on other layers"
+    },
+    {
+      "from": "src/application",
+      "to": ["src/infrastructure", "src/presentation"],
+      "message": "Application layer can only depend on domain and itself"
+    },
+    {
+      "from": "src/infrastructure",
+      "to": "src/presentation",
+      "message": "Infrastructure layer must not depend on presentation"
+    }
+  ]
+}

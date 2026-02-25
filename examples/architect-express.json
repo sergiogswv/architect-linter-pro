@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "name": "Express MVC Architecture",
+  "description": "Example architect.json for Express using MVC pattern",
+  "rules": [
+    {
+      "from": "src/models",
+      "to": ["src/controllers", "src/middleware"],
+      "message": "Models must be independent of controllers and middleware"
+    },
+    {
+      "from": "src/middleware",
+      "to": "src/controllers",
+      "message": "Middleware should not import controllers"
+    },
+    {
+      "from": "src/routes",
+      "to": "src/models",
+      "message": "Routes should use controllers, not models"
+    }
+  ]
+}
