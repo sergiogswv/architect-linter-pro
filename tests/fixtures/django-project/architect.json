@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "from": "myapp/models",
+      "to": ["myapp/views", "myapp/services"],
+      "message": "Models should not import from views or services"
+    },
+    {
+      "from": "myapp/views",
+      "to": "myapp/services",
+      "message": "Views should use services"
+    }
+  ]
+}
