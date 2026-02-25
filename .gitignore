@@ -32,3 +32,5 @@ tarpaulin-report.html
 # docs/ — plans and design docs are tracked
 # docs/
 /node_modules/
+build/
+.docusaurus/
