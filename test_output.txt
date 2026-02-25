@@ -1,0 +1,46 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running unittests src/lib.rs (target/debug/deps/architect_linter_pro-34464383f6d0945a)
+
+running 39 tests
+test analyzer::pattern_matcher::tests::test_matches_pattern_basic ... ok
+test analyzer::pattern_matcher::tests::test_matches_pattern_with_relative_imports ... ok
+test circular::tests::test_normalize_path_str_lowercases_windows_path ... ok
+test circular::tests::test_normalize_path_str_leaves_unix_paths_unchanged ... ok
+test analyzer::pattern_matcher::tests::test_normalize_pattern ... ok
+test circular::tests::test_normalize_path_str_unc_prefix_then_project_root_starts_with_works ... ok
+test circular::tests::test_normalize_path_str_strips_windows_unc_prefix ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_with_src ... ok
+test parsers::typescript_pure::tests::test_extract_folder_from_pattern_without_src ... ok
+test parsers::typescript_pure::tests::test_generate_import_patterns ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_multiple_violations ... ok
+test parsers::typescript_pure::tests::test_find_violations_in_imports_no_violations ... ok
+test logging::tests::test_init_debug_mode ... ok
+test logging::tests::test_init_normal_mode ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_violation ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_alias_imports ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_import ... ok
+test parsers::typescript_pure::tests::test_matches_forbidden_rule_no_violation_different_file ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_true ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_controller ... ok
+test parsers::typescript_pure::tests::test_is_controller_to_repository_violation_false_not_repository ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_case_insensitive ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_direct_containment ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_empty_pattern ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_no_match ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_windows_paths ... ok
+test parsers::typescript_pure::tests::test_matches_pattern_relative_imports ... ok
+test parsers::typescript_pure::tests::test_normalize_path_lowercase ... ok
+test parsers::typescript_pure::tests::test_normalize_path_mixed_separators ... ok
+test parsers::typescript_pure::tests::test_normalize_path_windows_to_unix ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_no_wildcards ... ok
+test parsers::typescript_pure::tests::test_normalize_pattern_wildcards ... ok
+test report::tests::test_markdown_report_structure ... ok
+test scoring::tests::test_score_components_calculate_total ... ok
+test scoring::tests::test_health_grade_from_score ... ok
+test report::tests::test_json_report_structure ... ok
+test scoring::tests::test_progress_bar ... ok
+test git::tests::test_is_git_repo ... ok
+test git_changes::tests::test_git_detection_in_crate ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
