@@ -15,12 +15,12 @@
   <img src="https://img.shields.io/crates/d/architect-linter-pro.svg" alt="Crates.io Downloads">
 </p>
 
-A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **10 languages (TypeScript, JavaScript, and 8 others in beta: Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust)** using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.
+A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports **4 production languages: TypeScript, JavaScript, Python, and PHP** using Tree-sitter for fast and accurate parsing. Includes pre-configured templates for NestJS, Express, React, NextJS, and Django.
 
 ## Features
 
 ### Core Analysis
-- **🌐 Multi-Language Support**: 10 languages (TS, JS, and Python, Go, PHP, Java, C#, Ruby, Kotlin, Rust in [beta])
+- **🌐 Multi-Language Support**: 4 production languages (TypeScript, JavaScript, Python, PHP)
 - **🔧 Dynamic Rule Engine**: Define custom constraints between layers via `architect.json`
 - **🔍 Circular Dependency Detection**: Analyzes the dependency graph and automatically detects cycles
 - **📦 Import Validation**: Detects and blocks imports that violate the defined architecture across all supported languages
@@ -49,7 +49,7 @@ A multi-language software architecture linter written in Rust that validates arc
 - **⚙️ Separated Configuration**: `architect.json` for rules (sharable) and `.architect.ai.json` for API keys (private)
 
 ### Developer Experience
-- **🎯 Automatic Framework Detection**: Recognizes NestJS, React, Angular, Express, Django, Laravel, Spring Boot and more
+- **🎯 Automatic Framework Detection**: Recognizes NestJS, Express, React, Next.js, Django, Laravel and more
 - **🏗️ Architectural Patterns**: Support for Hexagonal, Clean Architecture, MVC and more
 - **🎨 Interactive Mode**: Guided configuration on first run with enhanced visual banner
 - **🧩 Configuration Schema**: Full JSON Schema validation for `architect.json` with IDE autocompletion
@@ -59,34 +59,36 @@ A multi-language software architecture linter written in Rust that validates arc
 - **✅ Config Validation**: Instant schema validation with the `--check` flag
 - **🧪 Enhanced Stability**: (New in v4.3.0) Robust initialization with `Default` trait implementations and cleaned-up codebase for reliable CI/CD execution.
 
+## Supported Frameworks
+
+### TypeScript/JavaScript
+- **NestJS** - Enterprise Node.js framework (Hexagonal, Clean, Layered patterns)
+- **Express** - Minimal web framework (MVC, Hexagonal, Feature-based patterns)
+- **React** - Frontend library (Feature-based, Layered patterns)
+- **Next.js** - Full-stack React framework (Feature-based, Layered patterns)
+
+### Python
+- **Django** - Full-featured web framework (MVT, Service Layer patterns)
+
+### PHP
+- Standard PHP applications with custom architectural patterns
+
 ## Supported Languages
 
-Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsing. TypeScript and JavaScript are fully supported; other languages are currently in **beta**:
+Architect Linter uses **Tree-sitter** for fast and accurate multi-language parsing:
 
 | Language | Extensions | Import Syntax | Example |
 |----------|-----------|---------------|---------|
 | **TypeScript** | `.ts`, `.tsx` | `import X from 'path'` | `import { UserService } from './services/user'` |
 | **JavaScript** | `.js`, `.jsx` | `import X from 'path'` | `import UserController from '../controllers/user'` |
-| **Python [beta]** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
-| **Go [beta]** | `.go` | `import "package"` | `import "github.com/user/repo/models"` |
-| **PHP [beta]** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
-| **Java [beta]** | `.java` | `import package.Class` | `import com.example.models.User;` |
-| **C# [beta]** | `.cs` | `using X` | `using System.Collections.Generic;` |
-| **Ruby [beta]** | `.rb` | `require 'X'` | `require 'json'` |
-| **Kotlin [beta]** | `.kt`, `.kts` | `import X` | `import com.example.models.User;` |
-| **Rust [beta]** | `.rs` | `use X` | `use std::collections::HashMap;` |
+| **Python** | `.py` | `import X` / `from X import Y` | `from models.user import UserModel` |
+| **PHP** | `.php` | `use Namespace\Class` | `use App\Controllers\UserController;` |
 
 ### Language-Specific Features
 
 - **TypeScript/JavaScript**: Full support for ES6 imports, dynamic imports, and type-only imports
 - **Python**: Supports both `import` and `from...import` statements, dotted module paths
-- **Go**: Package-based imports with full path support
 - **PHP**: PSR-4 autoloading compatible, supports `use`, `require`, `include` statements
-- **Java**: Package imports with wildcard support
-- **C#**: Full support for `using` directives, alias and static imports
-- **Ruby**: Supports `require`, `require_relative` and `load`
-- **Kotlin**: Full package and import support with wildcard matching
-- **Rust**: Supports `use` declarations including crate, super and self-based paths
 
 All languages share the same rule engine, allowing you to define architectural constraints consistently across polyglot projects.
 
@@ -209,7 +211,7 @@ architect-linter-pro init
 
 El comando detecta tu framework automáticamente, te pregunta el patrón arquitectónico y genera `architect.json` listo para usar en menos de 2 minutos.
 
-**Frameworks soportados:** Next.js, NestJS, Express, Django, Spring Boot
+**Frameworks soportados:** Next.js, NestJS, Express, Django
 
 ```bash
 # Opciones disponibles
@@ -952,7 +954,7 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 
 ### Completed ✅
 - [x] Dynamic rule engine with `forbidden_imports`
-- [x] Automatic framework detection (NestJS, React, Angular, Express, Django, Laravel, Spring Boot)
+- [x] Automatic framework detection (NestJS, Express, React, Next.js, Django)
 - [x] Interactive configuration on first run
 - [x] Support for patterns: Hexagonal, Clean, MVC
 - [x] Parallel processing with Rayon
@@ -966,7 +968,7 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 - [x] **Circular dependency detection** with graph analysis and DFS
 - [x] **Automatic Husky setup** during initial configuration
 - [x] **Watch mode** with incremental analysis and intelligent caching
-- [x] **Multi-language support**: TypeScript, JavaScript, Python, Go, PHP, Java (6 languages)
+- [x] **Multi-language support**: TypeScript, JavaScript, Python, PHP (4 production languages)
 - [x] **Tree-sitter integration** for fast and accurate parsing across all languages
 - [x] **AI-powered auto-fix** for architectural violations (--fix)
 - [x] **Health Score System (v4.0.0)**: 0-100 scoring with A-F grades and component breakdown
@@ -1031,7 +1033,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
 ### v3.1.0 (2026-02-06) - Multi-Language Support: PHP & Java
 - 🌐 **PHP Parser**: Full Tree-sitter integration with support for use/require/include statements
 - ☕ **Java Parser**: Complete Tree-sitter grammar support with import analysis
-- 📚 **10 Languages Total**: Full support for TS/JS and 8 additional languages in beta
+- 📚 **4 Production Languages**: Full support for TypeScript, JavaScript, Python, PHP
 - 🎨 **Professional Banner**: New project banner in documentation
 - 📖 **Enhanced Documentation**: Multi-language support table in English and Spanish
 - 🔧 **Improved Setup Scripts**: Better error handling and PATH configuration
