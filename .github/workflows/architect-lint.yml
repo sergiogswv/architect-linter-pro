@@ -1,0 +1,42 @@
+name: Architecture Lint
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  architect-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Install architect-linter-pro
+      run: cargo install architect-linter-pro
+
+    - name: Run Architecture Lint
+      run: architect lint . --json > lint-report.json
+
+    - name: Check for violations
+      run: |
+        VIOLATIONS=$(jq '.violations | length' lint-report.json)
+        if [ $VIOLATIONS -gt 0 ]; then
+          echo "❌ Architecture violations found:"
+          jq '.violations[]' lint-report.json
+          exit 1
+        fi
+        echo "✅ Architecture check passed"
+
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: architect-lint-report
+        path: lint-report.json
