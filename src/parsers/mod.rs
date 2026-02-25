@@ -8,16 +8,10 @@ use crate::config::LinterContext;
 use miette::Result;
 use std::path::Path;
 
-pub mod go;
-pub mod java;
 pub mod php;
 pub mod python;
 pub mod typescript;
 pub mod typescript_pure;
-pub mod csharp;
-pub mod ruby;
-pub mod kotlin;
-pub mod rust;
 
 // Re-export pure functions for easier access in tests
 // (Temporarily empty to fix dead code warnings if not used by main)
@@ -39,13 +33,7 @@ pub enum Language {
     TypeScript,
     JavaScript,
     Python,
-    Go,
-    Rust,
     Php,
-    Java,
-    CSharp,
-    Ruby,
-    Kotlin,
 }
 
 impl Language {
@@ -55,13 +43,7 @@ impl Language {
             "ts" | "tsx" => Some(Language::TypeScript),
             "js" | "jsx" => Some(Language::JavaScript),
             "py" => Some(Language::Python),
-            "go" => Some(Language::Go),
-            "rs" => Some(Language::Rust),
             "php" => Some(Language::Php),
-            "java" => Some(Language::Java),
-            "cs" => Some(Language::CSharp),
-            "rb" => Some(Language::Ruby),
-            "kt" | "kts" => Some(Language::Kotlin),
             _ => None,
         }
     }
@@ -72,13 +54,7 @@ impl Language {
             Language::TypeScript => &["ts", "tsx"],
             Language::JavaScript => &["js", "jsx"],
             Language::Python => &["py"],
-            Language::Go => &["go"],
-            Language::Rust => &["rs"],
             Language::Php => &["php"],
-            Language::Java => &["java"],
-            Language::CSharp => &["cs"],
-            Language::Ruby => &["rb"],
-            Language::Kotlin => &["kt", "kts"],
         }
     }
 }
@@ -120,13 +96,7 @@ pub fn get_parser_for_file(file_path: &Path) -> Option<Box<dyn ArchitectParser>>
             Some(Box::new(typescript::TypeScriptParser::new()))
         }
         Language::Python => Some(Box::new(python::PythonParser::new())),
-        Language::Go => Some(Box::new(go::GoParser::new())),
         Language::Php => Some(Box::new(php::PhpParser::new())),
-        Language::Java => Some(Box::new(java::JavaParser::new())),
-        Language::CSharp => Some(Box::new(csharp::CSharpParser::new())),
-        Language::Ruby => Some(Box::new(ruby::RubyParser::new())),
-        Language::Kotlin => Some(Box::new(kotlin::KotlinParser::new())),
-        Language::Rust => Some(Box::new(rust::RustParser::new())),
     }
 }
 
@@ -136,13 +106,7 @@ pub fn supported_languages() -> Vec<Language> {
         Language::TypeScript,
         Language::JavaScript,
         Language::Python,
-        Language::Go,
         Language::Php,
-        Language::Java,
-        Language::CSharp,
-        Language::Ruby,
-        Language::Kotlin,
-        Language::Rust,
     ]
 }
 

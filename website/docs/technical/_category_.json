@@ -1,0 +1,8 @@
+{
+    "label": "Technical Guides",
+    "position": 3,
+    "link": {
+        "type": "generated-index",
+        "description": "Deep dive into the technical implementation of Architect Linter Pro."
+    }
+}

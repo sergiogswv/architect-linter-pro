@@ -1,0 +1,8 @@
+{
+    "label": "Framework Guides",
+    "position": 4,
+    "link": {
+        "type": "generated-index",
+        "description": "Step-by-step guides for integrating Architect Linter Pro with your favorite frameworks."
+    }
+}
