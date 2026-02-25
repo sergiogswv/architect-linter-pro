@@ -3,6 +3,7 @@ module.exports = {
   tagline: 'Multi-language software architecture linter written in Rust',
   url: 'https://architect-linter-pro.dev',
   baseUrl: '/',
+  favicon: 'img/favicon.ico',
   organizationName: 'sergio-linter',
   projectName: 'architect-linter-pro',
   deploymentBranch: 'gh-pages',
@@ -14,6 +15,15 @@ module.exports = {
       en: { label: 'English' },
       es: { label: 'Español' }
     }
+  },
+  themeConfig: {
+    image: 'img/architect-linter-pro-og.png',
+    metadata: [
+      {
+        name: 'description',
+        content: 'Architect Linter Pro - Multi-language software architecture linter'
+      }
+    ]
   },
   presets: [
     [
