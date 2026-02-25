@@ -22,7 +22,7 @@ jobs:
       run: cargo install architect-linter-pro
 
     - name: Run Architecture Lint
-      run: architect lint . --json > lint-report.json
+      run: architect-linter-pro lint . --json > lint-report.json
 
     - name: Check for violations
       run: |
