@@ -7,7 +7,6 @@ mod express;
 mod helpers;
 mod nestjs;
 mod nextjs;
-mod spring;
 
 /// Human-readable pattern name shown in the selection menu.
 pub struct PatternOption {
@@ -77,18 +76,6 @@ pub fn patterns_for_framework(framework: &Framework) -> Vec<PatternOption> {
                 pattern: "service-layer",
             },
         ],
-        Framework::Spring => vec![
-            PatternOption {
-                label: "Layered MVC",
-                description: "controller/ service/ repository/ model/",
-                pattern: "layered",
-            },
-            PatternOption {
-                label: "Hexagonal",
-                description: "domain/ application/ infrastructure/",
-                pattern: "hexagonal",
-            },
-        ],
         _ => vec![
             PatternOption {
                 label: "MVC",
@@ -112,7 +99,6 @@ pub fn get_template(framework: &Framework, pattern: &str) -> Option<ConfigFile> 
         Framework::React => nextjs::get(pattern),
         Framework::Express => express::get(pattern),
         Framework::Django => django::get(pattern),
-        Framework::Spring => spring::get(pattern),
         _ => None,
     }
 }

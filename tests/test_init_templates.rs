@@ -29,8 +29,6 @@ fn test_all_frameworks_have_templates() {
         (Framework::Express, "feature-based"),
         (Framework::Django, "mvt"),
         (Framework::Django, "service-layer"),
-        (Framework::Spring, "layered"),
-        (Framework::Spring, "hexagonal"),
     ];
     for (fw, pattern) in cases {
         let result = architect_linter_pro::init::templates::get_template(&fw, pattern);

@@ -33,7 +33,6 @@ pub fn ask_framework() -> Option<Framework> {
         ("NestJS", Framework::NestJS),
         ("Express", Framework::Express),
         ("Django", Framework::Django),
-        ("Spring Boot", Framework::Spring),
     ];
 
     let items: Vec<&str> = options.iter().map(|(label, _)| *label).collect();
