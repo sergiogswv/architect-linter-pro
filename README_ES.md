@@ -44,10 +44,6 @@ architect --check
 - 👁️ **Modo Watch**: Monitoreo en tiempo real con notificaciones
 - 👻 **Modo Daemon**: Monitoreo en segundo plano continuo
 
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Consulta nuestra [guía de contribución](https://architect-linter-pro.dev/docs/contributing).
-
 ## 📄 Licencia
 
 MIT
