@@ -1,0 +1,27 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a simple framework built on top of it.
+ * The following line may be useful to prevent bundle size from increasing too much
+ * due to unused CSS from Infima components in the theme. However, it's recommended
+ * to customize the default theme-agnostic CSS variables in `variables.css` under the
+ * and use CSS classes instead of adding new global styles.
+ */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #207540;
+  --ifm-color-primary-darkest: #1a5e3a;
+  --ifm-color-primary-light: #378a64;
+  --ifm-color-primary-lighter: #3f9570;
+  --ifm-color-primary-lightest: #4ea17c;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32dfc5;
+  --ifm-color-primary-lightest: #4ce4d6;
+}

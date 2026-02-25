@@ -1,0 +1,28 @@
+module.exports = {
+  title: 'Architect Linter Pro',
+  tagline: 'Multi-language software architecture linter written in Rust',
+  url: 'https://architect-linter-pro.dev',
+  baseUrl: '/',
+  organizationName: 'sergio-linter',
+  projectName: 'architect-linter-pro',
+  deploymentBranch: 'gh-pages',
+  onBrokenLinks: 'throw',
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es'],
+    localeConfigs: {
+      en: { label: 'English' },
+      es: { label: 'Español' }
+    }
+  },
+  presets: [
+    [
+      '@docusaurus/preset-classic',
+      {
+        docs: { sidebarPath: require.resolve('./sidebars.js') },
+        blog: { showReadingTime: true },
+        theme: { customCss: require.resolve('./src/css/custom.css') }
+      }
+    ]
+  ]
+};
