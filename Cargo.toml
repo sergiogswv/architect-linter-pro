@@ -40,7 +40,6 @@ tree-sitter = "0.25"
 streaming-iterator = "0.1"
 tree-sitter-typescript = "0.23"
 tree-sitter-python = "0.25"
-tree-sitter-rust = "0.24"
 tree-sitter-php = "0.24"
 
 # v4.0 additions
