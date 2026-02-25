@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "from": "services",
+      "to": "controllers",
+      "message": "Services should not import from controllers"
+    }
+  ]
+}
