@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 pub mod cfg;
 pub mod data_flow;
+pub mod vulnerabilities;
+
+pub use vulnerabilities::{Severity, VulnerabilityDetector, VulnerabilityType};
 
 use crate::autofix::Violation;
 use crate::config::LinterContext;

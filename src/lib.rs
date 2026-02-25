@@ -30,6 +30,8 @@ pub mod scoring;
 pub mod ui;
 pub mod init;
 pub mod watch;
+pub mod features;
+pub mod license;
 
 // Re-export commonly used types for convenience
 pub use analysis_result::AnalysisResult;
