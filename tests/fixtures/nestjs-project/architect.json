@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "from": "src/domain",
+      "to": ["src/application", "src/infrastructure"],
+      "message": "Domain layer should not depend on other layers"
+    },
+    {
+      "from": "src/application",
+      "to": "src/infrastructure",
+      "message": "Application layer can depend on infrastructure"
+    }
+  ]
+}
