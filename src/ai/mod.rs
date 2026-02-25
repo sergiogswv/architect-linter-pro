@@ -454,3 +454,6 @@ pub use suggestions::SmartSuggestions;
 
 pub mod pattern_detection;
 pub use pattern_detection::{ArchitecturePattern, PatternDetector};
+
+pub mod recommendations;
+pub use recommendations::ArchitectureRecommendations;
