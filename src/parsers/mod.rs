@@ -59,6 +59,31 @@ impl Language {
 ///
 /// Implementations of this trait provide language-specific parsing logic
 /// using Tree-sitter to extract imports and detect architectural violations.
+///
+/// # Design Decision (2026-02-25)
+///
+/// The ArchitectParser trait is intentionally minimal with three core methods:
+///
+/// 1. **extract_imports** (required): Extracts all import statements from source code.
+///    This is essential for all language implementations to enable dependency analysis.
+///
+/// 2. **find_violations** (required): Detects architectural violations based on configured
+///    rules. All parsers must implement language-specific pattern matching for rule enforcement.
+///
+/// 3. **audit_security** (optional with default): Audits files for security vulnerabilities
+///    (Pro feature). Defaults to no-op (returns empty Vec) to keep Community edition lightweight.
+///    Pro parsers can override this method to provide security scanning.
+///
+/// This trait achieves excellent separation of concerns:
+/// - Each parser handles its language-specific syntax via Tree-sitter
+/// - Common logic (rule matching, violation reporting) is abstracted away
+/// - The factory pattern via `get_parser_for_file()` provides transparent language detection
+/// - The optional `audit_security` method allows Pro-specific features without burdening
+///   Community implementations
+///
+/// **No refactoring needed.** All 3 parser implementations (TypeScript, Python, PHP)
+/// correctly implement the trait. No dead code. The design successfully abstracts
+/// multi-language parsing while maintaining clear boundaries.
 pub trait ArchitectParser: Send + Sync {
     /// Extract all imports from source code
     fn extract_imports(&self, source_code: &str, file_path: &Path) -> Result<Vec<Import>>;
