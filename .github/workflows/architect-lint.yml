@@ -6,17 +6,43 @@ on:
   pull_request:
     branches: [ main, master, develop ]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   architect-lint:
+    name: Architecture Lint Check
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
       with:
-        toolchain: stable
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache cargo index
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-git-
+
+    - name: Cache cargo build
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-build-target-
 
     - name: Install architect-linter-pro
       run: cargo install architect-linter-pro
@@ -26,7 +52,12 @@ jobs:
 
     - name: Check for violations
       run: |
-        VIOLATIONS=$(jq '.violations | length' lint-report.json)
+        set -o pipefail
+        VIOLATIONS=$(jq '.violations | length' lint-report.json) || {
+          echo "❌ Failed to parse lint report"
+          cat lint-report.json
+          exit 1
+        }
         if [ $VIOLATIONS -gt 0 ]; then
           echo "❌ Architecture violations found:"
           jq '.violations[]' lint-report.json
@@ -36,7 +67,7 @@ jobs:
 
     - name: Upload report
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: architect-lint-report
         path: lint-report.json
