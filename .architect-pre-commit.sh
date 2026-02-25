@@ -4,9 +4,7 @@
 
 echo "Running architecture lint..."
 
-architect lint . --severity error
-
-if [ $? -ne 0 ]; then
+if ! architect lint . --severity error; then
     echo "Architecture violations found. Fix them before committing."
     exit 1
 fi

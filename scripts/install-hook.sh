@@ -8,9 +8,23 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
+# Check if source script exists
+if [ ! -f "$SCRIPT_PATH" ]; then
+    echo "Error: $SCRIPT_PATH not found. Make sure you're in the project root directory."
+    exit 1
+fi
+
 # Copy hook and make executable
-cp "$SCRIPT_PATH" "$HOOK_PATH"
-chmod +x "$HOOK_PATH"
+cp "$SCRIPT_PATH" "$HOOK_PATH" || {
+    echo "Error: Failed to copy $SCRIPT_PATH to $HOOK_PATH"
+    echo "Make sure you have write permissions to .git/hooks/"
+    exit 1
+}
+
+chmod +x "$HOOK_PATH" || {
+    echo "Error: Failed to make hook executable"
+    exit 1
+}
 
 echo "Pre-commit hook installed"
 echo "   Hooks will run: architect lint . --severity error"

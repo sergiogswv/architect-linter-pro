@@ -1,5 +1,11 @@
 # Pre-commit Hook Setup
 
+## Prerequisites
+
+- `architect-linter-pro` must be installed: `cargo install architect-linter-pro`
+- Must be in a git repository with `.git` directory
+- `architect.yaml` configuration file should exist in project root (or architecture rules defined)
+
 ## Installation
 
 ```bash
@@ -29,4 +35,37 @@ git commit --no-verify
 
 ```bash
 rm .git/hooks/pre-commit
+```
+
+## Troubleshooting
+
+### "architect: command not found"
+The `architect-linter-pro` CLI is not installed. Install it:
+```bash
+cargo install architect-linter-pro
+```
+
+### "Failed to copy .architect-pre-commit.sh"
+Make sure:
+1. You're in the project root directory
+2. `.architect-pre-commit.sh` exists in the root
+3. You have write permissions to `.git/hooks/`
+
+### Hook not running on commit
+Verify the hook is installed:
+```bash
+ls -la .git/hooks/pre-commit
+# Should show: -rwxr-xr-x ... pre-commit
+```
+
+If missing, reinstall:
+```bash
+./scripts/install-hook.sh
+```
+
+### "Architecture violations found" but my code is fine
+Check your architecture configuration:
+```bash
+architect lint . --severity error
+# Review violations directly to understand rules
 ```
