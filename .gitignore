@@ -24,5 +24,10 @@ Thumbs.db
 
 # Architect Linter - Analysis Cache
 .architect-cache/
+
+# Code coverage reports
+coverage_report/
+tarpaulin-report.html
+
 # docs/ — plans and design docs are tracked
 # docs/

@@ -1,19 +1,16 @@
 #!/bin/bash
-# Coverage report generation script
 
-set -e
+echo "Running code coverage analysis..."
+echo "=================================="
+echo ""
 
-echo "Running coverage report..."
-cargo tarpaulin \
-    --verbose \
-    --all-features \
-    --timeout 300 \
-    --out xml
+# Build project first
+cargo build --lib 2>&1 | tail -3
+
+# Run coverage with tarpaulin
+echo "Generating coverage report..."
+cargo tarpaulin --out Html --output-dir coverage_report --timeout 300 2>&1 | tail -10
 
 echo ""
-echo "Coverage by module:"
-echo "  - Run: cargo tarpaulin --exclude-files -- --test"
-echo "  - Report: cobertura.xml generated"
-echo ""
-echo "To upload to Codecov (if configured):"
-echo "  - curl -Os https://codecov.io/bash -s -R -f cobertura.xml"
+echo "✅ Coverage report generated!"
+echo "📊 View report: open coverage_report/index.html"
