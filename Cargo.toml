@@ -40,13 +40,8 @@ tree-sitter = "0.25"
 streaming-iterator = "0.1"
 tree-sitter-typescript = "0.23"
 tree-sitter-python = "0.25"
-tree-sitter-go = "0.25"
 tree-sitter-rust = "0.24"
-tree-sitter-java = "0.23"
 tree-sitter-php = "0.24"
-tree-sitter-c-sharp = "0.23"
-tree-sitter-ruby = "0.23"
-tree-sitter-kotlin = { package = "tree-sitter-kotlin-ng", version = "1.1" }
 
 # v4.0 additions
 git2 = "0.20"
