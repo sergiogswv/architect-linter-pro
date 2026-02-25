@@ -1,0 +1,26 @@
+{
+  "id": "guides/rule-engine",
+  "title": "Understanding the Rule Engine",
+  "description": "How Architect Linter detects and reports architectural violations.",
+  "source": "@site/docs/guides/rule-engine.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/rule-engine",
+  "permalink": "/docs/guides/rule-engine",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Understanding the Rule Engine",
+    "sidebar_label": "Rule Engine"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Design Principles",
+    "permalink": "/docs/guides/architecture-design"
+  },
+  "next": {
+    "title": "AI Features",
+    "permalink": "/docs/guides/ai-features"
+  }
+}

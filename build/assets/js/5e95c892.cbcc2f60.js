@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkarchitect_linter_pro_docs=self.webpackChunkarchitect_linter_pro_docs||[]).push([[647],{7121(e,r,c){c.r(r),c.d(r,{default:()=>l});c(6540);var s=c(4164),t=c(7559),a=c(5500),n=c(2831),u=c(1656),i=c(4848);function l(e){return(0,i.jsx)(a.e3,{className:(0,s.A)(t.G.wrapper.docsPages),children:(0,i.jsx)(u.A,{children:(0,n.v)(e.route.routes)})})}}}]);

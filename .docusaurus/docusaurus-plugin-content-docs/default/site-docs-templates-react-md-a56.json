@@ -1,0 +1,26 @@
+{
+  "id": "templates/react",
+  "title": "React Architecture Template",
+  "description": "Pre-configured architectural rules for React projects.",
+  "source": "@site/docs/templates/react.md",
+  "sourceDirName": "templates",
+  "slug": "/templates/react",
+  "permalink": "/docs/templates/react",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "React Architecture Template",
+    "sidebar_label": "React"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Express",
+    "permalink": "/docs/templates/express"
+  },
+  "next": {
+    "title": "Next.js",
+    "permalink": "/docs/templates/nextjs"
+  }
+}

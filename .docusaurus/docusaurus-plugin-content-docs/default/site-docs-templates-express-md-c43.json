@@ -1,0 +1,26 @@
+{
+  "id": "templates/express",
+  "title": "Express Architecture Template",
+  "description": "Pre-configured architectural rules for Express.js projects.",
+  "source": "@site/docs/templates/express.md",
+  "sourceDirName": "templates",
+  "slug": "/templates/express",
+  "permalink": "/docs/templates/express",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Express Architecture Template",
+    "sidebar_label": "Express"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "NestJS",
+    "permalink": "/docs/templates/nestjs"
+  },
+  "next": {
+    "title": "React",
+    "permalink": "/docs/templates/react"
+  }
+}

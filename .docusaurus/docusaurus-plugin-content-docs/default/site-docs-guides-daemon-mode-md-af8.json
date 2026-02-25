@@ -1,0 +1,26 @@
+{
+  "id": "guides/daemon-mode",
+  "title": "Daemon Mode",
+  "description": "Run the linter continuously in the background.",
+  "source": "@site/docs/guides/daemon-mode.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/daemon-mode",
+  "permalink": "/docs/guides/daemon-mode",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Daemon Mode",
+    "sidebar_label": "Daemon Mode"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Watch Mode",
+    "permalink": "/docs/guides/watch-mode"
+  },
+  "next": {
+    "title": "NestJS",
+    "permalink": "/docs/templates/nestjs"
+  }
+}

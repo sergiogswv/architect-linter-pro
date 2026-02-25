@@ -1,0 +1,158 @@
+{
+  "/__docusaurus/debug-5ff": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/config-5ba": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/content-a2b": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    },
+    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+  },
+  "/__docusaurus/debug/globalData-c3c": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/metadata-156": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/registry-88c": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/routes-000": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/docs-45c": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---docsaba-d7c"
+    }
+  },
+  "/docs-dc6": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-005-788"
+  },
+  "/docs-76d": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/docs/api-reference/ai-config-daf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-ai-configc-34-362"
+  },
+  "/docs/api-reference/architect-json-883": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-architect-json-3-e-6-f30"
+  },
+  "/docs/api-reference/cli-commands-ada": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-cli-commands-6-ff-020"
+  },
+  "/docs/architecture/design-2ae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-architecture-design-6-b-4-8c9"
+  },
+  "/docs/architecture/development-982": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-architecture-developmentd-2-a-f58"
+  },
+  "/docs/getting-started/basic-usage-d9d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-basic-usage-4-ee-ef6"
+  },
+  "/docs/getting-started/configuration-468": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-configuration-009-150"
+  },
+  "/docs/getting-started/first-rules-87b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-first-rulesc-69-c90"
+  },
+  "/docs/guides/ai-features-2c4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-ai-features-08-f-e4e"
+  },
+  "/docs/guides/architecture-design-8ed": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-architecture-design-329-274"
+  },
+  "/docs/guides/daemon-mode-958": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-daemon-modeaf-8-ea9"
+  },
+  "/docs/guides/rule-engine-897": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-rule-enginebd-8-f18"
+  },
+  "/docs/guides/watch-mode-ac5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-watch-mode-5-a-3-0b1"
+  },
+  "/docs/installation/linux-de4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-installation-linuxb-59-40f"
+  },
+  "/docs/installation/macos-f82": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-installation-macos-37-e-b9c"
+  },
+  "/docs/installation/windows-958": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-installation-windows-975-166"
+  },
+  "/docs/intro-61d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-intro-0-e-3-be1"
+  },
+  "/docs/plans/2026-02-25-documentation-unification-091": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-plans-2026-02-25-documentation-unification-95-a-041"
+  },
+  "/docs/templates/django-d47": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-templates-djangod-90-8ee"
+  },
+  "/docs/templates/express-5aa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-templates-expressc-43-d8b"
+  },
+  "/docs/templates/nestjs-86e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-templates-nestjs-3-f-2-e19"
+  },
+  "/docs/templates/nextjs-31c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-templates-nextjs-7-b-3-a68"
+  },
+  "/docs/templates/react-823": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-templates-reacta-56-52b"
+  },
+  "/docs/troubleshooting/common-issues-944": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-troubleshooting-common-issues-513-ef6"
+  },
+  "/docs/troubleshooting/config-errors-a3e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-troubleshooting-config-errors-935-21c"
+  }
+}

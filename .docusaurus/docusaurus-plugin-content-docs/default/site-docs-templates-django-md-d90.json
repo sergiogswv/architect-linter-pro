@@ -1,0 +1,26 @@
+{
+  "id": "templates/django",
+  "title": "Django Architecture Template",
+  "description": "Pre-configured architectural rules for Django projects.",
+  "source": "@site/docs/templates/django.md",
+  "sourceDirName": "templates",
+  "slug": "/templates/django",
+  "permalink": "/docs/templates/django",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Django Architecture Template",
+    "sidebar_label": "Django"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Next.js",
+    "permalink": "/docs/templates/nextjs"
+  },
+  "next": {
+    "title": "Commands",
+    "permalink": "/docs/api-reference/cli-commands"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "architecture/design",
+  "title": "design",
+  "description": "",
+  "source": "@site/docs/architecture/design.md",
+  "sourceDirName": "architecture",
+  "slug": "/architecture/design",
+  "permalink": "/docs/architecture/design",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {}
+}

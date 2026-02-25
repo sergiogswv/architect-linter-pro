@@ -1,0 +1,26 @@
+{
+  "id": "api-reference/architect-json",
+  "title": "architect.json Schema",
+  "description": "Reference documentation for the architect.json configuration file.",
+  "source": "@site/docs/api-reference/architect-json.md",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/architect-json",
+  "permalink": "/docs/api-reference/architect-json",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "architect.json Schema",
+    "sidebar_label": "architect.json"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Commands",
+    "permalink": "/docs/api-reference/cli-commands"
+  },
+  "next": {
+    "title": "AI Config",
+    "permalink": "/docs/api-reference/ai-config"
+  }
+}
