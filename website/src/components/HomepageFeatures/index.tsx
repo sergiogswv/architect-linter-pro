@@ -5,48 +5,78 @@ import styles from './styles.module.css';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  emoji: string;
   description: ReactNode;
 };
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Blazing Fast',
+    emoji: '🦀',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Built with Rust and Tree-sitter for lightning-fast analysis. Parallel processing via Rayon
+        means scanning thousands of files in seconds, not minutes.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Multi-Language',
+    emoji: '🔍',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Analyze TypeScript, JavaScript, Python, and PHP projects. Extensible architecture supports
+        adding more languages with grammar-based parsing.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'AI Auto-Fix',
+    emoji: '🤖',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Intelligent violation suggestions powered by Claude, Gemini, OpenAI, Groq, or Ollama.
+        Get actionable recommendations to improve your architecture.
+      </>
+    ),
+  },
+  {
+    title: 'Health Score',
+    emoji: '📊',
+    description: (
+      <>
+        Get a 0-100 health score with A-F grading system. Track architecture quality over time and
+        set improvement goals.
+      </>
+    ),
+  },
+  {
+    title: 'Watch Mode',
+    emoji: '👁️',
+    description: (
+      <>
+        Continuous analysis as you code with 300ms debounce. Get instant feedback on architectural
+        violations while you develop.
+      </>
+    ),
+  },
+  {
+    title: 'Dynamic Rules',
+    emoji: '🏗️',
+    description: (
+      <>
+        Built-in patterns for Clean Architecture, MVC, Hexagonal, and NestJS. Define custom rules
+        to match your project's architecture.
       </>
     ),
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, emoji, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+        <div className={styles.featureEmoji}>{emoji}</div>
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
@@ -60,6 +90,9 @@ export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
       <div className="container">
+        <Heading as="h2" className={styles.featuresTitle}>
+          Everything You Need
+        </Heading>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />

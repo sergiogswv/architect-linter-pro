@@ -3,7 +3,7 @@ name: Deploy Documentation
 on:
   push:
     branches:
-      - main
+      - master
     # Review changes to website and docs
     paths:
       - 'website/**'

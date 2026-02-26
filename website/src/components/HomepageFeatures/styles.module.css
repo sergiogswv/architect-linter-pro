@@ -1,11 +1,68 @@
 .features {
   display: flex;
   align-items: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
   width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.featuresTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+@media screen and (max-width: 768px) {
+  .featuresTitle {
+    font-size: 1.875rem;
+  }
+}
+
+.featureEmoji {
+  font-size: 3rem;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.features :global(.col--4) {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 1.5rem;
+}
+
+.features :global(.col--4):hover {
+  transform: translateY(-8px);
+}
+
+.features :global(.col--4) h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.features :global(.col--4) p {
+  color: var(--ifm-color-gray-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+[data-theme='dark'] .features :global(.col--4) p {
+  color: var(--ifm-color-gray-300);
+}
+
+@media screen and (max-width: 768px) {
+  .features {
+    padding: 2rem 0;
+  }
+
+  .features :global(.col--4) {
+    padding: 1rem;
+  }
+
+  .featureEmoji {
+    font-size: 2.5rem;
+    height: 80px;
+  }
 }
