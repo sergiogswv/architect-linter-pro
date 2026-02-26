@@ -23,8 +23,6 @@ cargo install architect-linter-pro
 brew tap sergiogswv/architect-linter-pro
 brew install architect-linter-pro
 
-# Option 3: Using npm
-npm install -g @architect-linter/cli
 ```
 
 After installation, verify it works:
