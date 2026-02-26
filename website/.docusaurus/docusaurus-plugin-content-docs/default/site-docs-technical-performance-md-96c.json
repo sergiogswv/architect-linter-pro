@@ -1,0 +1,28 @@
+{
+  "id": "technical/performance",
+  "title": "Performance Guide",
+  "description": "This guide provides comprehensive information about optimizing your architect-linter-pro setup for maximum performance.",
+  "source": "@site/docs/technical/performance.md",
+  "sourceDirName": "technical",
+  "slug": "/technical/performance",
+  "permalink": "/architect-linter-pro/es/docs/technical/performance",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/technical/performance.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Performance Guide",
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Technical Guides",
+    "permalink": "/architect-linter-pro/es/docs/category/technical-guides"
+  },
+  "next": {
+    "title": "Testing Guide",
+    "permalink": "/architect-linter-pro/es/docs/technical/testing-guide"
+  }
+}

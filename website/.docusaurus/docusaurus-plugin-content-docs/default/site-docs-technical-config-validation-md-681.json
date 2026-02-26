@@ -1,0 +1,28 @@
+{
+  "id": "technical/config-validation",
+  "title": "Configuration Validation",
+  "description": "Date: 2026-02-17",
+  "source": "@site/docs/technical/config-validation.md",
+  "sourceDirName": "technical",
+  "slug": "/technical/config-validation",
+  "permalink": "/architect-linter-pro/es/docs/technical/config-validation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/technical/config-validation.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Configuration Validation",
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Error Handling & Logging",
+    "permalink": "/architect-linter-pro/es/docs/technical/error-handling"
+  },
+  "next": {
+    "title": "Framework Guides",
+    "permalink": "/architect-linter-pro/es/docs/category/framework-guides"
+  }
+}

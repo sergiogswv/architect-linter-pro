@@ -1,0 +1,28 @@
+{
+  "id": "guides/frontend",
+  "title": "Frontend (React & Next.js) Guide",
+  "description": "Architect Linter Pro is highly effective for modern frontend applications (React, Next.js, Vue, Angular) where component coupling can quickly become unmanageable.",
+  "source": "@site/docs/guides/frontend.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/frontend",
+  "permalink": "/architect-linter-pro/es/docs/guides/frontend",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/guides/frontend.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "title": "Frontend (React & Next.js) Guide",
+    "sidebar_position": 6
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Java (Spring Boot) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/java"
+  },
+  "next": {
+    "title": "API & Reference",
+    "permalink": "/architect-linter-pro/es/docs/category/api--reference"
+  }
+}

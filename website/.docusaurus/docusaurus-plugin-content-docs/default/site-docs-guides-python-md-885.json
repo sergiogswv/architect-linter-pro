@@ -1,0 +1,28 @@
+{
+  "id": "guides/python",
+  "title": "Python (Django & FastAPI) Guide",
+  "description": "Architect Linter Pro provides native support for Python using Tree-sitter, allowing you to enforce architecture in Django, FastAPI, and Flask projects.",
+  "source": "@site/docs/guides/python.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/python",
+  "permalink": "/architect-linter-pro/es/docs/guides/python",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/guides/python.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Python (Django & FastAPI) Guide",
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "NestJS Integration Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/nestjs"
+  },
+  "next": {
+    "title": "Laravel (PHP) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/laravel"
+  }
+}

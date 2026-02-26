@@ -1,0 +1,25 @@
+{
+  "id": "intro",
+  "title": "Architect Linter Pro",
+  "description": "A multi-language software architecture linter written in Rust that validates architectural rules through a dynamic rule engine. Supports 10 languages (TypeScript, JavaScript, Python, Go, PHP, Java, C#, Ruby, Kotlin, and Rust) using Tree-sitter for fast and accurate parsing. It ensures that the software design (Hexagonal, Clean, MVC, etc.) is respected regardless of who writes the code.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/architect-linter-pro/es/docs/intro",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "sidebar_label": "Introduction",
+    "title": "Architect Linter Pro"
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "Roadmap",
+    "permalink": "/architect-linter-pro/es/docs/roadmap"
+  }
+}

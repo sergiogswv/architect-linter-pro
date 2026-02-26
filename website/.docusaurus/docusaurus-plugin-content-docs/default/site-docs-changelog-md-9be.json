@@ -1,0 +1,24 @@
+{
+  "id": "changelog",
+  "title": "Changelog",
+  "description": "All notable changes to this project will be documented in this file.",
+  "source": "@site/docs/changelog.md",
+  "sourceDirName": ".",
+  "slug": "/changelog",
+  "permalink": "/architect-linter-pro/es/docs/changelog",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/changelog.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "sidebar_position": 10,
+    "title": "Changelog"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "API & CLI Reference",
+    "permalink": "/architect-linter-pro/es/docs/reference/api"
+  }
+}

@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkwebsite=globalThis.webpackChunkwebsite||[]).push([[1903],{1912(t){t.exports=JSON.parse('{"blogBasePath":"/architect-linter-pro/blog","blogTitle":"Blog","authorsListPath":"/architect-linter-pro/blog/authors"}')}}]);

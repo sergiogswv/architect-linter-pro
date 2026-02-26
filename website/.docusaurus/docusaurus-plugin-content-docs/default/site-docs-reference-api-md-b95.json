@@ -1,0 +1,28 @@
+{
+  "id": "reference/api",
+  "title": "API & CLI Reference",
+  "description": "Architect Linter Pro is designed to be used both as an interactive tool and as part of an automated pipeline.",
+  "source": "@site/docs/reference/api.md",
+  "sourceDirName": "reference",
+  "slug": "/reference/api",
+  "permalink": "/architect-linter-pro/es/docs/reference/api",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/reference/api.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "API & CLI Reference",
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "API & Reference",
+    "permalink": "/architect-linter-pro/es/docs/category/api--reference"
+  },
+  "next": {
+    "title": "Changelog",
+    "permalink": "/architect-linter-pro/es/docs/changelog"
+  }
+}

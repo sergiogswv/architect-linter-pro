@@ -1,0 +1,28 @@
+{
+  "id": "guides/laravel",
+  "title": "Laravel (PHP) Guide",
+  "description": "Architect Linter Pro supports PHP and is perfectly suited for Laravel projects, helping you maintain a clean separation between Controllers, Models, and Services.",
+  "source": "@site/docs/guides/laravel.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/laravel",
+  "permalink": "/architect-linter-pro/es/docs/guides/laravel",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/guides/laravel.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Laravel (PHP) Guide",
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Python (Django & FastAPI) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/python"
+  },
+  "next": {
+    "title": "Go (Standard & Frameworks) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/go"
+  }
+}

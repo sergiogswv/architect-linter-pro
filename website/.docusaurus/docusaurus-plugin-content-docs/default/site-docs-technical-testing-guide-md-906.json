@@ -1,0 +1,28 @@
+{
+  "id": "technical/testing-guide",
+  "title": "Testing Guide",
+  "description": "This guide provides comprehensive information on running, writing, and understanding tests for the architect-linter-pro project.",
+  "source": "@site/docs/technical/testing-guide.md",
+  "sourceDirName": "technical",
+  "slug": "/technical/testing-guide",
+  "permalink": "/architect-linter-pro/es/docs/technical/testing-guide",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/technical/testing-guide.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Testing Guide",
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Performance Guide",
+    "permalink": "/architect-linter-pro/es/docs/technical/performance"
+  },
+  "next": {
+    "title": "Error Handling & Logging",
+    "permalink": "/architect-linter-pro/es/docs/technical/error-handling"
+  }
+}

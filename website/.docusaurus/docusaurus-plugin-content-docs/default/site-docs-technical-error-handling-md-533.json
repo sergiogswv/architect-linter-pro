@@ -1,0 +1,28 @@
+{
+  "id": "technical/error-handling",
+  "title": "Error Handling & Logging",
+  "description": "Fecha: 2026-02-17",
+  "source": "@site/docs/technical/error-handling.md",
+  "sourceDirName": "technical",
+  "slug": "/technical/error-handling",
+  "permalink": "/architect-linter-pro/es/docs/technical/error-handling",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/technical/error-handling.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Error Handling & Logging",
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Testing Guide",
+    "permalink": "/architect-linter-pro/es/docs/technical/testing-guide"
+  },
+  "next": {
+    "title": "Configuration Validation",
+    "permalink": "/architect-linter-pro/es/docs/technical/config-validation"
+  }
+}

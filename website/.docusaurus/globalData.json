@@ -1,0 +1,113 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/architect-linter-pro/es/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/architect-linter-pro/es/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "changelog",
+              "path": "/architect-linter-pro/es/docs/changelog",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/frontend",
+              "path": "/architect-linter-pro/es/docs/guides/frontend",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/go",
+              "path": "/architect-linter-pro/es/docs/guides/go",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/java",
+              "path": "/architect-linter-pro/es/docs/guides/java",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/laravel",
+              "path": "/architect-linter-pro/es/docs/guides/laravel",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/nestjs",
+              "path": "/architect-linter-pro/es/docs/guides/nestjs",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/python",
+              "path": "/architect-linter-pro/es/docs/guides/python",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/architect-linter-pro/es/docs/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "reference/api",
+              "path": "/architect-linter-pro/es/docs/reference/api",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "roadmap",
+              "path": "/architect-linter-pro/es/docs/roadmap",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technical/config-validation",
+              "path": "/architect-linter-pro/es/docs/technical/config-validation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technical/error-handling",
+              "path": "/architect-linter-pro/es/docs/technical/error-handling",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technical/performance",
+              "path": "/architect-linter-pro/es/docs/technical/performance",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technical/testing-guide",
+              "path": "/architect-linter-pro/es/docs/technical/testing-guide",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/technical-guides",
+              "path": "/architect-linter-pro/es/docs/category/technical-guides",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/framework-guides",
+              "path": "/architect-linter-pro/es/docs/category/framework-guides",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/api--reference",
+              "path": "/architect-linter-pro/es/docs/category/api--reference",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/architect-linter-pro/es/docs/intro",
+                "label": "Introduction"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

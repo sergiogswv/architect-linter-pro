@@ -1,0 +1,28 @@
+{
+  "id": "guides/go",
+  "title": "Go (Standard & Frameworks) Guide",
+  "description": "Architect Linter Pro supports Go codebases, focusing on package organization and dependency management.",
+  "source": "@site/docs/guides/go.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/go",
+  "permalink": "/architect-linter-pro/es/docs/guides/go",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/guides/go.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Go (Standard & Frameworks) Guide",
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Laravel (PHP) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/laravel"
+  },
+  "next": {
+    "title": "Java (Spring Boot) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/java"
+  }
+}

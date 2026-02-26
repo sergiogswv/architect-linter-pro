@@ -1,0 +1,28 @@
+{
+  "id": "guides/java",
+  "title": "Java (Spring Boot) Guide",
+  "description": "Architect Linter Pro brings enterprise-grade architecture linting to Java applications, with specialized support for Spring Boot.",
+  "source": "@site/docs/guides/java.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/java",
+  "permalink": "/architect-linter-pro/es/docs/guides/java",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/guides/java.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Java (Spring Boot) Guide",
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Go (Standard & Frameworks) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/go"
+  },
+  "next": {
+    "title": "Frontend (React & Next.js) Guide",
+    "permalink": "/architect-linter-pro/es/docs/guides/frontend"
+  }
+}

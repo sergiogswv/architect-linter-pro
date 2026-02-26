@@ -1,0 +1,28 @@
+{
+  "id": "roadmap",
+  "title": "Roadmap",
+  "description": "Last Updated: 2026-02-18",
+  "source": "@site/docs/roadmap.md",
+  "sourceDirName": ".",
+  "slug": "/roadmap",
+  "permalink": "/architect-linter-pro/es/docs/roadmap",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/sergiogswv/architect-linter-pro/tree/main/website/docs/roadmap.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Roadmap"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Introduction",
+    "permalink": "/architect-linter-pro/es/docs/intro"
+  },
+  "next": {
+    "title": "Technical Guides",
+    "permalink": "/architect-linter-pro/es/docs/category/technical-guides"
+  }
+}
