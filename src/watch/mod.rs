@@ -2,7 +2,6 @@
 
 pub mod incremental;
 
-pub use incremental::IncrementalAnalyzer;
 
 use miette::{IntoDiagnostic, Result};
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
