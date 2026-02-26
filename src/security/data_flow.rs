@@ -69,6 +69,7 @@ impl TaintEngine {
                         file_path,
                         source_code,
                         &sink.label,
+                        &source.label,
                         &format!("Posible vulnerabilidad de inyección: flujo detectado desde '{}' hasta '{}'.", source.label, sink.label),
                         sink.line,
                     ));
@@ -130,6 +131,7 @@ pub fn create_security_violation(
     file_path: &Path,
     source_code: &str,
     offensive_code: &str,
+    source_label: &str,
     _message: &str,
     line: usize,
 ) -> Violation {
@@ -138,8 +140,8 @@ pub fn create_security_violation(
         file_content: source_code.to_string(),
         offensive_import: offensive_code.to_string(),
         rule: ForbiddenRule {
-            from: "SecurityModule".to_string(),
-            to: "InsecureSink".to_string(),
+            from: source_label.to_string(),
+            to: offensive_code.to_string(),
             severity: Some(crate::config::Severity::Error),
             reason: None,
         },

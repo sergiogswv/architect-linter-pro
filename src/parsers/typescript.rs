@@ -90,26 +90,22 @@ impl ArchitectParser for TypeScriptParser {
 
     fn audit_security(
         &self,
-        source_code: &str,
-        file_path: &Path,
+        _source_code: &str,
+        _file_path: &Path,
         _context: &LinterContext,
     ) -> Result<Vec<Violation>> {
-        // Parsear para obtener el árbol si no lo tenemos (aquí podríamos optimizar guardando el árbol del paso anterior)
-        let tree = self
-            .parser
-            .lock()
-            .unwrap()
-            .parse(source_code, None)
-            .ok_or_else(|| miette::miette!("Failed to parse TypeScript for security audit"))?;
+        // TEMP: Taint analysis disabled due to high false positive rate
+        // The TaintEngine uses overly broad substring matching:
+        // - Any function with "execute", "query", "eval" triggers as sink
+        // - Any parameter is treated as potential source
+        // - Generates false positives for normal code patterns like executeWithErrorHandling()
+        //
+        // TODO: Rewrite TaintEngine with:
+        // 1. More precise pattern matching (exact function names, not substrings)
+        // 2. Context-aware source detection (only actual user inputs)
+        // 3. Proper data flow analysis rather than string matching
 
-        // 1. Construir CFG usando la lógica pura
-        let cfg = build_cfg_from_tree(&tree, source_code);
-
-        // 2. Ejecutar motor de flujo de datos (Taint Analysis)
-        let engine = crate::security::data_flow::TaintEngine::new();
-        let violations = engine.analyze(&cfg, file_path, source_code);
-
-        Ok(violations)
+        Ok(Vec::new())
     }
 }
 

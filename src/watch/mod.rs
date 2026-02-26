@@ -273,7 +273,10 @@ where
                 println!("✅ Re-análisis completado");
             }
 
+            // IMPORTANTE: Resetear el timer después de procesar para evitar que se acumulen
+            // cambios detectados durante el análisis (on_change puede tomar varios segundos)
             changed_files.clear();
+            last_event_time = Instant::now();
             print!("\n👁️  Esperando cambios o comandos...\n> ");
             let _ = std::io::stdout().flush();
         }
