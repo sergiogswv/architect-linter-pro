@@ -1,7 +1,6 @@
 module.exports = {
   title: 'Architect Linter Pro',
   tagline: 'Multi-language software architecture linter written in Rust',
-  url: 'https://architect-linter-pro.dev',
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'sergio-linter',

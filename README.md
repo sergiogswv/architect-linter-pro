@@ -15,7 +15,7 @@ A multi-language software architecture linter written in Rust.
 
 ## Documentation
 
-👉 **[Read the complete documentation](https://architect-linter-pro.dev)**
+👉 **[Read the complete documentation](/docs/getting-started)**
 
 ### Quick Links
 - [Installation](/docs/installation)
@@ -29,7 +29,7 @@ A multi-language software architecture linter written in Rust.
 
 ```bash
 cargo install architect-linter-pro
-architect --init
+architect-linter-pro --init
 ```
 
 ## Key Features

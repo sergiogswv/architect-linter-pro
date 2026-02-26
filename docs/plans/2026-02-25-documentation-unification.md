@@ -38,7 +38,6 @@ Replace `baseUrl` and site metadata:
 module.exports = {
   title: 'Architect Linter Pro',
   tagline: 'Multi-language software architecture linter written in Rust',
-  url: 'https://architect-linter-pro.dev',
   baseUrl: '/',
   organizationName: 'sergio-linter',
   projectName: 'architect-linter-pro',
@@ -633,15 +632,15 @@ A multi-language software architecture linter written in Rust that validates arc
 
 ## 📚 Full Documentation
 
-👉 **[Read the complete documentation](https://architect-linter-pro.dev)**
+👉 **[Read the complete documentation](/docs/getting-started)**
 
 ### Quick Navigation
-- [Installation Guide](https://architect-linter-pro.dev/docs/installation)
-- [Getting Started](https://architect-linter-pro.dev/docs/getting-started)
-- [API Reference](https://architect-linter-pro.dev/docs/api-reference)
-- [Architecture Templates](https://architect-linter-pro.dev/docs/templates)
-- [Troubleshooting](https://architect-linter-pro.dev/docs/troubleshooting)
-- [Blog & Changelog](https://architect-linter-pro.dev/blog)
+- [Installation Guide](/docs/installation)
+- [Getting Started](/docs/getting-started)
+- [API Reference](/docs/api-reference)
+- [Architecture Templates](/docs/templates)
+- [Troubleshooting](/docs/troubleshooting)
+- [Blog & Changelog](/blog)
 
 ## 🚀 Quick Install
 
@@ -665,7 +664,7 @@ architect --check
 
 ## 🤝 Contributing
 
-Contributions are welcome! See our [contributing guide](https://architect-linter-pro.dev/docs/contributing) for details.
+Contributions are welcome! See our [contributing guide] for details.
 
 ## 📄 License
 
@@ -690,7 +689,7 @@ Spanish version of the new README:
 
 **Step 3: Test that links work**
 
-Run: `npm run start` and verify README links point to https://architect-linter-pro.dev
+Run: `npm run start` and verify README links
 
 Expected: Links are correct (domain will be live after deploy)
 
@@ -1057,7 +1056,6 @@ git commit -m "docs: configure search functionality"
 module.exports = {
   title: 'Architect Linter Pro',
   tagline: 'Multi-language software architecture linter written in Rust',
-  url: 'https://architect-linter-pro.dev',
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'sergio-linter',
@@ -1195,8 +1193,6 @@ Go to repository → Actions tab, watch deploy-docs.yml workflow
 Expected: Workflow runs and completes successfully in 2-3 min
 
 **Step 4: Verify live site**
-
-Visit: https://architect-linter-pro.dev (or gh-pages URL if custom domain not set)
 
 Expected: Site is live and matches local version
 

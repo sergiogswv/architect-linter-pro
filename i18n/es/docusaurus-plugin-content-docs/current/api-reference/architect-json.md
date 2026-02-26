@@ -59,7 +59,6 @@ Human-readable reason for the restriction.
 
 ```json
 {
-  "$schema": "https://architect-linter-pro.dev/schema.json",
   "max_lines_per_function": 50,
   "architecture_pattern": "MVC",
   "forbidden_imports": [
