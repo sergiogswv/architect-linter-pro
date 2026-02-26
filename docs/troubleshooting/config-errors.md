@@ -1,3 +1,8 @@
+---
+title: Configuration Errors
+sidebar_label: Config Errors
+---
+
 # Configuration Errors Guide
 
 This guide documents the most common errors when configuring `architect.json` and how to resolve them.
@@ -56,8 +61,6 @@ A valid `architect.json` file must have this structure:
 
 **💡 Tip:** Use an online JSON validator like [jsonlint.com](https://jsonlint.com/) to verify syntax.
 
----
-
 ### 2. Missing Field: max_lines_per_function
 
 **❌ Error:**
@@ -80,8 +83,6 @@ help: Agrega este campo con un número, ejemplo: "max_lines_per_function": 40
 - NestJS: 30-50 (class methods)
 - Angular: 40-60 (complex components)
 - Express: 50-80 (handlers and middleware)
-
----
 
 ### 3. Incorrect Data Type in max_lines_per_function
 
@@ -107,8 +108,6 @@ help: Ejemplo correcto: "max_lines_per_function": 40
 }
 ```
 
----
-
 ### 4. Zero Value in max_lines_per_function
 
 **❌ Error:**
@@ -118,8 +117,6 @@ help: Usa un valor entre 10 y 500. Recomendado: 20-60 según tu framework.
 ```
 
 **✅ Solution:** Use a value greater than 0. If you want to disable this validation, use a very high value (500+).
-
----
 
 ### 5. Invalid Architecture Pattern
 
@@ -153,8 +150,6 @@ help: Valores válidos: Hexagonal, Clean, MVC, Ninguno
 
 **⚠️ Note:** Values are case-sensitive.
 
----
-
 ### 6. Missing Field: architecture_pattern
 
 **❌ Error:**
@@ -171,8 +166,6 @@ help: Agrega este campo. Valores válidos: "Hexagonal", "Clean", "MVC", "Ninguno
   "forbidden_imports": []
 }
 ```
-
----
 
 ### 7. forbidden_imports is not an Array
 
@@ -203,8 +196,6 @@ help: Ejemplo: "forbidden_imports": [{"from": "src/components/**", "to": "src/se
   ]
 }
 ```
-
----
 
 ### 8. Rule Missing 'from' or 'to' Field
 
@@ -238,8 +229,6 @@ help: Ejemplo: {"from": "src/components/**", "to": "src/services/**"}
 }
 ```
 
----
-
 ### 9. Duplicate Rules
 
 **❌ Error:**
@@ -265,8 +254,6 @@ help: Elimina una de las reglas duplicadas en forbidden_imports.
 ```
 
 **✅ Solution:** Remove one of the duplicate rules.
-
----
 
 ## Validations
 
@@ -353,10 +340,10 @@ If you encounter an error not documented here:
 1. Read the complete error message - it always includes a solution suggestion
 2. Verify JSON syntax with [jsonlint.com](https://jsonlint.com/)
 3. Compare your configuration with the examples in this document
-4. Check the [README.md](README.md) for more information about architectural patterns
+4. Check the [README.md](/docs/intro) for more information about architectural patterns
 
 ## Report Issues
 
 If you believe you found a bug in the validation:
-- Open an issue at: https://github.com/sergiogswv/architect-linter/issues
+- Open an issue at: https://github.com/sergio/architect-linter-pro/issues
 - Include your `architect.json` file and the complete error message

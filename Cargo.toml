@@ -3,10 +3,11 @@ name = "architect-linter-pro"
 version = "5.0.2"
 edition = "2021"
 authors = ["Sergio Guadarrama"]
-description = "Multi-language architecture linter with dynamic rules engine (TS, JS, Py, Go, PHP, Java, C#, Ruby, Kotlin, Rust)"
+description = "Multi-language software architecture linter written in Rust"
 license = "MIT"
-repository = "https://github.com/sergiogswv/architect-linter"
-keywords = ["linter", "architecture", "multi-language", "code-quality", "tree-sitter"]
+repository = "https://github.com/sergiogswv/architect-linter-pro"
+documentation = "https://docs.rs/architect-linter-pro"
+keywords = ["architecture", "linter", "rust", "devops"]
 categories = ["development-tools"]
 readme = "README.md"
 
