@@ -34,7 +34,7 @@ The output follows this general structure:
 
 ```json
 {
-  "version": "4.3.0",
+  "version": "5.0.2",
   "timestamp": "2026-02-18T10:00:00Z",
   "project_root": "/path/to/project",
   "health_score": 92.5,

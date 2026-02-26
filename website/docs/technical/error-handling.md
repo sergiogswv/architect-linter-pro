@@ -5,7 +5,7 @@ sidebar_position: 3
 # Error Handling & Logging - Implementation Summary
 
 **Fecha:** 2026-02-17  
-**Tarea:** Error Handling & Logging (v4.3.0)  
+**Tarea:** Error Handling & Logging (v5.0.0)  
 **Estado:** ✅ COMPLETADO
 
 ---

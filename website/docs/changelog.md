@@ -10,7 +10,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.2.0] - 2026-02-13
+## [5.0.2] - 2026-02-26
+
+### 🚀 Major Release: Architect Linter Pro v5.0
+This release marks a significant milestone with professional landing page, GitHub Pages deployment, and refined watch mode debounce.
+
+### ✨ Key Improvements
+- **Professional Landing Page**: Revamped homepage with hero section, feature showcase, and performance benchmarks
+- **GitHub Pages Integration**: Automatic deployment to GitHub Pages for documentation accessibility
+- **Watch Mode Refinements**: Improved debounce handling to prevent false positives in incremental analysis
+- **Automatic Installer/Updater**: Seamless installation and update experience across platforms
+
 ## [4.3.0] - 2026-02-18
 
 This release introduces **Additional Language Support (C#, Ruby, Kotlin, Rust)**, **AI-Powered Build Validation**, comprehensive configuration schema validation, structured logging, and improved error handling for better DX and observability.

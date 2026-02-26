@@ -10,7 +10,7 @@ title: Architect Linter Pro
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.3.0-blue.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/version-5.0.2-blue.svg" alt="Version" />
   <img src="https://img.shields.io/badge/rust-2021-orange.svg" alt="Rust Edition" />
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License" />
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform" />
@@ -30,7 +30,7 @@ A multi-language software architecture linter written in Rust that validates arc
 - **📏 Complexity Control**: Validates that functions don't exceed configurable line limits
 - **⚡ Parallel Processing**: Ultra-fast analysis using multi-threaded processing with Rayon
 
-### Health Score System (v4.0.0)
+### Health Score System (v5.0.0)
 - **🏆 Health Score (0-100)**: Comprehensive project health measurement with A-F grading
 - **📊 Visual Dashboard**: Beautiful terminal dashboard showing score breakdown by components
 - **📈 Four Quality Metrics**: Layer Isolation, Circular Dependencies, Code Complexity, Rule Violations
@@ -60,8 +60,8 @@ A multi-language software architecture linter written in Rust that validates arc
 - **🐙 GitHub Action**: Official action for CI/CD pipeline integration
 - **🔍 Debug Mode**: Structured logging with `--debug` flag for troubleshooting and observability
 - **✅ Config Validation**: Instant schema validation with the `--check` flag
-- **🧪 Enhanced Stability**: (New in v4.3.0) Robust initialization with `Default` trait implementations and cleaned-up codebase for reliable CI/CD execution.
-- **📊 Advanced Metrics Utilities**: (New in v4.3.0) Inter-file function call tracking using high-performance SWC analysis.
+- **🧪 Enhanced Stability**: (New in v5.0.0) Robust initialization with `Default` trait implementations and cleaned-up codebase for reliable CI/CD execution.
+- **📊 Advanced Metrics Utilities**: (New in v5.0.0) Inter-file function call tracking using high-performance SWC analysis.
 
 ## Supported Languages
 
@@ -612,12 +612,12 @@ architect-linter-pro [OPTIONS] [PATH]
 **Examples**:
 ```bash
 # Basic usage
-architect-linter-pro --version          # Shows: architect-linter-pro 4.0.0
+architect-linter-pro --version          # Shows: architect-linter-pro 5.0.2
 architect-linter-pro --help             # Shows complete help
 architect-linter-pro                    # Interactive mode
 architect-linter-pro .                  # Analyzes current directory
 
-# Advanced features (v4.0.0)
+# Advanced features (v5.0.0)
 architect-linter-pro --watch .                          # Watch mode
 architect-linter-pro --watch --daemon .                 # Watch mode in background (Daemon)
 architect-linter-pro --fix .                            # Auto-fix with AI
@@ -625,7 +625,7 @@ architect-linter-pro --staged                           # Analyze only staged fi
 architect-linter-pro --report json -o report.json       # Generate JSON report
 architect-linter-pro --report markdown -o report.md     # Generate Markdown report
 architect-linter-pro -r json -o report.json .           # Analyze and generate report
-# Debug mode (v4.3.0)
+# Debug mode (v5.0.0)
 architect-linter-pro --debug .                         # Verbose logging for troubleshooting
 ```
 
@@ -900,7 +900,7 @@ Hardcoded prohibition: files containing `"controller"` cannot import `".reposito
 - [x] **Multi-language support**: TypeScript, JavaScript, Python, Go, PHP, Java (6 languages)
 - [x] **Tree-sitter integration** for fast and accurate parsing across all languages
 - [x] **AI-powered auto-fix** for architectural violations (--fix)
-- [x] **Health Score System (v4.0.0)**: 0-100 scoring with A-F grades and component breakdown
+- [x] **Health Score System (v5.0.0)**: 0-100 scoring with A-F grades and component breakdown
 - [x] **Visual Dashboard (v4.0.0)**: Terminal-based dashboard showing architecture health
 - [x] **Report Generation (v4.0.0)**: Export analysis in JSON or Markdown format
 - [x] **GitHub Action (v4.0.0)**: Official action for CI/CD pipeline integration

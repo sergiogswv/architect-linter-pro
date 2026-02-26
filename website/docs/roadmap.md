@@ -6,7 +6,7 @@ title: Roadmap
 # Architect Linter Pro - Product Roadmap
 
 **Last Updated:** 2026-02-18
-**Current Version:** v4.3.0
+**Current Version:** v5.0.2
 **Next Major Release:** v4.5.0 (Q2 2026)
 
 ---
@@ -29,7 +29,7 @@ v4.0.0 (Current) ─┬─> v4.1.0 (Core Hardening) ✅ DONE
 
 ---
 
-## 🎯 Current Status (v4.3.0)
+## 🎯 Current Status (v5.0.2)
 
 ### ✅ Completed Features
 

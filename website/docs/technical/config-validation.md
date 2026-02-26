@@ -5,7 +5,7 @@ sidebar_position: 4
 # Configuration Schema Validation Implementation
 
 **Date:** 2026-02-17
-**Version:** v4.3.0
+**Version:** v5.0.2
 
 ## Overview
 
