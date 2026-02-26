@@ -123,7 +123,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 3. **Close ALL terminals** and open a new one
 4. Verify: `architect-linter-pro --version`
 
-📖 **Complete Windows guide with troubleshooting**: [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)
+📖 **Complete Windows guide with troubleshooting**: See the GitHub repository for detailed guides
 
 The `setup.sh` / `setup.ps1` script automatically:
 1. Detects if it's an initial installation or update
@@ -282,7 +282,7 @@ Edit the `.husky/pre-commit` file with the content of your preference and give i
 chmod +x .husky/pre-commit
 ```
 
-📖 **Complete integration guide**: [NESTJS_INTEGRATION.md](NESTJS_INTEGRATION.md)
+📖 **Complete integration guide**: Check the GitHub repository for framework-specific guides
 
 ## Performance
 
@@ -375,7 +375,7 @@ architect-linter-pro --debug /path/to/project
 architect-linter-pro --stats /path/to/project
 ```
 
-📖 **Detailed Performance Guide**: [docs/performance.md](docs/performance.md)
+📖 **Detailed Performance Guide**: Check the repository documentation for performance optimization tips
 
 ## Dynamic Rule Engine
 
@@ -665,7 +665,7 @@ The linter automatically validates the `architect.json` file and shows clear err
 - ✅ Suggestion on how to fix it
 - ✅ Example of correct code
 
-**Complete error guide:** See [CONFIG_ERRORS.md](CONFIG_ERRORS.md) for detailed examples of all possible errors.
+**Complete error guide:** Check the GitHub repository for detailed examples of all possible errors.
 
 ### What happens if tests fail?
 The commit is automatically aborted. Git will show you exactly which file and line is breaking the architecture, with visual context of the error.
@@ -939,7 +939,7 @@ Sergio Guadarrama - [GitHub](https://github.com/sergiogswv)
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+Check the GitHub repository for the complete version history.
 
 ### v4.0.0 (2026-02-12) - Major Release: Health Score & Professional Analytics
 - 🏆 **Health Score System**: Comprehensive 0-100 scoring with A-F grading system

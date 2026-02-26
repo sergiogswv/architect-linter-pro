@@ -91,7 +91,7 @@ function InstallSection() {
         </div>
 
         <p className={styles.installNote}>
-          Or use npm, Homebrew, or Scoop. Check <Link to="/docs/installation">installation docs</Link> for details.
+          Or use npm, Homebrew, or Scoop. Check <Link to="/docs/intro">documentation</Link> for details.
         </p>
       </div>
     </section>
