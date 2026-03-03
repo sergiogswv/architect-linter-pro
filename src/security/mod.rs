@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 pub mod cfg;
+pub mod cfg_types;
 pub mod data_flow;
 pub mod vulnerabilities;
+
+pub use cfg_types::{CFG, CFGNode, CFGEdge, NodeType, EdgeType};
 
 
 use crate::autofix::Violation;
