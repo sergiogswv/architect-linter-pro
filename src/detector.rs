@@ -12,14 +12,26 @@ pub fn detect_framework(root: &Path) -> Framework {
         if content.contains("@nestjs/core") {
             return Framework::NestJS;
         }
+        if content.contains("\"next\"") {
+            return Framework::NextJS;
+        }
         if content.contains("\"react\"") {
             return Framework::React;
         }
-        if content.contains("@angular/core") {
-            return Framework::Angular;
-        }
         if content.contains("\"express\"") {
             return Framework::Express;
+        }
+        if content.contains("\"vue\"") {
+            return Framework::Vue;
+        }
+        if content.contains("\"svelte\"") {
+            return Framework::Svelte;
+        }
+        if content.contains("@remix-run") {
+            return Framework::Remix;
+        }
+        if content.contains("\"solid-js\"") {
+            return Framework::SolidJS;
         }
     }
 
@@ -68,18 +80,8 @@ pub fn detect_framework(root: &Path) -> Framework {
         }
     }
 
-    // 5. Check Go (go.mod)
-    let go_mod_path = root.join("go.mod");
-    if let Ok(content) = fs::read_to_string(&go_mod_path) {
-        if content.contains("gin-gonic/gin") || content.contains("github.com/gin-gonic/gin") {
-            return Framework::Gin;
-        }
-        if content.contains("labstack/echo") || content.contains("github.com/labstack/echo") {
-            return Framework::Echo;
-        }
-    }
 
-    // 6. Check PHP (composer.json)
+    // 5. Check PHP (composer.json)
     let composer_path = root.join("composer.json");
     if let Ok(content) = fs::read_to_string(&composer_path) {
         if content.contains("laravel/framework") {
@@ -93,31 +95,9 @@ pub fn detect_framework(root: &Path) -> Framework {
         }
     }
 
-    // 7. Check Java (pom.xml - Maven)
-    let pom_path = root.join("pom.xml");
-    if let Ok(content) = fs::read_to_string(&pom_path) {
-        if content.contains("spring-boot") || content.contains("org.springframework") {
-            return Framework::Spring;
-        }
-    }
+    // 6. Check Java (pom.xml - Maven) - Removed, Java no longer supported
 
-    // 8. Check Java (build.gradle - Gradle)
-    let gradle_path = root.join("build.gradle");
-    if !gradle_path.exists() {
-        // Also check build.gradle.kts
-        let _ = root.join("build.gradle.kts");
-    }
-    if let Ok(content) = fs::read_to_string(&gradle_path) {
-        if content.contains("spring-boot") || content.contains("org.springframework") {
-            return Framework::Spring;
-        }
-    }
-    let gradle_kts_path = root.join("build.gradle.kts");
-    if let Ok(content) = fs::read_to_string(&gradle_kts_path) {
-        if content.contains("spring-boot") || content.contains("org.springframework") {
-            return Framework::Spring;
-        }
-    }
+    // 7. Check Java (build.gradle - Gradle) - Removed, Java no longer supported
 
     Framework::Unknown
 }
@@ -126,33 +106,31 @@ pub fn detect_framework(root: &Path) -> Framework {
 #[allow(dead_code)]
 pub fn get_loc_suggestion(framework: &Framework) -> usize {
     match framework {
-        Framework::NestJS => 40,  // Métodos de clase
-        Framework::React => 25,   // Componentes funcionales pequeños
-        Framework::Angular => 50, // Componentes con lógica más extensa
-        Framework::Express => 60, // Middlewares y handlers
+        // TypeScript/JavaScript frameworks
+        Framework::NestJS => 40,    // Métodos de clase
+        Framework::Express => 60,   // Middlewares y handlers
+        Framework::React => 25,     // Componentes funcionales pequeños
+        Framework::NextJS => 30,    // API routes and components
+        Framework::Vue => 30,       // Components
+        Framework::Svelte => 30,    // Components
+        Framework::Remix => 35,     // Route handlers
+        Framework::SolidJS => 25,   // Components
         // Python frameworks
-        Framework::Django => 50,  // Views, models
-        Framework::Flask => 50,   // Route handlers
-        Framework::FastAPI => 40, // Endpoint functions
-        // Go frameworks
-        Framework::Gin => 40,  // Handler functions
-        Framework::Echo => 40, // Handler functions
-        // Java frameworks
-        Framework::Spring => 50, // Service methods, controllers
+        Framework::Django => 50,    // Views, models
+        Framework::Flask => 50,     // Route handlers
+        Framework::FastAPI => 40,   // Endpoint functions
         // PHP frameworks
-        Framework::Laravel => 50, // Controller methods
-        Framework::Symfony => 50, // Controller methods
-        Framework::Unknown => 50, // Estándar general
+        Framework::Laravel => 50,   // Controller methods
+        Framework::Symfony => 50,   // Controller methods
+        Framework::Unknown => 50,   // Estándar general
     }
 }
 /// Sugiere el comando de build basado en el framework detectado.
 pub fn get_build_command_suggestion(framework: &Framework) -> Option<String> {
     match framework {
         Framework::NestJS => Some("npm run build".to_string()),
-        Framework::React => Some("npm run build".to_string()),
-        Framework::Angular => Some("ng build".to_string()),
-        Framework::Gin | Framework::Echo => Some("go build ./...".to_string()),
-        Framework::Spring => Some("./gradlew build".to_string()),
+        Framework::React | Framework::NextJS | Framework::Vue | Framework::Svelte | Framework::Remix | Framework::SolidJS => Some("npm run build".to_string()),
+        Framework::Express => Some("npm run build".to_string()),
         _ => None,
     }
 }

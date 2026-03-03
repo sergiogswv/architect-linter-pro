@@ -40,25 +40,20 @@ pub fn get_framework_ignored_paths(framework: &Framework) -> Vec<String> {
     ];
 
     match framework {
-        Framework::React => {
+        // TypeScript/JavaScript Frameworks
+        Framework::NestJS | Framework::Express => {
+            paths.extend(vec!["dist/".to_string(), "build/".to_string()]);
+        }
+        Framework::React | Framework::NextJS | Framework::Vue | Framework::Svelte | Framework::Remix | Framework::SolidJS => {
             paths.extend(vec![
                 "build/".to_string(),
                 "dist/".to_string(),
-                ".next/".to_string(), // Next.js
+                ".next/".to_string(),        // Next.js
                 "out/".to_string(),
-                ".vite/".to_string(),         // Vite
-                ".turbo/".to_string(),        // Turborepo
+                ".vite/".to_string(),        // Vite
+                ".turbo/".to_string(),       // Turborepo
                 ".parcel-cache/".to_string(), // Parcel
             ]);
-        }
-        Framework::NestJS => {
-            paths.extend(vec!["dist/".to_string(), "build/".to_string()]);
-        }
-        Framework::Angular => {
-            paths.extend(vec!["dist/".to_string(), ".angular/".to_string()]);
-        }
-        Framework::Express => {
-            paths.extend(vec!["dist/".to_string(), "build/".to_string()]);
         }
         // Python frameworks
         Framework::Django | Framework::Flask | Framework::FastAPI => {
@@ -73,30 +68,6 @@ pub fn get_framework_ignored_paths(framework: &Framework) -> Vec<String> {
                 ".mypy_cache/".to_string(),
                 "htmlcov/".to_string(),
                 "*.egg-info/".to_string(),
-            ]);
-        }
-        // Go frameworks
-        Framework::Gin | Framework::Echo => {
-            paths.extend(vec![
-                "vendor/".to_string(),
-                "bin/".to_string(),
-                "*.exe".to_string(),
-                "*.exe~".to_string(),
-                "*.dll".to_string(),
-                "*.so".to_string(),
-                "*.dylib".to_string(),
-            ]);
-        }
-        // Java frameworks
-        Framework::Spring => {
-            paths.extend(vec![
-                "target/".to_string(),
-                ".gradle/".to_string(),
-                "build/".to_string(),
-                "out/".to_string(),
-                "*.class".to_string(),
-                "*.jar".to_string(),
-                "*.war".to_string(),
             ]);
         }
         // PHP frameworks

@@ -5,22 +5,25 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum Framework {
+    // TypeScript/JavaScript Frameworks
     NestJS,
-    React,
-    Angular,
     Express,
-    // Python frameworks
+    React,
+    NextJS,
+    Vue,
+    Svelte,
+    Remix,
+    SolidJS,
+
+    // Python Frameworks
     Django,
     Flask,
     FastAPI,
-    // Go frameworks
-    Gin,
-    Echo,
-    // Java frameworks
-    Spring,
-    // PHP frameworks
+
+    // PHP Frameworks
     Laravel,
     Symfony,
+
     #[default]
     Unknown,
 }
@@ -28,23 +31,39 @@ pub enum Framework {
 impl Framework {
     pub fn as_str(&self) -> &str {
         match self {
+            // TypeScript/JavaScript
             Framework::NestJS => "NestJS",
-            Framework::React => "React",
-            Framework::Angular => "Angular",
             Framework::Express => "Express",
+            Framework::React => "React",
+            Framework::NextJS => "NextJS",
+            Framework::Vue => "Vue",
+            Framework::Svelte => "Svelte",
+            Framework::Remix => "Remix",
+            Framework::SolidJS => "SolidJS",
             // Python
             Framework::Django => "Django",
             Framework::Flask => "Flask",
             Framework::FastAPI => "FastAPI",
-            // Go
-            Framework::Gin => "Gin",
-            Framework::Echo => "Echo",
-            // Java
-            Framework::Spring => "Spring",
             // PHP
             Framework::Laravel => "Laravel",
             Framework::Symfony => "Symfony",
             Framework::Unknown => "Unknown",
+        }
+    }
+
+    pub fn language(&self) -> &str {
+        match self {
+            Framework::NestJS
+            | Framework::Express
+            | Framework::React
+            | Framework::NextJS
+            | Framework::Vue
+            | Framework::Svelte
+            | Framework::Remix
+            | Framework::SolidJS => "typescript",
+            Framework::Django | Framework::Flask | Framework::FastAPI => "python",
+            Framework::Laravel | Framework::Symfony => "php",
+            Framework::Unknown => "unknown",
         }
     }
 }
