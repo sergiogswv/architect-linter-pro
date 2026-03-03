@@ -34,3 +34,6 @@ tarpaulin-report.html
 /node_modules/
 build/
 .docusaurus/
+
+# Git worktrees
+.worktrees/
