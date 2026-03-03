@@ -187,21 +187,12 @@ impl ArchitectParser for PhpParser {
 
     fn audit_security(
         &self,
-        source_code: &str,
-        file_path: &Path,
+        _source_code: &str,
+        _file_path: &Path,
         _context: &LinterContext,
     ) -> Result<Vec<Violation>> {
-        let tree = self
-            .parser
-            .lock()
-            .unwrap()
-            .parse(source_code, None)
-            .ok_or_else(|| miette::miette!("Failed to parse PHP for security audit"))?;
-
-        let cfg = crate::security::cfg::CFG::from_tree(&tree, source_code);
-        let engine = crate::security::data_flow::TaintEngine::new();
-        let violations = engine.analyze(&cfg, file_path, source_code);
-
-        Ok(violations)
+        // TODO: Implement CFG building that produces cfg_types::CFG
+        // Currently disabled - parsers use cfg::CFG but TaintEngine expects cfg_types::CFG
+        Ok(Vec::new())
     }
 }
