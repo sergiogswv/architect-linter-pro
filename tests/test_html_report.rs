@@ -3,7 +3,7 @@
 //! These tests verify that the HTML report generator produces valid HTML
 //! with proper formatting for violations and architecture score display.
 
-use architect_linter_pro::output::HtmlReporter;
+use architect_linter_pro::output::html::HtmlReporter;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;

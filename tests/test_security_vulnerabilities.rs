@@ -1,4 +1,4 @@
-use architect_linter_pro::security::{Severity, VulnerabilityDetector, VulnerabilityType};
+use architect_linter_pro::security::vulnerabilities::{Severity, VulnerabilityDetector, VulnerabilityType};
 
 #[test]
 fn test_detect_hardcoded_secrets() {

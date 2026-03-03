@@ -48,7 +48,7 @@ impl HtmlReporter {
     /// # Example
     ///
     /// ```no_run
-    /// use architect_linter_pro::output::HtmlReporter;
+    /// use architect_linter_pro::output::html::HtmlReporter;
     ///
     /// let violations = vec![
     ///     ("src/main.rs".to_string(), 42, "Layer violation".to_string()),
