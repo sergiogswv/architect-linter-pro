@@ -6,5 +6,5 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-// Scoring unit tests
-pub mod scoring;
+// Framework detector unit tests
+pub mod framework_detector;

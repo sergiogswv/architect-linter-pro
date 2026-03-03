@@ -13,6 +13,7 @@ pub mod cache;
 pub mod circular;
 pub mod cli;
 pub mod config;
+pub mod detection;
 pub mod detector;
 pub mod discovery;
 pub mod git;

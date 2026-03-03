@@ -1,0 +1,10 @@
+{
+  "name": "laravel/laravel",
+  "type": "project",
+  "require": {
+    "laravel/framework": "^10.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  }
+}

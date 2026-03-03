@@ -1,6 +1,6 @@
 [package]
 name = "architect-linter-pro"
-version = "5.0.2"
+version = "6.0.0"
 edition = "2021"
 authors = ["Sergio Guadarrama"]
 description = "Multi-language software architecture linter written in Rust"

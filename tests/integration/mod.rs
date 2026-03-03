@@ -11,3 +11,6 @@ mod import_variations;
 
 // Decorated classes and multiple violations tests
 mod classes_and_violations;
+
+// Full detection pipeline tests
+mod full_pipeline;

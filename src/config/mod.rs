@@ -7,6 +7,7 @@
 //! - Gestión de ignored_paths
 //! - Setup de hooks de git (husky)
 
+mod generator;
 mod husky;
 mod ignored_paths;
 mod loader;
@@ -22,6 +23,10 @@ pub use types::{
 // Re-export funciones de loader
 pub use loader::load_config;
 pub use loader::ConfigFile;
+
+// Re-export funciones de generator (used in tests and library API)
+#[allow(unused_imports)]
+pub use generator::ConfigGenerator;
 
 // Re-export funciones de wizard
 pub use wizard::setup_or_load_config;
