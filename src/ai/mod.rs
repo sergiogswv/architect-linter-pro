@@ -439,14 +439,27 @@ pub fn extraer_json_flexible(text: &str) -> anyhow::Result<String> {
 
     let json = &content[start..=end];
 
+    // Limpiar caracteres especiales y espacios después del JSON
+    let json_trimmed = json.trim_end().to_string();
+
     // Validación básica de completitud
-    if !json.ends_with('}') {
+    if !json_trimmed.ends_with('}') {
         return Err(anyhow::anyhow!(
             "El JSON parece estar truncado o incompleto."
         ));
     }
 
-    Ok(json.to_string())
+    // Intenta parsear para detectar errores antes de usarlo
+    serde_json::from_str::<serde_json::Value>(&json_trimmed)
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "JSON inválido: {}\n\nJSON extraído:\n{}",
+                e,
+                json_trimmed
+            )
+        })?;
+
+    Ok(json_trimmed)
 }
 
 pub mod suggestions;

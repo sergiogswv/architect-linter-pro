@@ -1,7 +1,7 @@
 # Script unificado de instalación/actualización para Windows
 # Detecta automáticamente si es instalación inicial o actualización
 
-Write-Host "===========================================  ARCHITECT-LINTER PRO v4.3.0 SETUP" -ForegroundColor Cyan
+Write-Host "===========================================  ARCHITECT-LINTER PRO v6.0.0 SETUP" -ForegroundColor Cyan
 Write-Host ""
 
 # Detectar si ya está instalado
@@ -155,7 +155,7 @@ if ($LASTEXITCODE -eq 0) {
         } else {
             Write-Host "Ahora puedes usar 'architect-linter-pro' en cualquier carpeta." -ForegroundColor Green
             Write-Host ""
-            Write-Host "Ejemplos de uso (v4.3.0):" -ForegroundColor Cyan
+            Write-Host "Ejemplos de uso (v6.0.0):" -ForegroundColor Cyan
             Write-Host "  architect-linter-pro                    # Analisis basico" -ForegroundColor White
             Write-Host "  architect-linter-pro --watch            # Modo observacion" -ForegroundColor White
             Write-Host "  architect-linter-pro --report json -o report.json" -ForegroundColor White

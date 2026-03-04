@@ -68,7 +68,7 @@ log_error() {
 get_version() {
     local binary=$1
     if [[ -f "$binary" ]]; then
-        "$binary" --version 2>/dev/null || echo "unknown"
+        "$binary" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown"
     else
         echo "not-installed"
     fi
@@ -106,7 +106,7 @@ echo "   💾 Installed version: v${INSTALLED_VERSION}"
 echo ""
 
 # Check if update is needed
-if [[ "$INSTALLED_VERSION" == "v${PROJECT_VERSION}" ]] && [[ "$FORCE_UPDATE" != "true" ]]; then
+if [[ "$INSTALLED_VERSION" == "${PROJECT_VERSION}" ]] && [[ "$FORCE_UPDATE" != "true" ]]; then
     log_success "Already up to date!"
     if [[ "$CHECK_ONLY" == "true" ]]; then
         exit 0
@@ -120,7 +120,7 @@ fi
 
 if [[ "$CHECK_ONLY" == "true" ]]; then
     log_info "Check-only mode enabled"
-    if [[ "$INSTALLED_VERSION" != "v${PROJECT_VERSION}" ]]; then
+    if [[ "$INSTALLED_VERSION" != "${PROJECT_VERSION}" ]]; then
         log_warning "Update available: v${INSTALLED_VERSION} → v${PROJECT_VERSION}"
         exit 1
     else
@@ -176,10 +176,10 @@ chmod +x "$CURRENT_BINARY"
 
 # Verify installation
 VERIFY_VERSION=$(get_version "$CURRENT_BINARY")
-if [[ "$VERIFY_VERSION" == "v${PROJECT_VERSION}" ]]; then
+if [[ "$VERIFY_VERSION" == "${PROJECT_VERSION}" ]]; then
     log_success "Installation verified: v${PROJECT_VERSION}"
 else
-    log_warning "Version verification mismatch: expected v${PROJECT_VERSION}, got ${VERIFY_VERSION}"
+    log_warning "Version verification mismatch: expected v${PROJECT_VERSION}, got v${VERIFY_VERSION}"
 fi
 
 echo ""
