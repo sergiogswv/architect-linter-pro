@@ -6,15 +6,32 @@
 echo "🏛️  ARCHITECT-LINTER PRO v6.0.0 SETUP"
 echo ""
 
+# Obtener versiones para comparación
+PROJECT_VERSION=$(grep '^version = ' Cargo.toml | sed 's/.*"\([^"]*\)".*/\1/' 2>/dev/null || echo "unknown")
+INSTALLED_VERSION="unknown"
+
 # Detectar si ya está instalado
 if command -v architect-linter-pro &> /dev/null; then
     MODE="actualización"
-    echo "📦 Versión actual instalada:"
-    architect-linter-pro --version
+    INSTALLED_VERSION=$(architect-linter-pro --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    echo "📦 Versión actual instalada: v${INSTALLED_VERSION}"
+    echo "📦 Versión del proyecto: v${PROJECT_VERSION}"
     echo ""
+
+    # Si es la misma versión, preguntar si continuar
+    if [[ "$INSTALLED_VERSION" == "$PROJECT_VERSION" ]]; then
+        echo "✅ Ya tienes la última versión instalada."
+        echo ""
+        read -p "¿Deseas reinstalar de todas formas? (s/N): " response
+        if [[ ! "$response" =~ ^[SsYy]$ ]]; then
+            echo "Operación cancelada."
+            exit 0
+        fi
+    fi
 else
     MODE="instalación"
     echo "📦 Primera instalación detectada"
+    echo "📦 Versión del proyecto: v${PROJECT_VERSION}"
     echo ""
 fi
 
@@ -24,33 +41,17 @@ RUNNING_PIDS=$(pgrep -f "architect-linter-pro" 2>/dev/null)
 
 if [ ! -z "$RUNNING_PIDS" ]; then
     echo ""
-    echo "⚠️  ADVERTENCIA: Hay instancias de architect-linter-pro en ejecución."
-    echo "Es necesario cerrarlas para poder actualizar el binario."
+    echo "⚠️  Encontradas instancias de architect-linter-pro en ejecución."
+    echo "Cerrando automáticamente..."
     echo ""
-    echo "Procesos encontrados:"
     echo "$RUNNING_PIDS" | while read pid; do
-        echo "  - PID: $pid"
+        kill -9 "$pid" 2>/dev/null
+        if [ $? -eq 0 ]; then
+            echo "  ✓ Proceso $pid cerrado."
+        fi
     done
     echo ""
-    read -p "¿Deseas cerrarlas automáticamente? (s/N): " response
-
-    if [[ "$response" =~ ^[SsYy]$ ]]; then
-        echo "Cerrando procesos..."
-        echo "$RUNNING_PIDS" | while read pid; do
-            kill -9 "$pid" 2>/dev/null
-            if [ $? -eq 0 ]; then
-                echo "  ✓ Proceso $pid cerrado."
-            fi
-        done
-        echo ""
-        sleep 1
-    else
-        echo ""
-        echo "❌ Instalación cancelada."
-        echo "Por favor cierra manualmente las instancias de architect-linter-pro y vuelve a ejecutar este script."
-        echo ""
-        exit 1
-    fi
+    sleep 1
 fi
 
 echo "🦀 Compilando en modo release..."

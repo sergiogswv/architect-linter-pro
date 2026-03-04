@@ -4,20 +4,44 @@
 Write-Host "===========================================  ARCHITECT-LINTER PRO v6.0.0 SETUP" -ForegroundColor Cyan
 Write-Host ""
 
+# Obtener versiones para comparación
+$cargoPath = "$PSScriptRoot\Cargo.toml"
+$projectVersion = "unknown"
+if (Test-Path $cargoPath) {
+    $content = Get-Content $cargoPath | Select-String '^version = '
+    if ($content) {
+        $projectVersion = [regex]::Match($content[0], '"([^"]+)"').Groups[1].Value
+    }
+}
+
 # Detectar si ya está instalado
 $binPath = "$env:USERPROFILE\bin\architect-linter-pro.exe"
 $isUpdate = Test-Path $binPath
+$installedVersion = "unknown"
+$mode = "instalacion"
 
 if ($isUpdate) {
     $mode = "actualizacion"
-    Write-Host "Actualizando..." -ForegroundColor Yellow
+    $versionOutput = & $binPath --version 2>$null
+    $installedVersion = [regex]::Match($versionOutput, '\d+\.\d+\.\d+').Value
+
+    Write-Host "Versión actual instalada: v$installedVersion" -ForegroundColor Cyan
+    Write-Host "Versión del proyecto: v$projectVersion" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Version actual instalada:" -ForegroundColor Cyan
-    & $binPath --version
-    Write-Host ""
+
+    # Si es la misma versión, preguntar si continuar
+    if ($installedVersion -eq $projectVersion) {
+        Write-Host "Versión ya está actualizada." -ForegroundColor Green
+        Write-Host ""
+        $response = Read-Host "¿Deseas reinstalar de todas formas? (S/N)"
+        if ($response -notmatch "^[SsYy]$") {
+            Write-Host "Operación cancelada." -ForegroundColor Yellow
+            exit 0
+        }
+    }
 } else {
-    $mode = "instalacion"
-    Write-Host "Primera instalacion detectada" -ForegroundColor Green
+    Write-Host "Primera instalación detectada" -ForegroundColor Green
+    Write-Host "Versión del proyecto: v$projectVersion" -ForegroundColor Cyan
     Write-Host ""
 }
 
@@ -27,32 +51,16 @@ $runningProcesses = Get-Process -Name "architect-linter-pro" -ErrorAction Silent
 
 if ($runningProcesses) {
     Write-Host ""
-    Write-Host "ADVERTENCIA: Hay instancias de architect-linter-pro en ejecucion." -ForegroundColor Yellow
-    Write-Host "Es necesario cerrarlas para poder actualizar el binario." -ForegroundColor Yellow
+    Write-Host "Encontradas instancias de architect-linter-pro en ejecucion." -ForegroundColor Yellow
+    Write-Host "Cerrando automáticamente..." -ForegroundColor Yellow
     Write-Host ""
 
     $runningProcesses | ForEach-Object {
-        Write-Host "  - PID: $($_.Id)" -ForegroundColor White
+        Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+        Write-Host "  Proceso $($_.Id) cerrado." -ForegroundColor Green
     }
-
     Write-Host ""
-    $response = Read-Host "Deseas cerrarlas automaticamente? (S/N)"
-
-    if ($response -eq "S" -or $response -eq "s" -or $response -eq "Y" -or $response -eq "y") {
-        Write-Host "Cerrando procesos..." -ForegroundColor Yellow
-        $runningProcesses | ForEach-Object {
-            Stop-Process -Id $_.Id -Force
-            Write-Host "  Proceso $($_.Id) cerrado." -ForegroundColor Green
-        }
-        Write-Host ""
-        Start-Sleep -Seconds 1
-    } else {
-        Write-Host ""
-        Write-Host "Instalacion cancelada." -ForegroundColor Red
-        Write-Host "Por favor cierra manualmente las instancias de architect-linter-pro y vuelve a ejecutar este script." -ForegroundColor Yellow
-        Write-Host ""
-        exit 1
-    }
+    Start-Sleep -Seconds 1
 }
 
 Write-Host "Compilando en modo release..." -ForegroundColor Cyan
