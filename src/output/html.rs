@@ -58,6 +58,7 @@ impl HtmlReporter {
     /// HtmlReporter::generate_report(&violations, score, "report.html")?;
     /// # Ok::<(), std::io::Error>(())
     /// ```
+    #[allow(dead_code)]
     pub fn generate_report(
         violations: &[(String, usize, String)],
         score: f64,
