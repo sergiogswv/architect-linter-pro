@@ -21,6 +21,7 @@ pub struct ConfigGenerator;
 
 impl ConfigGenerator {
     /// Create a new ConfigGenerator instance
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self
     }
@@ -32,6 +33,7 @@ impl ConfigGenerator {
     ///
     /// # Returns
     /// A ConfigFile with detected frameworks and generated rules
+    #[allow(dead_code)]
     pub fn generate(&self, project_path: &Path) -> Result<ConfigFile, String> {
         // Detect the primary framework
         let primary_framework = crate::detector::detect_framework(project_path);
