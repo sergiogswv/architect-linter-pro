@@ -14,6 +14,7 @@ pub enum ArchitecturePattern {
 #[allow(dead_code)]
 pub struct PatternDetector;
 
+#[allow(dead_code)]
 impl PatternDetector {
     /// Detects the architecture pattern based on file structure
     pub fn detect_pattern(files: &[&str]) -> ArchitecturePattern {

@@ -5,6 +5,7 @@
 /// Generates intelligent suggestions for architecture violations
 pub struct SmartSuggestions;
 
+#[allow(dead_code)]
 impl SmartSuggestions {
     /// Generate suggestion for common violations based on violation type and context
     ///
