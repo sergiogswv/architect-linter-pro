@@ -41,6 +41,7 @@ pub fn span_for_line(content: &str, line: usize) -> SourceSpan {
 ///
 /// If `needle` is not found on the line, the full line is highlighted
 /// excluding any trailing statement terminator (`;`).
+#[allow(dead_code)]
 pub fn span_for_import(content: &str, line: usize, needle: &str) -> SourceSpan {
     let line_start = line_to_byte_offset(content, line);
     let line_content = content[line_start..].split('\n').next().unwrap_or("");
@@ -56,6 +57,7 @@ pub fn span_for_import(content: &str, line: usize, needle: &str) -> SourceSpan {
 ///
 /// Used for measuring function/method body length when only byte offsets
 /// are available (replaces `cm.lookup_char_pos(span.lo/hi).line`).
+#[allow(dead_code)]
 pub fn lines_between_offsets(content: &str, start: usize, end: usize) -> usize {
     let start = start.min(content.len());
     let end = end.min(content.len());

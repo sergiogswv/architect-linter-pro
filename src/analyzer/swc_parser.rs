@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use super::pattern_matcher::{matches_pattern, normalize_pattern};
 
 /// Analyze a single file for architecture violations.
+#[allow(dead_code)]
 pub fn analyze_file(path: &PathBuf, ctx: &LinterContext) -> Result<()> {
     let source_code = fs::read_to_string(path).into_diagnostic()?;
 
@@ -86,6 +87,7 @@ pub fn analyze_file(path: &PathBuf, ctx: &LinterContext) -> Result<()> {
 
 /// Validate that no class method exceeds `max_lines` using Tree-sitter.
 /// Only applies to TypeScript content.
+#[allow(dead_code)]
 pub fn validate_method_length_ts(content: &str, max_lines: usize) -> Result<()> {
     use tree_sitter::Parser;
     let mut parser = Parser::new();
@@ -100,6 +102,7 @@ pub fn validate_method_length_ts(content: &str, max_lines: usize) -> Result<()> 
     check_methods_recursive(tree.root_node(), max_lines)
 }
 
+#[allow(dead_code)]
 fn check_methods_recursive(
     node: tree_sitter::Node,
     max_lines: usize,
@@ -126,6 +129,7 @@ fn check_methods_recursive(
 }
 
 /// Create a miette ArchError from source content and a span.
+#[allow(dead_code)]
 fn create_arch_error(src: &str, span: SourceSpan, msg: &str) -> miette::Report {
     ArchError {
         src: src.to_string(),
@@ -150,6 +154,7 @@ pub fn create_error_from_source(src: &str, violation: &Violation) -> miette::Rep
 }
 
 /// Validate method length for a file, using Tree-sitter internally.
+#[allow(dead_code)]
 pub fn validate_method_length(path: &PathBuf, ctx: &LinterContext) -> Result<()> {
     let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
     if !matches!(extension, "ts" | "tsx" | "js" | "jsx") {

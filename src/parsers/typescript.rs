@@ -517,6 +517,7 @@ pub fn find_violations_in_imports(
 }
 
 /// Construye un CFG básico para TypeScript buscando fuentes de entrada y sumideros
+#[allow(dead_code)]
 pub fn build_cfg_from_tree(tree: &Tree, source_code: &str) -> CFG {
     let mut cfg = CFG::new();
     let root = tree.root_node();
