@@ -68,6 +68,7 @@ impl ConfigGenerator {
     ///
     /// Looks for common directories indicating Clean or Hexagonal patterns.
     /// Defaults to MVC if no clear pattern is found.
+    #[allow(dead_code)]
     fn detect_pattern(&self, project_path: &Path) -> Option<ArchPattern> {
         // Check for Hexagonal pattern markers
         if project_path.join("domain").exists() && project_path.join("application").exists() {
@@ -89,6 +90,7 @@ impl ConfigGenerator {
     }
 
     /// Generate framework-specific and pattern-specific rules
+    #[allow(dead_code)]
     fn generate_rules_for_frameworks(
         &self,
         frameworks: &[Framework],
@@ -130,6 +132,7 @@ impl ConfigGenerator {
     }
 
     /// Generate basic fallback rules for a framework when no template is available
+    #[allow(dead_code)]
     fn generate_fallback_rules(&self, framework: &Framework, _pattern: &ArchPattern) -> Vec<ForbiddenRule> {
         match framework {
             // NestJS generic rules
