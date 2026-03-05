@@ -1,6 +1,7 @@
 //! Smart violation suggestions module
 //! Provides intelligent, context-aware suggestions for fixing architecture violations
 
+#[allow(dead_code)]
 /// Generates intelligent suggestions for architecture violations
 pub struct SmartSuggestions;
 

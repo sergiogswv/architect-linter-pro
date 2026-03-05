@@ -5,9 +5,6 @@ pub mod cfg_types;
 pub mod data_flow;
 pub mod vulnerabilities;
 
-pub use cfg_types::{CFG, CFGNode, CFGEdge, NodeType, EdgeType};
-pub use cfg_builder::{CFGBuilder, TypeScriptCFGBuilder, PythonCFGBuilder, PHPCFGBuilder};
-pub use data_flow::TaintEngine;
 
 
 use crate::autofix::Violation;

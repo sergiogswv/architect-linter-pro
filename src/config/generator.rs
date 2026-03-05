@@ -16,6 +16,7 @@ use std::path::Path;
 ///
 /// Automatically detects frameworks and architecture patterns to generate
 /// an architect.json with 80-90% of the rules already configured.
+#[allow(dead_code)]
 pub struct ConfigGenerator;
 
 impl ConfigGenerator {

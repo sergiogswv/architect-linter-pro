@@ -1,5 +1,6 @@
 //! Rich terminal output with colors and formatting
 
+#[allow(dead_code)]
 pub struct RichOutput;
 
 impl RichOutput {

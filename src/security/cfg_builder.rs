@@ -1,9 +1,3 @@
-/// Control Flow Graph (CFG) builder abstraction
-///
-/// This module provides a language-agnostic trait for extracting security-relevant patterns
-/// (sources, sinks, sanitizers) from source code, along with language-specific implementations.
-
-use std::path::Path;
 
 /// Language-agnostic CFG builder abstraction
 ///

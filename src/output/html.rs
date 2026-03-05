@@ -30,6 +30,7 @@ fn escape_html(s: &str) -> String {
 }
 
 /// HTML report generator for displaying violations and architecture scores
+#[allow(dead_code)]
 pub struct HtmlReporter;
 
 impl HtmlReporter {

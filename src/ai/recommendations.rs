@@ -1,5 +1,6 @@
 /// Architecture Recommendations Engine
 /// Generates actionable recommendations based on project metrics and architecture score
+#[allow(dead_code)]
 pub struct ArchitectureRecommendations;
 
 impl ArchitectureRecommendations {

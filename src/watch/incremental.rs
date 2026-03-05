@@ -3,6 +3,7 @@
 use std::collections::{HashSet, HashMap};
 use std::path::PathBuf;
 
+#[allow(dead_code)]
 pub struct IncrementalAnalyzer {
     last_files: HashSet<PathBuf>,
     last_analysis: HashMap<PathBuf, usize>, // violations per file
