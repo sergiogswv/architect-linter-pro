@@ -34,6 +34,12 @@ pub mod watch;
 pub mod features;
 pub mod license;
 
+// Agent integration
+pub mod agent_config;
+pub mod agent_models;
+pub mod agent_reporter;
+pub mod agent_server;
+
 // Re-export commonly used types for convenience
 pub use analysis_result::AnalysisResult;
 pub use circular::CircularDependency;
