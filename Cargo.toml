@@ -28,12 +28,16 @@ rayon = "1.10"
 dialoguer = "0.11.0"
 indicatif = "0.18.0"
 
-tokio = { version = "1.0", features = ["full"] } # Para manejar peticiones asíncronas
-reqwest = { version = "0.11", features = ["json"] } # Cliente HTTP
+# Networking & Agent Integration
+tokio = { version = "1.0", features = ["full"] }
+axum = "0.7"
+reqwest = { version = "0.11", features = ["json"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+dotenvy = "0.15"
 async-trait = "0.1"
 anyhow = "1.0"
 console = "0.15"
-notify = "6.1" # File system watcher for watch mode
+notify = "6.1"
 
 # Structured logging (v4.3.0)
 tracing = "0.1"

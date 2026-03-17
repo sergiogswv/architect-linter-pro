@@ -1,6 +1,7 @@
 /// Architecture Pattern Detection Module
 /// Detects common architecture patterns in codebases and provides suggestions
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArchitecturePattern {
     Hexagonal,
@@ -10,8 +11,10 @@ pub enum ArchitecturePattern {
     MonolithicMud,
 }
 
+#[allow(dead_code)]
 pub struct PatternDetector;
 
+#[allow(dead_code)]
 impl PatternDetector {
     /// Detects the architecture pattern based on file structure
     pub fn detect_pattern(files: &[&str]) -> ArchitecturePattern {

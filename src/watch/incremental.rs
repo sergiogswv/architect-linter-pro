@@ -3,6 +3,7 @@
 use std::collections::{HashSet, HashMap};
 use std::path::PathBuf;
 
+#[allow(dead_code)]
 pub struct IncrementalAnalyzer {
     last_files: HashSet<PathBuf>,
     last_analysis: HashMap<PathBuf, usize>, // violations per file
@@ -10,6 +11,7 @@ pub struct IncrementalAnalyzer {
 }
 
 impl IncrementalAnalyzer {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             last_files: HashSet::new(),
@@ -19,6 +21,7 @@ impl IncrementalAnalyzer {
     }
 
     /// Detect files that changed since last analysis
+    #[allow(dead_code)]
     pub fn detect_changes(&mut self, current_files: HashSet<PathBuf>) -> Vec<PathBuf> {
         let new_files: Vec<_> = current_files
             .iter()
@@ -31,12 +34,14 @@ impl IncrementalAnalyzer {
     }
 
     /// Decide if full rescan is needed
+    #[allow(dead_code)]
     pub fn should_full_rescan(&self, violations_now: usize, violations_last: usize) -> bool {
         let diff = (violations_now as i32 - violations_last as i32).abs();
         diff > self.threshold
     }
 
     /// Update analysis state
+    #[allow(dead_code)]
     pub fn update(&mut self, file: PathBuf, violation_count: usize) {
         self.last_analysis.insert(file, violation_count);
     }

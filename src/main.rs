@@ -29,6 +29,12 @@ mod init;
 mod ui;
 mod watch;
 
+// Agent integration
+pub mod agent_config;
+pub mod agent_models;
+pub mod agent_reporter;
+pub mod agent_server;
+
 #[cfg(unix)]
 fn run_as_daemon(project_root: &std::path::Path) -> Result<()> {
     use daemonize::Daemonize;
@@ -168,6 +174,23 @@ fn main() -> Result<()> {
             std::env::current_dir().into_diagnostic()?
         };
         return init::run_init(&root, cli_args.init_force);
+    }
+
+    // ── Nuevo: modo agente HTTP ──────────────────────────────────────────────
+    if cli_args.serve_mode {
+        let config = agent_config::AgentConfig::from_env();
+        println!("╔════════════════════════════════════╗");
+        println!("║   Architect v6.0.0 — Modo Agente  ║");
+        println!("║   Conectado al Cerebro             ║");
+        println!("╚════════════════════════════════════╝");
+        println!();
+        println!("   Cerebro URL : {}", config.cerebro_url);
+        println!("   Puerto      : {}", config.port);
+        println!();
+
+        let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
+        runtime.block_on(agent_server::start_server(config)).map_err(|e| miette::miette!("{}", e))?;
+        return Ok(());
     }
 
     // 4. Obtener la ruta del proyecto

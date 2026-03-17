@@ -5,6 +5,7 @@
 /// - "src/components/**" → "src/components/"
 /// - "**/*.tsx" → ".tsx"
 /// - "src/services/**" → "src/services/"
+#[allow(dead_code)]
 pub fn normalize_pattern(pattern: &str) -> String {
     let normalized = pattern
         .to_lowercase()
@@ -17,6 +18,7 @@ pub fn normalize_pattern(pattern: &str) -> String {
 }
 
 /// Verifica si un path coincide con un patrón normalizado
+#[allow(dead_code)]
 pub fn matches_pattern(path: &str, pattern: &str) -> bool {
     let normalized_path = path.to_lowercase().replace("\\", "/");
     let raw_pattern = pattern.to_lowercase().replace("\\", "/");

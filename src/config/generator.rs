@@ -16,10 +16,12 @@ use std::path::Path;
 ///
 /// Automatically detects frameworks and architecture patterns to generate
 /// an architect.json with 80-90% of the rules already configured.
+#[allow(dead_code)]
 pub struct ConfigGenerator;
 
 impl ConfigGenerator {
     /// Create a new ConfigGenerator instance
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self
     }
@@ -31,6 +33,7 @@ impl ConfigGenerator {
     ///
     /// # Returns
     /// A ConfigFile with detected frameworks and generated rules
+    #[allow(dead_code)]
     pub fn generate(&self, project_path: &Path) -> Result<ConfigFile, String> {
         // Detect the primary framework
         let primary_framework = crate::detector::detect_framework(project_path);
@@ -67,6 +70,7 @@ impl ConfigGenerator {
     ///
     /// Looks for common directories indicating Clean or Hexagonal patterns.
     /// Defaults to MVC if no clear pattern is found.
+    #[allow(dead_code)]
     fn detect_pattern(&self, project_path: &Path) -> Option<ArchPattern> {
         // Check for Hexagonal pattern markers
         if project_path.join("domain").exists() && project_path.join("application").exists() {
@@ -88,6 +92,7 @@ impl ConfigGenerator {
     }
 
     /// Generate framework-specific and pattern-specific rules
+    #[allow(dead_code)]
     fn generate_rules_for_frameworks(
         &self,
         frameworks: &[Framework],
@@ -129,6 +134,7 @@ impl ConfigGenerator {
     }
 
     /// Generate basic fallback rules for a framework when no template is available
+    #[allow(dead_code)]
     fn generate_fallback_rules(&self, framework: &Framework, _pattern: &ArchPattern) -> Vec<ForbiddenRule> {
         match framework {
             // NestJS generic rules

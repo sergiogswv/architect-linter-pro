@@ -55,6 +55,8 @@ pub struct CliArgs {
     pub init_force: bool,
     /// Target directory for init (default: current dir)
     pub init_path: Option<String>,
+    /// Iniciar en modo agente HTTP (Serve)
+    pub serve_mode: bool,
 }
 
 impl Default for CliArgs {
@@ -75,6 +77,7 @@ impl Default for CliArgs {
             init_mode: false,
             init_force: false,
             init_path: None,
+            serve_mode: false,
         }
     }
 }
@@ -108,6 +111,7 @@ pub fn print_help() {
     println!("  init                 Generate architect.json wizard for your project");
     println!("    --force            Overwrite existing architect.json");
     println!("    --path <DIR>       Target directory (default: current directory)");
+    println!("  serve                Start as HTTP agent for Cerebro integration");
     println!();
     println!("EXAMPLES:");
     println!("  architect-linter-pro                         # Interactive mode");
@@ -174,6 +178,7 @@ pub fn process_args() -> Option<CliArgs> {
     let mut init_mode = false;
     let mut init_force = false;
     let mut init_path: Option<String> = None;
+    let mut serve_mode = false;
 
     // Procesar argumentos
     let mut i = 1;
@@ -274,6 +279,9 @@ pub fn process_args() -> Option<CliArgs> {
                     return None;
                 }
             }
+            "serve" => {
+                serve_mode = true;
+            }
             _ => {
                 // Si no es un flag, asumimos que es la ruta del proyecto
                 if !args[i].starts_with('-') {
@@ -300,5 +308,6 @@ pub fn process_args() -> Option<CliArgs> {
         init_mode,
         init_force,
         init_path,
+        serve_mode,
     })
 }

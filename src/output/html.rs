@@ -30,6 +30,7 @@ fn escape_html(s: &str) -> String {
 }
 
 /// HTML report generator for displaying violations and architecture scores
+#[allow(dead_code)]
 pub struct HtmlReporter;
 
 impl HtmlReporter {
@@ -57,6 +58,7 @@ impl HtmlReporter {
     /// HtmlReporter::generate_report(&violations, score, "report.html")?;
     /// # Ok::<(), std::io::Error>(())
     /// ```
+    #[allow(dead_code)]
     pub fn generate_report(
         violations: &[(String, usize, String)],
         score: f64,

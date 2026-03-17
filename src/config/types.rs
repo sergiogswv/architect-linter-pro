@@ -51,6 +51,7 @@ impl Framework {
         }
     }
 
+    #[allow(dead_code)]
     pub fn language(&self) -> &str {
         match self {
             Framework::NestJS
