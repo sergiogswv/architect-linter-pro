@@ -173,7 +173,7 @@ fn main() -> Result<()> {
         } else {
             std::env::current_dir().into_diagnostic()?
         };
-        return init::run_init(&root, cli_args.init_force);
+        return init::run_init(&root, cli_args.init_force, cli_args.init_yes, cli_args.init_pattern);
     }
 
     // ── Nuevo: modo agente HTTP ──────────────────────────────────────────────

@@ -55,6 +55,10 @@ pub struct CliArgs {
     pub init_force: bool,
     /// Target directory for init (default: current dir)
     pub init_path: Option<String>,
+    /// Skip all prompts and pick defaults (used with init)
+    pub init_yes: bool,
+    /// Pre-select architecture pattern (used with init)
+    pub init_pattern: Option<String>,
     /// Iniciar en modo agente HTTP (Serve)
     pub serve_mode: bool,
 }
@@ -77,6 +81,8 @@ impl Default for CliArgs {
             init_mode: false,
             init_force: false,
             init_path: None,
+            init_yes: false,
+            init_pattern: None,
             serve_mode: false,
         }
     }
@@ -111,6 +117,7 @@ pub fn print_help() {
     println!("  init                 Generate architect.json wizard for your project");
     println!("    --force            Overwrite existing architect.json");
     println!("    --path <DIR>       Target directory (default: current directory)");
+    println!("    --yes, -y          Automatic mode: skip all prompts and use defaults");
     println!("  serve                Start as HTTP agent for Cerebro integration");
     println!();
     println!("EXAMPLES:");
@@ -178,6 +185,8 @@ pub fn process_args() -> Option<CliArgs> {
     let mut init_mode = false;
     let mut init_force = false;
     let mut init_path: Option<String> = None;
+    let mut init_yes = false;
+    let mut init_pattern: Option<String> = None;
     let mut serve_mode = false;
 
     // Procesar argumentos
@@ -279,6 +288,18 @@ pub fn process_args() -> Option<CliArgs> {
                     return None;
                 }
             }
+            "--yes" | "-y" => {
+                init_yes = true;
+            }
+            "--pattern" | "-p" => {
+                if i + 1 < args.len() {
+                    i += 1;
+                    init_pattern = Some(args[i].clone());
+                } else {
+                    eprintln!("Error: --pattern requiere un nombre de patrón");
+                    return None;
+                }
+            }
             "serve" => {
                 serve_mode = true;
             }
@@ -308,6 +329,8 @@ pub fn process_args() -> Option<CliArgs> {
         init_mode,
         init_force,
         init_path,
+        init_yes,
+        init_pattern,
         serve_mode,
     })
 }

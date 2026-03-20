@@ -40,22 +40,27 @@ pub fn write_config(root: &Path, config: &ConfigFile) -> Result<()> {
 /// 5. Get template for (framework, pattern)
 /// 6. Show preview and ask for confirmation
 /// 7. Write architect.json
-pub fn run_init(root: &Path, force: bool) -> Result<()> {
+pub fn run_init(root: &Path, force: bool, auto_confirm: bool, pre_selected_pattern: Option<String>) -> Result<()> {
     // Step 1: Check for existing config
     check_no_existing_config(root, force)?;
 
     // Step 2: Detect framework
     let detected = crate::detector::detect_framework(root);
     let framework = if detected == Framework::Unknown {
-        println!("No se detectó ningún framework conocido.");
-        match prompts::ask_framework() {
-            Some(fw) => {
-                println!("Framework seleccionado: {}", fw.as_str());
-                fw
-            }
-            None => {
-                println!("Operación cancelada.");
-                return Ok(());
+        if auto_confirm {
+            println!("No framework detected, using default patterns.");
+            Framework::Unknown
+        } else {
+            println!("No se detectó ningún framework conocido.");
+            match prompts::ask_framework() {
+                Some(fw) => {
+                    println!("Framework seleccionado: {}", fw.as_str());
+                    fw
+                }
+                None => {
+                    println!("Operación cancelada.");
+                    return Ok(());
+                }
             }
         }
     } else {
@@ -65,11 +70,19 @@ pub fn run_init(root: &Path, force: bool) -> Result<()> {
 
     // Step 3: Get pattern options and ask
     let options = templates::patterns_for_framework(&framework);
-    let pattern_key = match prompts::ask_pattern(&framework, &options) {
-        Some(p) => p,
-        None => {
-            println!("Operación cancelada.");
-            return Ok(());
+    let pattern_key = if let Some(p) = pre_selected_pattern {
+        println!("Usando patrón pre-seleccionado: {}", p);
+        p
+    } else if auto_confirm {
+        // En modo automático, elegimos el primero (ej: Hexagonal o Layered según framework)
+        options.get(0).map(|o| o.pattern.to_string()).unwrap_or_else(|| "layered".to_string())
+    } else {
+        match prompts::ask_pattern(&framework, &options) {
+            Some(p) => p,
+            None => {
+                println!("Operación cancelada.");
+                return Ok(());
+            }
         }
     };
 
@@ -86,13 +99,15 @@ pub fn run_init(root: &Path, force: bool) -> Result<()> {
     };
 
     // Step 5: Show preview
-    let json = serde_json::to_string_pretty(&config).into_diagnostic()?;
-    prompts::show_preview(&json);
+    if !auto_confirm {
+        let json = serde_json::to_string_pretty(&config).into_diagnostic()?;
+        prompts::show_preview(&json);
 
-    // Step 6: Confirm
-    if !prompts::confirm_write() {
-        println!("Operación cancelada. No se creó architect.json.");
-        return Ok(());
+        // Step 6: Confirm
+        if !prompts::confirm_write() {
+            println!("Operación cancelada. No se creó architect.json.");
+            return Ok(());
+        }
     }
 
     // Step 7: Write
