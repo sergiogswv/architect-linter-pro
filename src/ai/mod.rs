@@ -250,15 +250,22 @@ pub async fn sugerir_reglas_para_patron(
 
         TAREA:
         Genera reglas de importaciones prohibidas específicas para implementar el patrón '{pattern_name}' en este proyecto.
-        
-        RESPONDE EXCLUSIVAMENTE EN FORMATO JSON con esta estructura:
+
+        RESPONDE EXCLUSIVAMENTE EN FORMATO JSON con esta estructura EXACTA (no uses otros campos):
         {{
-          \"pattern\": \"{pattern_name}\",
+          \"pattern\": \"Nombre del patrón seleccionado\",
           \"suggested_max_lines\": 60,
           \"rules\": [
-            {{ \"from\": \"capa_origen\", \"to\": \"capa_prohibida\", \"reason\": \"explicación corta\" }}
+            {{ \"from\": \"src/entities/**\", \"to\": \"src/features/**\", \"reason\": \"Las entidades deben ser independientes\" }},
+            {{ \"from\": \"src/shared/**\", \"to\": \"src/entities/**\", \"reason\": \"Shared no debe conocer entidades específicas\" }}
           ]
-        }}",
+        }}
+
+        IMPORTANTE:
+        - Usa SOLO los campos: \"from\", \"to\", \"reason\" en cada regla
+        - NO uses campos como \"name\", \"pattern\" (dentro de rules), \"severity\"
+        - \"from\" y \"to\" deben ser patrones glob o rutas relativas al proyecto
+        - Genera entre 5-10 reglas relevantes para el patrón {pattern_name}",
         pattern_name = pattern_name,
         framework = context.framework,
         deps = context.dependencies,
@@ -440,7 +447,15 @@ pub fn extraer_json_flexible(text: &str) -> anyhow::Result<String> {
     let json = &content[start..=end];
 
     // Limpiar caracteres especiales y espacios después del JSON
-    let json_trimmed = json.trim_end().to_string();
+    let mut json_trimmed = json.trim_end().to_string();
+
+    // Manejar escaped JSON string: la IA a veces devuelve el JSON como string escapado
+    // Reemplazar secuencias de escape comunes
+    json_trimmed = json_trimmed
+        .replace("\\n", "\n")
+        .replace("\\\"", "\"")
+        .replace("\\t", "\t")
+        .replace("\\\\", "\\");
 
     // Validación básica de completitud
     if !json_trimmed.ends_with('}') {

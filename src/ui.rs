@@ -1,13 +1,28 @@
 use crate::ai::{AISuggestionResponse, ArchOption, SuggestedRule};
 use crate::config::AIConfig;
+#[cfg(not(target_os = "windows"))]
+use atty;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, MultiSelect, Select};
 use miette::{IntoDiagnostic, Result};
 use std::env;
 use std::path::PathBuf;
 
+/// Check if running in a terminal
+#[cfg(target_os = "windows")]
+fn is_terminal() -> bool { false }
+#[cfg(not(target_os = "windows"))]
+fn is_terminal() -> bool { atty::is(atty::Stream::Stdout) }
+
 /// Imprime el banner de bienvenida con ASCII art y estilo de alto impacto
 pub fn print_banner() {
+    // Skip banner if not running in a terminal
+    if !is_terminal() {
+        println!("Architect Linter Pro");
+        return;
+    }
+
+    use console::style;
     println!();
     println!(
         "{}",
@@ -20,17 +35,17 @@ pub fn print_banner() {
         "{}",
         style(
             r"
-    ___    ____  ______ __  __________________  ______ ______ 
-   /   |  / __ \/ ____// / / /  _/_  __/ ____/ / ____//_  __/ 
-  / /| | / /_/ / /    / /_/ // /  / / / __/   / /      / /    
- / ___ |/ _, _/ /___ / __  // /  / / / /___  / /___   / /     
-/_/  |_/_/ |_|\____//_/ /_/___/ /_/ /_____/  \____/  /_/      
-                                                              
-    __     _____  _   __ ______ ______ ____           
-   / /    /  _/ / | / //_  __// ____// __ \          
-  / /     / /  /  |/ /  / /  / __/  / /_/ /          
- / /___ _/ /  / /|  /  / /  / /___ / _, _/           
-/_____//___/ /_/ |_/  /_/  /_____//_/ |_|            
+    ___    ____  ______ __  __________________  ______ ______
+   /   |  / __ \/ ____// / / /  _/_  __/ ____/ / ____//_  __/
+  / /| | / /_/ / /    / /_/ // /  / / / __/   / /      / /
+ / ___ |/ _, _/ /___ / __  // /  / / / /___  / /___   / /
+/_/  |_/_/ |_|\____//_/ /_/___/ /_/ /_____/  \____/  /_/
+
+    __     _____  _   __ ______ ______ ____
+   / /    /  _/ / | / //_  __// ____// __ \
+  / /     / /  /  |/ /  / /  / __/  / /_/ /
+ / /___ _/ /  / /|  /  / /  / /___ / _, _/
+/_____//___/ /_/ |_/  /_/  /_____//_/ |_|
 "
         )
         .cyan()
@@ -39,7 +54,7 @@ pub fn print_banner() {
     println!(
         "{}",
         style(
-            "╚══════════════════════════════════════════════════════════════════════════════════╝"
+            "╚════════════════════════════════════════════════════════════���═════════════════════╝"
         )
         .cyan()
     );

@@ -162,8 +162,6 @@ fn main() -> Result<()> {
         tracing::debug!("CLI arguments: {:?}", cli_args);
     }
 
-    ui::print_banner();
-
     // Handle init mode before loading config (init creates the config)
     if cli_args.init_mode {
         let root = if let Some(ref p) = cli_args.init_path {
@@ -179,19 +177,28 @@ fn main() -> Result<()> {
     // ── Nuevo: modo agente HTTP ──────────────────────────────────────────────
     if cli_args.serve_mode {
         let config = agent_config::AgentConfig::from_env();
-        println!("╔════════════════════════════════════╗");
-        println!("║   Architect v6.0.0 — Modo Agente  ║");
-        println!("║   Conectado al Cerebro             ║");
-        println!("╚════════════════════════════════════╝");
-        println!();
-        println!("   Cerebro URL : {}", config.cerebro_url);
-        println!("   Puerto      : {}", config.port);
-        println!();
+        // No mostrar banner en modo servidor (no hay terminal)
+        println!("Architect v6.0.0 - Modo Agente HTTP");
+        println!("Puerto: {}", config.port);
 
-        let runtime = tokio::runtime::Runtime::new().into_diagnostic()?;
-        runtime.block_on(agent_server::start_server(config)).map_err(|e| miette::miette!("{}", e))?;
+        // Crear runtime sin usar into_diagnostic (que requiere terminal)
+        match tokio::runtime::Runtime::new() {
+            Ok(runtime) => {
+                if let Err(e) = runtime.block_on(agent_server::start_server(config)) {
+                    eprintln!("Error en servidor: {}", e);
+                    return Err(miette::miette!("Agent server error: {}", e));
+                }
+            }
+            Err(e) => {
+                eprintln!("Error creando runtime: {}", e);
+                return Err(miette::miette!("Error creando runtime: {}", e));
+            }
+        }
         return Ok(());
     }
+
+    // Banner solo para modo CLI interactivo
+    ui::print_banner();
 
     // 4. Obtener la ruta del proyecto
     tracing::debug!("Resolving project path...");

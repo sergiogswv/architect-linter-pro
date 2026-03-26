@@ -279,7 +279,7 @@ pub fn process_args() -> Option<CliArgs> {
                     return None;
                 }
             }
-            "serve" => {
+            "serve" | "--serve" => {
                 serve_mode = true;
             }
             _ => {

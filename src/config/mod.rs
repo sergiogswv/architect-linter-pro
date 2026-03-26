@@ -22,6 +22,7 @@ pub use types::{
 
 // Re-export funciones de loader
 pub use loader::load_config;
+pub use loader::load_ai_config_only;
 pub use loader::ConfigFile;
 
 // Re-export funciones de generator (used in tests and library API)

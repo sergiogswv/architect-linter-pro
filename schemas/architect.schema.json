@@ -34,8 +34,8 @@
                         "description": "Target path or pattern that should not be imported from 'from'"
                     },
                     "severity": {
-                        "type": "string",
-                        "enum": ["error", "warning", "info"],
+                        "type": ["string", "null"],
+                        "enum": ["error", "warning", "info", null],
                         "description": "Severity level for this rule. 'error' blocks commits (default), 'warning' notifies only, 'info' is informational.",
                         "default": "error"
                     },

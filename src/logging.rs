@@ -30,16 +30,18 @@ pub fn init(debug_mode: bool) {
         .unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));
 
     // Configure the subscriber
+    let fmt_layer = fmt::layer()
+        .with_target(debug_mode)
+        .with_thread_ids(debug_mode)
+        .with_line_number(debug_mode)
+        .with_file(debug_mode)
+        .with_ansi(false)
+        .with_writer(std::io::stdout)
+        .compact();
+
     let subscriber = tracing_subscriber::registry()
         .with(env_filter)
-        .with(
-            fmt::layer()
-                .with_target(debug_mode) // Show target module in debug mode
-                .with_thread_ids(debug_mode) // Show thread IDs in debug mode
-                .with_line_number(debug_mode) // Show line numbers in debug mode
-                .with_file(debug_mode) // Show file names in debug mode
-                .compact(), // Use compact format for better readability
-        );
+        .with(fmt_layer);
 
     // Initialize the subscriber
     if let Err(e) = subscriber.try_init() {

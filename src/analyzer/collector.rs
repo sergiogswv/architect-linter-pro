@@ -11,6 +11,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+#[cfg(not(target_os = "windows"))]
+use atty;
+#[cfg(target_os = "windows")]
+fn is_terminal() -> bool { false }
+#[cfg(not(target_os = "windows"))]
+fn is_terminal() -> bool { atty::is(atty::Stream::Stdout) }
+
 use super::metrics::{count_functions, count_imports, find_long_functions};
 use super::swc_parser::collect_violations_from_file;
 
@@ -51,8 +58,8 @@ pub fn analyze_all_files(
         max_lines_threshold: ctx.max_lines,
     };
 
-    // Initialize progress bar
-    let pb = if files.len() > 10 {
+    // Initialize progress bar (only if terminal is available)
+    let pb = if files.len() > 10 && is_terminal() {
         let pb = ProgressBar::new(files.len() as u64);
         pb.set_style(
             ProgressStyle::default_bar()

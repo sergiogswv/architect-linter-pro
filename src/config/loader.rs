@@ -52,6 +52,31 @@ impl ConfigError {
     }
 }
 
+/// Carga solo la configuración de IA (.architect.ai.json) sin requerir architect.json
+/// Útil para endpoints del agente que solo necesitan IA
+pub fn load_ai_config_only(root: &Path) -> Result<Vec<crate::config::AIConfig>> {
+    let ai_config_path = root.join(".architect.ai.json");
+
+    if !ai_config_path.exists() {
+        return Err(ConfigError::new(
+            "No se encontró .architect.ai.json".to_string(),
+            "Configurá un proveedor de IA primero usando el panel de IA en el dashboard.".to_string(),
+        ).into());
+    }
+
+    let ai_content = fs::read_to_string(&ai_config_path).into_diagnostic()?;
+    let ai_file: AIConfigFile = serde_json::from_str(&ai_content).into_diagnostic()?;
+
+    let mut configs = ai_file.configs;
+    // Mover la configuración seleccionada al principio de la lista
+    if let Some(pos) = configs.iter().position(|c| c.name == ai_file.selected_name) {
+        let selected = configs.remove(pos);
+        configs.insert(0, selected);
+    }
+
+    Ok(configs)
+}
+
 /// CARGA SILENCIOSA: Lee architect.json y .architect.ai.json y los convierte en contexto
 pub fn load_config(root: &Path) -> Result<LinterContext> {
     let config_path = root.join("architect.json");
