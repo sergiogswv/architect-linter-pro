@@ -73,9 +73,23 @@ pub async fn obtener_modelos_disponibles(
                 .collect();
             Ok(models)
         }
+        AIProvider::Ollama => {
+            let response = client
+                .get(format!("{}/api/tags", url))
+                .send()
+                .await?;
+
+            let json: serde_json::Value = response.json().await?;
+            let models = json["models"]
+                .as_array()
+                .ok_or_else(|| anyhow::anyhow!("Respuesta de Ollama inválida"))?
+                .iter()
+                .filter_map(|m| m["name"].as_str().map(|s| s.to_string()))
+                .collect();
+            Ok(models)
+        }
         AIProvider::OpenAI
         | AIProvider::Groq
-        | AIProvider::Ollama
         | AIProvider::Kimi
         | AIProvider::DeepSeek => {
             let mut request = client.get(format!("{}/models", url));
@@ -101,7 +115,8 @@ pub async fn consultar_ia(prompt: String, ai_config: AIConfig) -> anyhow::Result
     match ai_config.provider {
         AIProvider::Claude => consultar_claude(prompt, ai_config).await,
         AIProvider::Gemini => consultar_gemini(prompt, ai_config).await,
-        AIProvider::OpenAI | AIProvider::Groq | AIProvider::Ollama | AIProvider::Kimi => {
+        AIProvider::Ollama => consultar_ollama(prompt, ai_config).await,
+        AIProvider::OpenAI | AIProvider::Groq | AIProvider::Kimi => {
             consultar_openai_compatible(prompt, ai_config).await
         }
         AIProvider::DeepSeek => consultar_openai_compatible(prompt, ai_config).await,
@@ -350,7 +365,51 @@ pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Re
     Ok(content.to_string())
 }
 
-/// Consulta APIs compatibles con OpenAI (OpenAI, Groq, Ollama)
+/// Consulta Ollama (API nativa de Ollama)
+pub async fn consultar_ollama(
+    prompt: String,
+    ai_config: AIConfig,
+) -> anyhow::Result<String> {
+    let url = format!(
+        "{}/api/generate",
+        ai_config.api_url.trim_end_matches('/')
+    );
+
+    let client = reqwest::Client::new();
+    let body = serde_json::json!({
+        "model": ai_config.model,
+        "prompt": prompt,
+        "system": "Eres un Arquitecto de Software Senior.",
+        "stream": false
+    });
+
+    let response = client
+        .post(&url)
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await?;
+
+    let status = response.status();
+    let response_text = response.text().await?;
+
+    if !status.is_success() {
+        return Err(anyhow::anyhow!(
+            "Error Ollama ({}): {}",
+            status,
+            response_text
+        ));
+    }
+
+    let json: serde_json::Value = serde_json::from_str(&response_text)?;
+    let content = json["response"]
+        .as_str()
+        .ok_or_else(|| anyhow::anyhow!("No se pudo extraer texto de la respuesta de Ollama"))?;
+
+    Ok(content.to_string())
+}
+
+/// Consulta APIs compatibles con OpenAI (OpenAI, Groq, Kimi)
 pub async fn consultar_openai_compatible(
     prompt: String,
     ai_config: AIConfig,
