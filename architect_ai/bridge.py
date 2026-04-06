@@ -169,6 +169,12 @@ async def handle_command(
         print(f"⚠️  [Architect] LLM falló: {exc}")
         await _log_to_cerebro(f"⚠️ LLM falló: {exc}", "warning")
 
+    # GARANTÍA: summary nunca vacío (requerido por Cerebro Proactivo)
+    if not analysis or not analysis.strip():
+        f_count = len(raw_result.get("result", {}).get("findings", []))
+        analysis = f"Análisis de arquitectura completado para {target}. {f_count} hallazgos encontrados."
+        print(f"⚠️  [Architect] summary vacío — usando fallback de contenido")
+
     # ── 6. Determinar severidad final para el evento ──────────────────
     severity = _infer_severity(action, raw_result, analysis)
 
@@ -210,14 +216,15 @@ async def handle_command(
         payload={
             "action": action,
             "target": target,
-            "summary": analysis,
+            "summary": analysis,                # Siempre tiene contenido (garantía aplicada arriba)
             "memory_id": memory_id,
             "raw_status": raw_result.get("status"),
-            # Campos para Auto-Fix (compatibles con Warden/Cerebro)
+            # Campos estandarizados para Cerebro Proactivo
             "finding": finding_desc,
-            "recommendation": analysis[:2000] if analysis else "Revisar violaciones de arquitectura detectadas",  # Truncado para no sobrecargar
+            "recommendation": analysis[:2000] if analysis else "Revisar violaciones de arquitectura detectadas",
             "file": affected_file or target,
-            "findings_count": len(findings_list),
+            "issues_count": len(findings_list),   # ✅ Estandarizado
+            "findings_count": len(findings_list),  # Backward compat
             "health_score": health_score,
         },
     )
