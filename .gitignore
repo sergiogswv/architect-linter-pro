@@ -37,3 +37,8 @@ build/
 
 # Git worktrees
 .worktrees/
+*.pyc
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
