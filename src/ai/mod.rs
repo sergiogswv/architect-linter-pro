@@ -55,8 +55,10 @@ pub async fn obtener_modelos_disponibles(
             Ok(models)
         }
         AIProvider::Gemini => {
+            let url = url.trim_end_matches('/');
             let response = client
                 .get(format!("{}/v1beta/models?key={}", url, api_key))
+                .header("x-goog-api-key", api_key)
                 .send()
                 .await?;
 
@@ -321,6 +323,32 @@ pub async fn consultar_claude(prompt: String, ai_config: AIConfig) -> anyhow::Re
     procesar_respuesta(response).await
 }
 
+/// Elimina bloques <thought>...</thought> de las respuestas de modelos como Gemma
+fn strip_thought_blocks(text: &str) -> String {
+    let mut result = String::new();
+    let mut in_thought = false;
+    let mut i = 0;
+    let chars: Vec<char> = text.chars().collect();
+
+    while i < chars.len() {
+        let remaining = &chars[i..];
+        if !in_thought && remaining.starts_with(&['<', 't', 'h', 'o', 'u', 'g', 'h', 't', '>']) {
+            in_thought = true;
+            i += 9;
+        } else if in_thought && remaining.starts_with(&['<', '/', 't', 'h', 'o', 'u', 'g', 'h', 't', '>']) {
+            in_thought = false;
+            i += 10;
+        } else if !in_thought {
+            result.push(chars[i]);
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    result.trim().to_string()
+}
+
 /// Consulta la API de Gemini (Google)
 pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Result<String> {
     let url = format!(
@@ -330,7 +358,10 @@ pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Re
         ai_config.api_key
     );
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()?;
+        
     let body = serde_json::json!({
         "contents": [{
             "parts": [{
@@ -341,6 +372,7 @@ pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Re
 
     let response = client
         .post(&url)
+        .header("x-goog-api-key", &ai_config.api_key)
         .header("content-type", "application/json")
         .json(&body)
         .send()
@@ -358,11 +390,42 @@ pub async fn consultar_gemini(prompt: String, ai_config: AIConfig) -> anyhow::Re
     }
 
     let json: serde_json::Value = serde_json::from_str(&response_text)?;
-    let content = json["candidates"][0]["content"]["parts"][0]["text"]
-        .as_str()
-        .ok_or_else(|| anyhow::anyhow!("No se pudo extraer texto de Gemini"))?;
+    
+    // Extraer todas las partes que no sean "thoughts" (igual que en Sentinel)
+    let empty_vec = vec![];
+    let candidates = json["candidates"].as_array().ok_or_else(|| anyhow::anyhow!("No 'candidates' found"))?;
+    if candidates.is_empty() {
+        return Err(anyhow::anyhow!("Empty candidates from Gemini"));
+    }
+    
+    let parts = candidates[0]["content"]["parts"].as_array().unwrap_or(&empty_vec);
+    
+    let mut full_text = String::new();
+    for part in parts {
+        // Si la parte tiene "thought": true, la ignoramos
+        if part["thought"].as_bool().unwrap_or(false) {
+            continue;
+        }
+        
+        if let Some(part_text) = part["text"].as_str() {
+            full_text.push_str(part_text);
+        }
+    }
 
-    Ok(content.to_string())
+    if full_text.is_empty() {
+        // Fallback al comportamiento básico si no hay partes filtradas
+        full_text = candidates[0]["content"]["parts"][0]["text"]
+            .as_str()
+            .unwrap_or("")
+            .to_string();
+    }
+
+    if full_text.is_empty() {
+        return Err(anyhow::anyhow!("Estructura de Gemini inesperada o vacía."));
+    }
+
+    // Limpiar bloques de pensamiento manuales (tags <thought>)
+    Ok(strip_thought_blocks(&full_text))
 }
 
 /// Consulta Ollama (API nativa de Ollama)
