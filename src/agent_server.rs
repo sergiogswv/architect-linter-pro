@@ -10,9 +10,11 @@ use std::net::SocketAddr;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use crate::config::{AIConfig, AIProvider};
 
 pub async fn start_server(config: AgentConfig) -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
+        .route("/health", get(health_check))
         .route("/command", post(handle_command))
         .route("/ai/suggestions", get(get_ai_suggestions))
         .route("/ai/rules", get(get_ai_rules));
@@ -39,16 +41,36 @@ pub async fn start_server(config: AgentConfig) -> Result<(), Box<dyn std::error:
     Ok(())
 }
 
+async fn health_check() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "status": "ok",
+        "agent": "architect-core",
+        "version": "6.0.0"
+    }))
+}
+
 // Query params para endpoints GET
+#[derive(serde::Deserialize, Debug)]
+struct AIQueryParams {
+    provider: Option<String>,
+    model: Option<String>,
+    api_key: Option<String>,
+    api_url: Option<String>,
+}
+
 #[derive(serde::Deserialize, Debug)]
 struct ProjectQuery {
     project: Option<String>,
+    #[serde(flatten)]
+    ai: AIQueryParams,
 }
 
 #[derive(serde::Deserialize, Debug)]
 struct RulesQuery {
     pattern: Option<String>,
     project: Option<String>,
+    #[serde(flatten)]
+    ai: AIQueryParams,
 }
 
 // Respuestas de IA
@@ -73,7 +95,7 @@ async fn get_ai_suggestions(
     println!("🧠 [AI] Solicitando sugerencias para proyecto: {}", project_path);
 
     // Usar la lógica de IA existente en Architect
-    match suggest_architectures(&project_path).await {
+    match suggest_architectures(&project_path, query.ai).await {
         Ok(patterns) => {
             Json(serde_json::json!({
                 "ok": true,
@@ -98,7 +120,7 @@ async fn get_ai_rules(
     let project_path = query.project.unwrap_or_else(|| ".".to_string());
     println!("🧠 [AI] Generando reglas para patrón '{}' en proyecto: {}", pattern, project_path);
 
-    match generate_rules_for_pattern(&pattern, &project_path).await {
+    match generate_rules_for_pattern(&pattern, &project_path, query.ai).await {
         Ok(result) => {
             Json(serde_json::json!({
                 "ok": true,
@@ -121,7 +143,7 @@ async fn get_ai_rules(
     }
 }
 
-async fn suggest_architectures(project_path: &str) -> Result<Vec<PatternOption>, String> {
+async fn suggest_architectures(project_path: &str, ai: AIQueryParams) -> Result<Vec<PatternOption>, String> {
     use crate::ai::sugerir_top_3_arquitecturas;
     use crate::config::load_ai_config_only;
     use crate::detector;
@@ -132,11 +154,20 @@ async fn suggest_architectures(project_path: &str) -> Result<Vec<PatternOption>,
     let framework = detector::detect_framework(&path);
     let framework_str = framework.as_str().to_string();
 
-    // Cargar solo config de IA (sin requerir architect.json)
-    let ai_configs = match load_ai_config_only(&path) {
+    // Cargar config de IA
+    let mut ai_configs = match load_ai_config_only(&path) {
         Ok(c) => c,
-        Err(e) => return Err(format!("Error cargando config de IA: {}", e)),
+        Err(_) => Vec::new(), // Si falla cargar config local, seguimos con la inyectada
     };
+
+    // Si recibimos configuración por Query, la inyectamos al principio
+    if let Some(config_from_query) = construct_ai_config(ai) {
+        ai_configs.insert(0, config_from_query);
+    }
+
+    if ai_configs.is_empty() {
+        return Err("No hay configuración de IA disponible (ni local ni vía Cerebro)".to_string());
+    }
 
     // Obtener sugerencias usando la función existente
     let options = sugerir_top_3_arquitecturas(&framework_str, ai_configs)
@@ -152,18 +183,27 @@ async fn suggest_architectures(project_path: &str) -> Result<Vec<PatternOption>,
     Ok(patterns)
 }
 
-async fn generate_rules_for_pattern(pattern: &str, project_path: &str) -> Result<crate::ai::AISuggestionResponse, String> {
+async fn generate_rules_for_pattern(pattern: &str, project_path: &str, ai: AIQueryParams) -> Result<crate::ai::AISuggestionResponse, String> {
     use crate::ai::sugerir_reglas_para_patron;
     use crate::config::load_ai_config_only;
     use crate::discovery::get_architecture_snapshot;
 
     let path = PathBuf::from(project_path);
 
-    // Cargar solo config de IA (sin requerir architect.json)
-    let ai_configs = match load_ai_config_only(&path) {
+    // Cargar config de IA
+    let mut ai_configs = match load_ai_config_only(&path) {
         Ok(c) => c,
-        Err(e) => return Err(format!("Error cargando config de IA: {}", e)),
+        Err(_) => Vec::new(),
     };
+
+    // Si recibimos configuración por Query, la inyectamos al principio
+    if let Some(config_from_query) = construct_ai_config(ai) {
+        ai_configs.insert(0, config_from_query);
+    }
+
+    if ai_configs.is_empty() {
+        return Err("No hay configuración de IA disponible (ni local ni vía Cerebro)".to_string());
+    }
 
     // Obtener contexto del proyecto
     let context = get_architecture_snapshot(&path);
@@ -174,6 +214,42 @@ async fn generate_rules_for_pattern(pattern: &str, project_path: &str) -> Result
         .map_err(|e| format!("Error de IA: {}", e))?;
 
     Ok(result)
+}
+
+fn construct_ai_config(params: AIQueryParams) -> Option<AIConfig> {
+    let provider_str = params.provider?;
+    let model = params.model?;
+    let api_key = params.api_key.unwrap_or_default();
+    
+    // Mapeo simple de provider string a enum
+    // "gemini-open-source" -> Gemini
+    let provider = match provider_str.to_lowercase().as_str() {
+        "gemini" | "gemini-open-source" => AIProvider::Gemini,
+        "claude" | "anthropic" => AIProvider::Claude,
+        "openai" => AIProvider::OpenAI,
+        "ollama" => AIProvider::Ollama,
+        "groq" => AIProvider::Groq,
+        "deepseek" => AIProvider::DeepSeek,
+        _ => return None,
+    };
+
+    let api_url = params.api_url.unwrap_or_else(|| {
+        match provider {
+            AIProvider::Gemini => "https://generativelanguage.googleapis.com".to_string(),
+            AIProvider::Claude => "https://api.anthropic.com".to_string(),
+            AIProvider::OpenAI => "https://api.openai.com/v1".to_string(),
+            AIProvider::Ollama => "http://localhost:11434".to_string(),
+            _ => String::new(),
+        }
+    });
+
+    Some(AIConfig {
+        name: "Cerebro Global Config".to_string(),
+        provider,
+        api_url,
+        api_key,
+        model,
+    })
 }
 
 /// Ejecuta análisis de linting en el proyecto (se ejecuta en thread separado)

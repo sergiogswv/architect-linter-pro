@@ -482,14 +482,16 @@ pub async fn consultar_openai_compatible(
         ai_config.api_url.trim_end_matches('/')
     );
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()?;
     let body = serde_json::json!({
         "model": ai_config.model,
         "messages": [
-            {"role": "system", "content": "Eres un Arquitecto de Software Senior."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": format!("Eres un Arquitecto de Software Senior.\n\n{}", prompt)}
         ],
-        "temperature": 0.1
+        "temperature": 0.1,
+        "max_tokens": 4096
     });
 
     let mut request = client.post(&url).header("content-type", "application/json");

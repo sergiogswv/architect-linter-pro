@@ -312,18 +312,16 @@ async def suggest_fix(
         return {"fix_type": "none", "description": f"Proveedor no soportado: {provider}", "code_changes": None}
 
     # Intentar parsear JSON de la respuesta
-    try:
-        import re
-        json_match = re.search(r'\{.*\}', response, re.DOTALL)
-        if json_match:
-            return json.loads(json_match.group(0))
-    except Exception:
-        pass
+    from .llm_parser import UniversalLLMParser
+    
+    parsed = UniversalLLMParser.extract_json(UniversalLLMParser.strip_thinking_tags(response))
+    if parsed:
+        return parsed
 
     # Fallback: retornar como descripción textual
     return {
         "fix_type": "refactor",
-        "description": response[:500],
+        "description": UniversalLLMParser.strip_thinking_tags(response)[:500],
         "code_changes": None
     }
 
@@ -365,10 +363,10 @@ async def identify_patterns_in_code(file_path: str, content: str) -> Dict[str, s
             return {}
 
         # Extraer JSON de markdown si viene así
-        import re
-        clean_json = re.search(r'\{.*\}', response, re.DOTALL)
-        if clean_json:
-            return json.loads(clean_json.group(0))
+        from .llm_parser import UniversalLLMParser
+        parsed = UniversalLLMParser.extract_json(UniversalLLMParser.strip_thinking_tags(response))
+        if parsed:
+            return parsed
         return {}
     except Exception as e:
         print(f"❌ [LLM Pattern] Error: {e}")
