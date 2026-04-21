@@ -1,29 +1,21 @@
-# 📐 ARCHITECT LINTER PRO
+# 🏛️ Architect — The Structural Auditor
 
-> **Advanced AI-Powered Static Analysis & Linting**
-
-ARCHITECT is the specialized agent for deep code quality. While Sentinel provides the first line of defense, Architect performs exhaustive linting and structural analysis using LLMs to ensure your project follows best practices and custom architectural patterns.
-
----
-
-## 🚀 Key Responsibilities
-
-- **Deep Linting:** Beyond standard ESLint, Architect understands design patterns.
-- **Pattern Recognition:** Detects "God Services", circular dependencies, and DRY violations.
-- **Automated Refactoring:** Suggests code improvements directly to the CEREBRO orchestrator.
+> **Auditoría de arquitectura y cumplimiento de patrones en Skrymir Suite.**
+>
+> Desarrollado por: **Sergio Guadarrama** — [sergio.gs8925@gmail.com](mailto:sergio.gs8925@gmail.com)
 
 ---
 
-## ⚙️ Installation
+## 📋 Descripción
 
-```bash
-# Requires Rust & Cargo
-git clone https://github.com/sergiogswv/architect-linter-pro.git
-cd architect-linter-pro
-cargo build --release
-```
+Architect es el encargado de que tu código no se convierta en un laberinto. Audita la estructura del proyecto, valida que se sigan los patrones de diseño establecidos y evita la degradación arquitectónica.
+
+### Funcionalidades Clave:
+- **Architecture Linting:** Detección de violaciones de reglas de arquitectura.
+- **Structural Integrity:** Asegura que los componentes mantengan una jerarquía limpia.
+- **Pattern Validation:** Verifica que el código generado por IA siga los estándares (ej. NestJS naming, SOLID).
+- **Dependency Guard:** Evita acoplamientos innecesarios y dependencias circulares.
 
 ---
-
-## 📜 License
-© 2026 Sergio - SKRYMIR Intelligence Command.
+**Sergio Guadarrama** — [sergio.gs8925@gmail.com](mailto:sergio.gs8925@gmail.com)
+Parte de la **Skrymir Suite**
