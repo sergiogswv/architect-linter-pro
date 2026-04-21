@@ -146,28 +146,39 @@ async def handle_command(
     except Exception:
         pass  # La memoria falla silenciosamente, no bloquea el análisis
 
-    # ── 5. LLM analiza el resultado crudo + contexto ──────────────────
+    # ── 5. LLM analiza el resultado crudo + contexto (Bajo Demanda) ──
     analysis = ""
-    try:
-        await _log_to_cerebro(f"🤖 Llamando a LLM ({settings.llm_provider}) para análisis...", "info")
-        print(f"🤖 [Architect] Llamando a LLM ({settings.llm_provider}) para análisis...")
-        print(f"📝 [Architect] Raw result tiene {len(str(raw_result))} chars")
-        print(f"📝 [Architect] Memory context: {mem_context is not None}")
-
-        analysis = await analyze_result(
-            action=action,
-            raw_result=raw_result,
-            memory_context=mem_context,
-        )
-        print(f"✅ [Architect] LLM respondió: {len(analysis)} chars")
-        await _log_to_cerebro(f"✅ LLM respondió: {len(analysis)} caracteres", "info")
-        # Enviar preview del análisis
-        preview = analysis[:200] + "..." if len(analysis) > 200 else analysis
-        await _log_to_cerebro(f"📝 Preview: {preview}", "info")
-    except Exception as exc:
-        analysis = f"[Análisis LLM no disponible: {exc}]"
-        print(f"⚠️  [Architect] LLM falló: {exc}")
-        await _log_to_cerebro(f"⚠️ LLM falló: {exc}", "warning")
+    
+    # PUNTO DE INFLEXIÓN: Si el Core Rust no ha encontrado nada (0 hallazgos y salud perfecta),
+    # no molestamos al LLM. Esto ahorra tokens y evita errores de timeout/API.
+    res_data = raw_result.get("result", {})
+    findings_count = res_data.get("findings_count", 0)
+    health_score = res_data.get("health_score", 100)
+    target_label = target if target and target != "." else "el proyecto"
+    
+    if findings_count == 0 and health_score >= 100:
+        analysis = f"🏛️ **Arquitectura Validada:** El motor Core Rust confirma que {target_label} cumple con todos los estándares definidos. No se requiere intervención de IA en este ciclo."
+        print(f"✅ [Architect] Skip LLM: No se detectaron violaciones.")
+        await _log_to_cerebro("✅ Estructura íntegra. Saltando análisis de IA para optimizar recursos.", "info")
+    else:
+        try:
+            await _log_to_cerebro(f"🤖 Hallazgos detectados ({findings_count}). Solicitando análisis a LLM ({settings.llm_provider})...", "info")
+            print(f"🤖 [Architect] Llamando a LLM ({settings.llm_provider}) para análisis de {findings_count} hallazgos...")
+            
+            analysis = await analyze_result(
+                action=action,
+                raw_result=raw_result,
+                memory_context=mem_context,
+            )
+            print(f"✅ [Architect] LLM respondió: {len(analysis)} chars")
+            await _log_to_cerebro(f"✅ LLM respondió: {len(analysis)} caracteres", "info")
+            
+            preview = analysis[:200] + "..." if len(analysis) > 200 else analysis
+            await _log_to_cerebro(f"📝 Preview: {preview}", "info")
+        except Exception as exc:
+            analysis = f"[Análisis LLM no disponible: {exc}]"
+            print(f"⚠️  [Architect] LLM falló: {exc}")
+            await _log_to_cerebro(f"⚠️ LLM falló: {exc}", "warning")
 
     # GARANTÍA: summary nunca vacío (requerido por Cerebro Proactivo)
     if not analysis or not analysis.strip():
